@@ -1,0 +1,502 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="RentShield: get your Dubai eviction notice right the first time. Verified owners, the correct notice period, English and Arabic, cited to UAE Law No. 33 of 2008.">
+  <title>RentShield: Dubai eviction notices, done right</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RentShield">
+  <meta property="og:title" content="RentShield: Dubai eviction notices, done right">
+  <meta property="og:description" content="Verified property owners generate bilingual, statute-cited Dubai tenancy notices under UAE Law No. 33 of 2008.">
+  <meta property="og:url" content="https://auth.rentshield.local:8443/welcome/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="RentShield: Dubai eviction notices, done right">
+  <meta name="twitter:description" content="Verified owners. Correct notice period. English and Arabic. Cited to UAE Law No. 33 of 2008.">
+  <style>
+    /* Original design: GOV.UK clarity (plain English, clear structure,
+       yellow keyboard focus, phase banner) blended with modern-SaaS polish
+       (product mock hero, feature rows, soft cards, subtle gradients), in
+       RentShield's own brand. Self-contained, no external CSS. Not a copy
+       of any specific company's site. */
+    :root{
+      --green:#17541f; --green-2:#1e6b2a; --green-strong:#0f3614; --green-deep:#0b2e12;
+      --mint:#eaf5ec; --mint-2:#d8eddc;
+      --violet:#6b5bd6; --violet-2:#8577e4; --violet-tint:#f0edfd;
+      --ink:#0f1a12; --body:#3a4a3e; --muted:#6c7a70; --faint:#9aa79e;
+      --line:#e7ece8; --line-2:#eef2ef; --bg:#ffffff; --bg-soft:#f7faf8;
+      --focus:#ffdd00; --focus-ink:#0b0c0c;
+      --radius:16px; --radius-sm:12px; --radius-pill:999px;
+      --shadow-sm:0 1px 2px rgba(15,26,18,.05),0 2px 8px rgba(15,26,18,.04);
+      --shadow:0 12px 40px -12px rgba(15,46,18,.22),0 2px 10px rgba(15,46,18,.06);
+      --shadow-lg:0 30px 70px -20px rgba(11,46,18,.35);
+      --ease:cubic-bezier(.23,1,.32,1);
+      --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    html{font-size:100%;-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+    body{margin:0;background:var(--bg);color:var(--body);font-family:var(--font);font-size:1.0625rem;line-height:1.6;-webkit-font-smoothing:antialiased;}
+    a{color:var(--green);text-decoration:none;}
+    a,button{-webkit-tap-highlight-color:transparent;}
+    h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;line-height:1.08;margin:0;}
+    .wrap{max-width:1140px;margin:0 auto;padding:0 1.5rem;}
+    /* GOV.UK-style yellow keyboard focus */
+    a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:0;box-shadow:0 2px 0 var(--focus-ink);text-decoration:none;}
+
+    /* buttons */
+    .btn{display:inline-flex;align-items:center;gap:.5rem;font-family:inherit;font-weight:600;font-size:1rem;border:none;border-radius:var(--radius-pill);padding:.8rem 1.4rem;cursor:pointer;transition:transform .14s var(--ease),background-color .16s var(--ease),box-shadow .16s var(--ease);}
+    .btn:active{transform:scale(.97);}
+    .btn-primary{background:var(--green);color:#fff;box-shadow:0 1px 2px rgba(11,46,18,.25),0 8px 20px -8px rgba(11,46,18,.4);}
+    .btn-primary:hover{background:var(--green-strong);}
+    .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
+    .btn-ghost:hover{border-color:var(--green);color:var(--green);}
+    .btn-lg{padding:.95rem 1.7rem;font-size:1.05rem;}
+    .btn .arr{transition:transform .16s var(--ease);}
+    .btn:hover .arr{transform:translateX(3px);}
+
+    /* nav */
+    .nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.8);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid transparent;transition:border-color .2s ease,box-shadow .2s ease;}
+    .nav.scrolled{border-bottom-color:var(--line);box-shadow:0 6px 24px -18px rgba(15,46,18,.4);}
+    .nav-in{display:flex;align-items:center;justify-content:space-between;gap:1rem;max-width:1140px;margin:0 auto;padding:.85rem 1.5rem;position:relative;}
+    .brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.3rem;color:var(--ink);letter-spacing:-.02em;}
+    .brand svg{width:28px;height:28px;color:var(--green);}
+    .nav-links{display:flex;align-items:center;gap:1.9rem;}
+    .nav-links a{color:var(--body);font-weight:500;font-size:.98rem;}
+    .nav-links a:hover{color:var(--ink);}
+    .nav-cta{display:flex;align-items:center;gap:1rem;}
+    .nav-signin{color:var(--ink);font-weight:600;font-size:.98rem;}
+    .nav-toggle{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:1.3rem;align-items:center;justify-content:center;cursor:pointer;}
+
+    /* GOV.UK phase banner */
+    .phase{background:var(--bg-soft);border-bottom:1px solid var(--line-2);}
+    .phase-in{max-width:1140px;margin:0 auto;padding:.55rem 1.5rem;font-size:.9rem;color:var(--muted);}
+    .tag{display:inline-block;background:var(--violet);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;margin-right:.55rem;}
+
+    /* hero */
+    .hero{position:relative;overflow:hidden;background:
+      radial-gradient(60rem 30rem at 15% -10%, var(--mint), transparent 60%),
+      radial-gradient(50rem 28rem at 92% 0%, var(--violet-tint), transparent 55%);
+      padding:4.5rem 0 4rem;}
+    .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3.5rem;align-items:center;}
+    .pill{display:inline-flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line);border-radius:var(--radius-pill);padding:.4rem .9rem;font-size:.85rem;font-weight:600;color:var(--green);box-shadow:var(--shadow-sm);}
+    .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--violet);}
+    .hero h1{font-size:clamp(2.4rem,5vw,3.6rem);margin:1.4rem 0 0;font-weight:800;}
+    .hero h1 .hl{color:var(--green);}
+    .hero p.sub{font-size:1.2rem;color:var(--body);margin:1.3rem 0 0;max-width:34rem;}
+    .hero-cta{display:flex;align-items:center;gap:1rem;margin:2rem 0 0;flex-wrap:wrap;}
+    .hero-note{display:flex;gap:1.3rem;flex-wrap:wrap;margin-top:1.6rem;color:var(--muted);font-size:.9rem;}
+    .hero-note span{display:inline-flex;align-items:center;gap:.4rem;}
+    .hero-note svg{width:16px;height:16px;color:var(--green);}
+
+    /* product mock (original, stylised representation of the app) */
+    .mock{position:relative;}
+    .mock-win{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;}
+    .mock-bar{display:flex;align-items:center;gap:.45rem;padding:.7rem .9rem;border-bottom:1px solid var(--line-2);background:var(--bg-soft);}
+    .mock-bar i{width:10px;height:10px;border-radius:50%;background:#dfe5e0;}
+    .mock-bar .url{margin-left:.6rem;font-size:.72rem;color:var(--faint);background:#fff;border:1px solid var(--line);border-radius:999px;padding:.15rem .7rem;}
+    .mock-body{padding:1.2rem;}
+    .mock-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .mock-h b{font-size:1rem;color:var(--ink);}
+    .vbadge{display:inline-flex;align-items:center;gap:.35rem;background:var(--violet-tint);color:var(--violet);font-weight:700;font-size:.72rem;padding:.25rem .6rem;border-radius:999px;}
+    .vbadge svg{width:13px;height:13px;}
+    .mock-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:700;margin-bottom:.5rem;}
+    .chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem;}
+    .chip{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:.35rem .7rem;color:var(--body);background:#fff;}
+    .chip.on{background:var(--green);color:#fff;border-color:var(--green);}
+    .doc{border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:.9rem;background:var(--bg-soft);}
+    .doc-row{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);padding:.25rem 0;}
+    .doc-row b{color:var(--ink);}
+    .doc-art{font-size:.72rem;color:var(--green);font-weight:700;}
+    .mock-float{position:absolute;right:-14px;bottom:28px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:.7rem .9rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:600;color:var(--ink);}
+    .mock-float .ok{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;}
+    .mock-float .ok svg{width:15px;height:15px;}
+
+    /* trust strip */
+    .trust{border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);background:var(--bg-soft);}
+    .trust-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1rem 2.4rem;padding:1.3rem 1.5rem;}
+    .trust span{color:var(--muted);font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;gap:.5rem;}
+    .trust svg{width:17px;height:17px;color:var(--green);}
+
+    /* sections */
+    section{padding:5rem 0;}
+    .sec-head{text-align:center;max-width:42rem;margin:0 auto 3rem;}
+    .eyebrow{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--violet);margin-bottom:.9rem;}
+    h2{font-size:clamp(1.9rem,3.5vw,2.6rem);font-weight:800;}
+    .sec-head p{font-size:1.15rem;color:var(--muted);margin:1rem 0 0;}
+
+    /* feature rows */
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;margin-bottom:4.5rem;}
+    .frow:last-child{margin-bottom:0;}
+    .frow.flip .ftext{order:2;}
+    .fstep{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;border-radius:12px;background:var(--mint);color:var(--green);font-weight:800;margin-bottom:1rem;}
+    .frow h3{font-size:1.6rem;font-weight:800;}
+    .frow p{margin:1rem 0 0;color:var(--body);font-size:1.08rem;}
+    .flist{list-style:none;padding:0;margin:1.2rem 0 0;}
+    .flist li{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem;color:var(--body);}
+    .flist svg{width:20px;height:20px;color:var(--green);flex:none;margin-top:2px;}
+    .fvis{background:linear-gradient(160deg,var(--bg-soft),#fff);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;}
+
+    /* why band */
+    .band{background:linear-gradient(160deg,var(--green-deep),var(--green));color:#eaf5ec;border-radius:28px;}
+    .band-in{padding:3.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
+    .band h2{color:#fff;}
+    .band p{color:#cfe6d5;font-size:1.12rem;margin:1.1rem 0 0;}
+    .band .q{font-size:1.5rem;font-weight:700;color:#fff;line-height:1.3;}
+    .band .q .u{color:var(--violet-2);}
+
+    /* metrics */
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+    .metric{text-align:center;padding:1.5rem;}
+    .metric b{display:block;font-size:2.6rem;font-weight:800;color:var(--green);letter-spacing:-.03em;}
+    .metric span{color:var(--muted);font-size:.98rem;}
+
+    /* pricing */
+    .price-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:1.5rem;max-width:62rem;margin:0 auto;align-items:start;}
+    .plan{position:relative;background:#fff;border:2px solid var(--green);border-radius:20px;padding:2rem 2rem 1.9rem;box-shadow:0 26px 64px -28px rgba(23,84,31,.5);}
+    .plan-ribbon{position:absolute;top:-.85rem;left:2rem;background:var(--green);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.32rem .8rem;border-radius:999px;}
+    .plan-name{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-top:.3rem;}
+    .plan-price{font-size:3rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1;margin:.5rem 0 .35rem;}
+    .plan-price span{font-size:1rem;font-weight:500;color:var(--muted);letter-spacing:0;}
+    .plan-sub{color:var(--muted);font-size:.98rem;margin:0 0 1.4rem;}
+    .plan .btn{width:100%;}
+    .plan-feats{list-style:none;padding:1.4rem 0 0;margin:1.4rem 0 0;border-top:1px solid var(--line-2);}
+    .plan-feats li{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.75rem;color:var(--body);font-size:.98rem;}
+    .plan-feats svg{width:20px;height:20px;color:var(--green);flex:none;margin-top:1px;}
+    .addons{background:var(--bg-soft);border:1px solid var(--line);border-radius:20px;padding:1.7rem;}
+    .addons-h{font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:.4rem;}
+    .addons-h span{display:block;font-size:.88rem;font-weight:400;color:var(--muted);margin-top:.2rem;}
+    .addon{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;padding:.95rem 0;border-bottom:1px solid var(--line-2);}
+    .addon:last-child{border-bottom:none;}
+    .addon b{display:block;color:var(--ink);font-size:.98rem;}
+    .addon small{color:var(--muted);font-size:.86rem;line-height:1.4;display:block;margin-top:.15rem;}
+    .addon .amt{font-weight:800;color:var(--green);white-space:nowrap;}
+
+    /* faq */
+    .faq{max-width:46rem;margin:0 auto;}
+    details.q{border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:.8rem;background:#fff;overflow:hidden;}
+    details.q summary{list-style:none;cursor:pointer;padding:1.1rem 1.3rem;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;gap:1rem;align-items:center;}
+    details.q summary::-webkit-details-marker{display:none;}
+    details.q summary::after{content:"+";font-size:1.4rem;color:var(--green);font-weight:400;}
+    details.q[open] summary::after{content:"\2212";}
+    details.q .a{padding:0 1.3rem 1.2rem;color:var(--body);}
+    details.q[open] .a{animation:fade .22s var(--ease) both;}
+
+    /* closing CTA */
+    .cta{text-align:center;background:
+      radial-gradient(40rem 20rem at 50% 120%, var(--violet-tint), transparent 60%),
+      var(--mint);border-radius:28px;padding:4rem 2rem;}
+    .cta h2{margin-bottom:1rem;}
+    .cta p{color:var(--body);font-size:1.15rem;max-width:34rem;margin:0 auto 2rem;}
+
+    /* footer */
+    .footer{background:var(--green-deep);color:#bcd3c2;padding:3.5rem 0 2rem;margin-top:5rem;}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2rem;}
+    .footer .brand{color:#fff;}
+    .footer .brand svg{color:#fff;}
+    .footer h6{color:#fff;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;margin:0 0 .9rem;}
+    .footer a{display:block;color:#bcd3c2;margin-bottom:.5rem;font-size:.95rem;}
+    .footer a:hover{color:#fff;}
+    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;border-top:1px solid rgba(255,255,255,.12);margin-top:2.5rem;padding-top:1.5rem;font-size:.85rem;color:#8ca893;}
+
+    /* motion */
+    @keyframes fade{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+    @keyframes up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+    .hero .ea{animation:up .55s var(--ease) both;}
+    .hero .ea:nth-child(2){animation-delay:.06s;}
+    .hero .ea:nth-child(3){animation-delay:.12s;}
+    .hero .ea:nth-child(4){animation-delay:.18s;}
+    .hero .ea:nth-child(5){animation-delay:.24s;}
+    .mock{animation:up .6s var(--ease) both .15s;}
+    .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+    .reveal.in{opacity:1;transform:none;}
+
+    @media (max-width:900px){
+      .hero-grid,.frow,.frow.flip .ftext,.band-in,.footer-grid,.price-layout{grid-template-columns:1fr;}
+      .frow.flip .ftext{order:0;}
+      .metrics{grid-template-columns:1fr;}
+      .band-in{padding:2.4rem;}
+      .nav-links,.nav-signin{display:none;}
+      .nav-toggle{display:inline-flex;}
+      .nav-menu-open .nav-links{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:1rem 1.5rem;gap:1rem;}
+      .mock-float{display:none;}
+    }
+    @media (prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto;}
+      .hero .ea,.mock{animation:none;}
+      .reveal{opacity:1;transform:none;transition:none;}
+      .btn:active{transform:none;}
+    }
+  </style>
+</head>
+<body>
+<nav class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top">{% include "paperless-ngx/snippets/svg_leaf.html" %} RentShield</a>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="nav-signin" href="{% url 'rentshield-signup-start' %}">Sign in</a>
+      <a class="btn btn-primary" href="{% url 'rentshield-signup-start' %}">Get started</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+  </div>
+</nav>
+
+<div class="phase">
+  <div class="phase-in"><span class="tag">Beta</span>This is a new service for Dubai landlords. Your feedback helps us improve it.</div>
+</div>
+
+<header id="top" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill ea"><span class="dot"></span> Verified owners, valid notices</span>
+      <h1 class="ea">Get your Dubai eviction notice <span class="hl">right the first time.</span></h1>
+      <p class="sub ea">A wrong date or the wrong way of sending it gets a notice thrown out, and you lose months. RentShield makes yours correct, in English and Arabic, from an owner we have checked is real.</p>
+      <div class="hero-cta ea">
+        <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
+        <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
+      </div>
+      <div class="hero-note ea">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> From AED {{ base_price_aed }} per notice</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> No subscription</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Checked by a Notary</span>
+      </div>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-win">
+        <div class="mock-bar"><i></i><i></i><i></i><span class="url">app.rentshield.local/notice/new</span></div>
+        <div class="mock-body">
+          <div class="mock-h"><b>New eviction notice</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Verified owner</span></div>
+          <div class="mock-label">Reason</div>
+          <div class="chips">
+            <span class="chip on">Sale of property</span>
+            <span class="chip">Personal use</span>
+            <span class="chip">Non-payment</span>
+            <span class="chip">Demolition</span>
+          </div>
+          <div class="mock-label">Notice preview</div>
+          <div class="doc">
+            <div class="doc-row"><span>Notice period</span><b>12 months</b></div>
+            <div class="doc-row"><span>Languages</span><b>English &amp; Arabic</b></div>
+            <div class="doc-row"><span>Cited</span><span class="doc-art">Article 25(2)</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mock-float"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></span> Ready to serve</div>
+    </div>
+  </div>
+</header>
+
+<div class="trust">
+  <div class="trust-in">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/></svg> UAE Law No. 33 of 2008</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l8-2 8 2M4 8v8l8 2 8-2V8"/></svg> RERA &amp; RDSC aligned</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Biometrics stay private</span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg> Open source</span>
+  </div>
+</div>
+
+<section id="why">
+  <div class="wrap">
+    <div class="band reveal">
+      <div class="band-in">
+        <div>
+          <span class="eyebrow" style="color:var(--violet-2);">Why we built this</span>
+          <h2>A bad notice helps no one</h2>
+          <p>Most notices that get disputed fail for a small reason: the wrong number of days, the wrong way of sending it, or no proof of who sent it. When that happens at the Rental Dispute Settlement Centre, the months you waited count for nothing.</p>
+        </div>
+        <div>
+          <p class="q">We think the notice should be the one thing you <span class="u">never have to worry about.</span> So we get the law, the dates, both languages, and the sender's identity right for you.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="padding-top:1rem;">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps, no guesswork</h2>
+      <p>You prove who you are once. After that, every notice is built on it.</p>
+    </div>
+
+    <div class="frow reveal">
+      <div class="ftext">
+        <div class="fstep">1</div>
+        <h3>Prove who you are</h3>
+        <p>Scan your passport chip and take a selfie. A Notary Public checks it. You only do this once.</p>
+        <ul class="flist">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Reads the chip, not a photo anyone can fake</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Your biometric data never leaves the server</li>
+        </ul>
+      </div>
+      <div class="fvis">
+        <div class="mock-h"><b>Verify your identity</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Approved</span></div>
+        <div class="doc"><div class="doc-row"><span>Passport chip</span><b>Read</b></div><div class="doc-row"><span>Live selfie</span><b>Matched</b></div><div class="doc-row"><span>Notary review</span><span class="doc-art">Passed</span></div></div>
+      </div>
+    </div>
+
+    <div class="frow flip reveal">
+      <div class="ftext">
+        <div class="fstep">2</div>
+        <h3>Create the notice</h3>
+        <p>Pick your reason. We choose the right notice period and write it in English and Arabic, with the exact article cited.</p>
+        <ul class="flist">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> 12 months or 30 days, chosen for you</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Saved as a document you can search</li>
+        </ul>
+      </div>
+      <div class="fvis">
+        <div class="mock-label">Reason</div>
+        <div class="chips"><span class="chip on">Non-payment</span><span class="chip">Sale</span><span class="chip">Personal use</span></div>
+        <div class="doc"><div class="doc-row"><span>Notice period</span><b>30 days</b></div><div class="doc-row"><span>Cited</span><span class="doc-art">Article 25(1)</span></div></div>
+      </div>
+    </div>
+
+    <div class="frow reveal">
+      <div class="ftext">
+        <div class="fstep">3</div>
+        <h3>Serve it properly</h3>
+        <p>Add a certified e-signature or a real notary so your notice is served the way the law accepts, not by an email that does not count.</p>
+        <ul class="flist">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Certified delivery, or a licensed UAE notary</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Holds up if the tenant disputes it</li>
+        </ul>
+      </div>
+      <div class="fvis">
+        <div class="mock-h"><b>Serve</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Certified</span></div>
+        <div class="doc"><div class="doc-row"><span>Certified e-signature</span><b>Add-on</b></div><div class="doc-row"><span>Real Notary Public</span><b>Optional</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg-soft);">
+  <div class="wrap">
+    <div class="metrics reveal">
+      <div class="metric"><b>2</b><span>languages on every notice (English and Arabic)</span></div>
+      <div class="metric"><b>Art. 25</b><span>of UAE Law No. 33 of 2008, cited on each notice</span></div>
+      <div class="metric"><b>1</b><span>identity check, then every notice is verified</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Pricing</span>
+      <h2>Simple pricing. No subscription.</h2>
+      <p>One price per notice. Add the official extras only when you need them.</p>
+    </div>
+    <div class="price-layout reveal">
+      <div class="plan">
+        <span class="plan-ribbon">Pay as you go</span>
+        <div class="plan-name">Per notice</div>
+        <div class="plan-price">AED {{ base_price_aed }} <span>/ notice</span></div>
+        <p class="plan-sub">Everything you need to issue a valid notice. You only pay when you make one.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
+        <ul class="plan-feats">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Verified-owner identity, checked once</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Correct notice period, chosen for you</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> English and Arabic, with Article 25 cited</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Saved as a searchable document</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> No subscription, no per-seat fees</li>
+        </ul>
+      </div>
+      <div class="addons">
+        <div class="addons-h">Optional add-ons<span>Stack these onto any notice, priced per use.</span></div>
+        {% for key, addon in add_ons.items %}
+        <div class="addon"{% if addon.available == False %} style="opacity:.55;"{% endif %}>
+          <div><b>{{ addon.label }}</b><small>{{ addon.description }}</small></div>
+          <div class="amt">+AED {{ addon.price_aed }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="background:var(--bg-soft);">
+  <div class="wrap">
+    <div class="sec-head"><span class="eyebrow">FAQ</span><h2>Common questions</h2></div>
+    <div class="faq reveal">
+      <details class="q"><summary>Why do I need to prove my identity?</summary><div class="a">A notice carries legal weight, so we check the person sending it is real. You do it once, with your passport chip and a selfie, and a Notary Public approves it. Every notice you make after that is tied to your verified identity.</div></details>
+      <details class="q"><summary>How much does it cost?</summary><div class="a">AED {{ base_price_aed }} per notice, with no subscription. You can add extras like a certified e-signature or a legal review only if you need them.</div></details>
+      <details class="q"><summary>How long is the notice period in Dubai?</summary><div class="a">It depends on the reason. Sale, personal use, demolition, or major renovation need 12 months. Non-payment or illegal subletting need 30 days. We pick the right one for you.</div></details>
+      <details class="q"><summary>Does the notice need to be notarised?</summary><div class="a">To serve it, the law accepts three ways: a Notary Public, registered mail with proof of receipt, or a court bailiff. An email or text message does not count. Our add-ons can handle the official part for you.</div></details>
+      <details class="q"><summary>Is RentShield RERA compliant?</summary><div class="a">Yes. Every notice cites UAE Law No. 33 of 2008 and the exact article it uses, the same law RERA and the Rental Dispute Settlement Centre apply.</div></details>
+      <details class="q"><summary>Can a tenant dispute a notice?</summary><div class="a">Yes. A tenant can challenge it at the RDSC. A notice that is correct and from a verified sender is far harder to dispute. None of this is legal advice.</div></details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="cta reveal">
+      <h2>Serve your next notice with confidence</h2>
+      <p>Prove who you are once, then make notices that hold up. From AED {{ base_price_aed }}, no subscription.</p>
+      <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="#top">{% include "paperless-ngx/snippets/svg_leaf.html" %} RentShield</a>
+        <p style="margin-top:1rem;max-width:22rem;font-size:.95rem;">Correct, bilingual Dubai tenancy notices from verified owners. Built on open-source paperless-ngx.</p>
+      </div>
+      <div>
+        <h6>Product</h6>
+        <a href="#why">Why</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
+      </div>
+      <div>
+        <h6>Get started</h6>
+        <a href="{% url 'rentshield-signup-start' %}">Sign in</a>
+        <a href="{% url 'rentshield-signup-start' %}">Create an account</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; {% now "Y" %} RentShield. Built on paperless-ngx, GPL-3.0.</span>
+      <span>Not a substitute for advice from a licensed UAE lawyer.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  var nav=document.getElementById('nav');
+  var onScroll=function(){nav.classList.toggle('scrolled',window.scrollY>6);};
+  onScroll();window.addEventListener('scroll',onScroll,{passive:true});
+  document.getElementById('navToggle').addEventListener('click',function(){
+    document.querySelector('.nav-in').classList.toggle('nav-menu-open');
+  });
+  if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)&&'IntersectionObserver'in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  }
+</script>
+<div id="rs-cookie" style="position:fixed;bottom:0;left:0;right:0;z-index:50;background:#0b2e12;color:#eafaef;padding:.9rem 1.25rem;display:none;align-items:center;gap:1rem;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.2);">
+  <span style="flex:1;min-width:220px;font-size:.9rem;">We use only essential cookies to keep you signed in. See our <a href="/welcome/privacy" style="color:#fff;text-decoration:underline;">privacy notice</a>.</span>
+  <button type="button" id="rs-cookie-ok" style="background:#fff;color:#0b2e12;border:none;border-radius:999px;font-weight:700;font-size:.85rem;padding:.5rem 1.1rem;cursor:pointer;">Got it</button>
+</div>
+<script>
+  (function(){
+    try{
+      var el=document.getElementById('rs-cookie');
+      if(!localStorage.getItem('rs-cookie-ok')){ el.style.display='flex'; }
+      document.getElementById('rs-cookie-ok').addEventListener('click',function(){
+        try{ localStorage.setItem('rs-cookie-ok','1'); }catch(e){}
+        el.style.display='none';
+      });
+    }catch(e){}
+  })();
+</script>
+</body>
+</html>

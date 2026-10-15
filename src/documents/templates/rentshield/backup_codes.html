@@ -1,0 +1,30 @@
+{% extends "rentshield/signup_base.html" %}
+{% block title %}Save your backup codes{% endblock %}
+{% block content %}
+    {% if codes %}
+    <h1>Save your backup codes</h1>
+    <p class="rs-wizard-hint">If you ever can't get your email code, or you lose your phone, any one of these will get you back in. Each code works once. Keep them somewhere safe, like a password manager or a note only you can see.</p>
+    <div id="rs-codes" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:1.3rem 0;">
+        {% for c in codes %}<span style="font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:1.05rem;font-weight:700;letter-spacing:.06em;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:.65rem .5rem;text-align:center;color:var(--ink);">{{ c }}</span>{% endfor %}
+    </div>
+    <button type="button" class="rs-btn-link" id="rs-copy" style="margin-bottom:1.2rem;">Copy all codes</button>
+    <a class="rs-btn rs-btn-start" href="{% url 'rentshield-totp-setup' %}" style="display:block;text-align:center;">I've saved them, continue</a>
+    <script>
+      (function () {
+        var btn = document.getElementById('rs-copy');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          var codes = [].map.call(document.querySelectorAll('#rs-codes span'), function (s) { return s.textContent; }).join('\n');
+          navigator.clipboard.writeText(codes).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy all codes'; }, 1500);
+          }).catch(function () { btn.textContent = 'Press Ctrl+C to copy'; });
+        });
+      })();
+    </script>
+    {% else %}
+    <h1>Backup codes</h1>
+    <p class="rs-wizard-hint">Your backup codes are shown only once, when they're created, and can't be displayed again. If you need a new set, you can generate fresh ones from your account settings (that replaces the old ones).</p>
+    <a class="rs-btn rs-btn-start" href="/" style="display:block;text-align:center;">Continue</a>
+    {% endif %}
+{% endblock %}

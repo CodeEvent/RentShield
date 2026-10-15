@@ -1,0 +1,8 @@
+{% extends "rentshield/signup_base.html" %}
+{% block title %}Signed out{% endblock %}
+{% block content %}
+    <h1>You're signed out</h1>
+    <p class="rs-wizard-hint">Your session on this device has ended. Go back to the site, or sign in again to pick up where you left off.</p>
+    <a class="rs-btn rs-btn-start" href="/welcome/">Continue</a>
+    <a class="rs-btn-link" href="{% url 'rentshield-signup-start' %}" style="display:inline-block;margin-top:1.1rem;">Sign in again</a>
+{% endblock %}

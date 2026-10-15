@@ -1,0 +1,22 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}What is your email address?{% endblock %}
+{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-start' %}">Back</a>{% endblock %}
+{% block content %}
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label class="rs-label-h1" for="id_email">What is your email address?</label>
+            <span class="rs-hint">We'll send a 6-digit code to confirm it, and use it to tell you when your verification is approved.</span>
+            <input type="email" name="email" id="id_email" class="rs-input" autocomplete="email" spellcheck="false" inputmode="email" required autofocus>
+        </div>
+        <div class="rs-check">
+            <input type="checkbox" name="agree" id="id_agree" required>
+            <label for="id_agree">I agree to RentShield's terms and conditions and privacy notice</label>
+        </div>
+        <button type="submit" class="rs-btn">
+            <span class="rs-btn-label">Continue</span>
+        </button>
+    </form>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

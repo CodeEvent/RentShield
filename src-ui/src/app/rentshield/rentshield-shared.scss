@@ -1,0 +1,287 @@
+// Shared "MintHCM-styled" primitives for the rentshield feature area —
+// imported by each component's own .scss via
+// @use '../rentshield-shared' as *; or @forward, kept plain CSS classes
+// (not a mixin library) so they're usable directly in templates too.
+// Colors reference the --rs-light-* tokens in src/styles.scss, not raw
+// hex -- see that block's own comment for why a separate prefix from
+// DESIGN.md's onboarding tokens.
+.rs-emerald {
+  color: var(--rs-light-emerald);
+}
+.rs-navy {
+  color: var(--rs-light-navy);
+}
+
+// Real bug found doing a UX pass on identity-verification.component
+// (2026-09-13): this was only ever defined in notice-form.component
+// .scss, so every OTHER component referencing the same "rs-btn-emerald"
+// class (identity-verification's own primary buttons included) got a
+// plain, unstyled Bootstrap .btn instead -- Angular's view
+// encapsulation means a class defined in one component's stylesheet
+// simply doesn't apply to another component's template, no error, no
+// warning, just a button that silently never looked like the rest of
+// the site. Moved here so every component that @use's this file
+// (as notice-form.component.scss already did) gets it consistently.
+.rs-btn-emerald {
+  background: var(--rs-light-primary);
+  color: #fff;
+  border-radius: 14px;
+  border: none;
+}
+
+.rs-btn-emerald:hover:not(:disabled) {
+  background: var(--rs-light-primary-strong);
+  color: #fff;
+}
+
+.rs-btn-emerald:disabled {
+  opacity: 0.5;
+}
+
+.rs-btn-outline-slate {
+  background: var(--rs-light-panel-bg);
+  color: var(--rs-light-text-secondary);
+  border: 1px solid var(--rs-light-border-strong);
+  border-radius: 14px;
+}
+
+.rs-btn-outline-slate:hover {
+  background: var(--rs-light-bg-subtle);
+  color: var(--rs-light-text-strong);
+}
+
+.rs-btn-outline-slate.active {
+  background: var(--rs-light-navy);
+  color: #fff;
+  border-color: var(--rs-light-navy);
+}
+
+.rs-btn-outline-red {
+  background: var(--rs-light-panel-bg);
+  color: var(--rs-light-red);
+  border: 1px solid var(--rs-light-red-border);
+  border-radius: 14px;
+}
+
+.rs-btn-outline-red:hover {
+  background: var(--rs-light-red-bg-subtle);
+  color: var(--rs-light-red-strong);
+}
+
+.rs-btn-outline-red:disabled {
+  opacity: 0.5;
+}
+
+.rs-btn-outline-amber {
+  background: var(--rs-light-panel-bg);
+  color: var(--rs-light-amber);
+  border: 1px solid var(--rs-light-amber-border);
+  border-radius: 14px;
+}
+
+.rs-btn-outline-amber:hover {
+  background: var(--rs-light-amber-bg-subtle);
+  color: var(--rs-light-amber-strong);
+}
+
+.rs-btn-outline-amber:disabled {
+  opacity: 0.5;
+}
+
+.rs-panel {
+  background: var(--rs-light-panel-bg);
+  border: 1px solid var(--rs-light-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.rs-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--rs-light-border-subtle);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--rs-light-text);
+}
+
+.rs-panel-header a {
+  color: var(--rs-light-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.rs-panel-body {
+  padding: 1.1rem;
+}
+
+.rs-stat-card {
+  background: var(--rs-light-panel-bg);
+  border: 1px solid var(--rs-light-border);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.rs-stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.rs-icon-primary {
+  background: var(--rs-light-primary-tint);
+  color: var(--rs-light-primary);
+}
+.rs-icon-emerald {
+  background: var(--rs-light-emerald-tint);
+  color: var(--rs-light-emerald-strong);
+}
+.rs-icon-amber {
+  background: var(--rs-light-amber-tint);
+  color: var(--rs-light-amber);
+}
+.rs-icon-slate {
+  background: var(--rs-light-border-subtle);
+  color: var(--rs-light-text-secondary);
+}
+.rs-icon-red {
+  background: var(--rs-light-red-tint);
+  color: var(--rs-light-red);
+}
+
+.rs-stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--rs-light-text);
+  line-height: 1;
+}
+
+.rs-stat-label {
+  font-size: 0.72rem;
+  color: var(--rs-light-text-muted);
+  margin-top: 0.3rem;
+}
+
+.rs-hint {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--rs-light-emerald-deep);
+}
+
+// Amber-toned twin of .rs-hint above -- for a warning/attention-needed
+// message (identity mismatch, "the Notary needs more from you", ...)
+// that shouldn't carry the same green "all good" tone .rs-hint does.
+.rs-hint-warn {
+  background: rgba(180, 83, 9, 0.08);
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--rs-light-amber-strong);
+}
+
+.rs-badge-notarized {
+  background: var(--rs-light-amber-tint) !important;
+  color: var(--rs-light-amber-strong) !important;
+  font-weight: 600;
+}
+
+.rs-badge-ai {
+  background: var(--rs-light-emerald-tint) !important;
+  color: var(--rs-light-emerald-deep) !important;
+  font-weight: 600;
+}
+
+// =====================================================================
+// Phase 0 — unification: motion, elevation, violet accent, components
+// Carries the front door's craft layer into the logged-in app so the
+// two halves feel like one deliberate product (not two). All motion is
+// transform/opacity-only, <=250ms, ease-out, and reduced-motion-safe.
+// =====================================================================
+
+// Press feedback + smooth transitions on every rentshield button variant.
+.rs-btn-emerald, .rs-btn-outline-slate, .rs-btn-outline-red, .rs-btn-outline-amber {
+  transition: background-color .16s var(--rs-ease), color .16s var(--rs-ease),
+              box-shadow .16s var(--rs-ease), transform .14s var(--rs-ease);
+  will-change: transform;
+}
+.rs-btn-emerald:active:not(:disabled),
+.rs-btn-outline-slate:active:not(:disabled),
+.rs-btn-outline-red:active:not(:disabled),
+.rs-btn-outline-amber:active:not(:disabled) { transform: scale(.97); }
+.rs-btn-emerald:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(23,84,31,.3); }
+
+// Elevation ramp + hover lift (pointer devices only).
+.rs-panel { box-shadow: var(--rs-shadow); transition: box-shadow .2s var(--rs-ease), transform .2s var(--rs-ease); }
+.rs-stat-card { box-shadow: var(--rs-shadow-sm); transition: box-shadow .2s var(--rs-ease), transform .2s var(--rs-ease); }
+@media (hover: hover) and (pointer: fine) {
+  .rs-stat-card:hover { transform: translateY(-2px); box-shadow: var(--rs-shadow); }
+}
+
+// Violet accent — the "verified / secure identity" moments, matching the
+// front door's identity theme. A pill, a soft panel tint, and an icon chip.
+.rs-badge-verified {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--rs-light-violet-tint); color: var(--rs-light-violet);
+  font-size: var(--rs-fs-xs); font-weight: 700; letter-spacing: .02em;
+  padding: .22rem .6rem; border-radius: var(--rs-radius-pill);
+}
+.rs-icon-violet { background: var(--rs-light-violet-tint); color: var(--rs-light-violet); }
+.rs-secure-note {
+  display: inline-flex; align-items: center; gap: .4rem;
+  color: var(--rs-light-violet); font-size: var(--rs-fs-xs); font-weight: 500;
+}
+
+// A real "success" tone distinct from primary green (true verified state).
+.rs-hint-success {
+  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.28);
+  border-radius: var(--rs-radius); padding: .75rem 1rem;
+  font-size: var(--rs-fs-sm); color: #065f46;
+}
+
+// Step indicator reads as the front door's violet "identity" moment.
+.rs-step-circle.rs-step-active { border-color: var(--rs-light-primary); color: var(--rs-light-primary); }
+.rs-step-circle { transition: background-color .2s var(--rs-ease), color .2s var(--rs-ease), border-color .2s var(--rs-ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-btn-emerald, .rs-btn-outline-slate, .rs-btn-outline-red, .rs-btn-outline-amber,
+  .rs-panel, .rs-stat-card, .rs-step-circle { transition: none; }
+  .rs-btn-emerald:active, .rs-stat-card:hover { transform: none; }
+}
+
+// =====================================================================
+// New public-site alignment (2026-10): pill buttons + softer, rounded
+// surfaces so the logged-in app matches the redesigned landing/signup
+// (modern-SaaS + GOV.UK look). Appended as overrides -- later rules of
+// equal specificity win, so this shifts every rentshield screen that
+// @use's this file at once, without editing each button/panel inline.
+// =====================================================================
+.rs-btn-emerald,
+.rs-btn-outline-slate,
+.rs-btn-outline-red,
+.rs-btn-outline-amber {
+  border-radius: var(--rs-radius-pill);
+  font-weight: 600;
+}
+.rs-btn-emerald {
+  box-shadow: 0 1px 2px rgba(11, 46, 18, 0.2), 0 8px 20px -10px rgba(11, 46, 18, 0.4);
+}
+.rs-btn-emerald:hover:not(:disabled) {
+  box-shadow: 0 1px 2px rgba(11, 46, 18, 0.25), 0 10px 22px -10px rgba(11, 46, 18, 0.45);
+}
+.rs-panel,
+.rs-stat-card {
+  border-radius: var(--rs-radius-lg);
+}
+// Violet "verified/secure" pill already matches; keep step dots on the
+// brand green (set in Phase 0). Focus ring stays the design-system green.

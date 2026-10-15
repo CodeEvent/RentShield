@@ -1,0 +1,22 @@
+# secrets & local config
+SECRETS.md
+**/dev_passwords.py
+**/set_rentshield_dev_passwords.py
+*.env
+.env
+**/certs/
+**/*-key.pem
+**/*.pem
+**/secrets/
+.rename-backup-*/
+*.pat
+oidc_app_credentials*
+# build / runtime
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+media/
+data/
+*.sqlite3

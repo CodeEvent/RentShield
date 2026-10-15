@@ -1,0 +1,119 @@
+@use '../rentshield-shared' as *;
+
+// Step indicator -- uses the unified brand tokens from styles.scss
+// (primary green + violet identity accent via rentshield-shared.scss)
+// instead of a local palette, and mirrors the native app's own step
+// indicator so the web and app halves feel like the same product mid-flow.
+.rs-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--rs-light-border-subtle);
+  // was #94a3b8 (4.34:1 on this circle's background -- fails WCAG AA's
+  // 4.5:1 for normal-weight-sized text even though it's bold, since
+  // 12.8px bold is still under the 14pt-bold "large text" threshold
+  // that would allow 3:1). --rs-light-text-secondary clears it at 6.92:1.
+  color: var(--rs-light-text-secondary);
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.rs-step-circle.rs-step-done {
+  // Unified on the brand primary green (--rs-light-primary, the front
+  // door's green) rather than --rs-light-emerald: Phase 0 reclassified
+  // emerald as a success-only tone, so progress dots use the one brand
+  // green instead, keeping web + native + front door visually one product.
+  background: var(--rs-light-primary);
+  color: #fff;
+}
+
+.rs-step-circle.rs-step-active {
+  background: var(--rs-light-primary-tint);
+  color: var(--rs-light-primary);
+  border-color: var(--rs-light-primary);
+}
+
+.rs-step-label {
+  font-size: 0.7rem;
+  // was #94a3b8 (2.56:1 on white -- fails WCAG AA's 4.5:1 for normal
+  // text); --rs-light-text-secondary clears it at 7.58:1.
+  color: var(--rs-light-text-secondary);
+  margin-top: 0.35rem;
+  line-height: 1.15;
+}
+
+.rs-step-label.rs-step-label-active {
+  color: var(--rs-light-text);
+  font-weight: 700;
+}
+
+// The QR code and its fallback text code -- given a real bordered,
+// padded frame instead of a bare <img> floating in the page, so it
+// reads as "the important thing to scan" rather than incidental
+// decoration.
+.rs-qr-frame {
+  background: var(--rs-light-panel-bg);
+  border: 1px solid var(--rs-light-border);
+  border-radius: var(--rs-radius-lg);
+  box-shadow: var(--rs-shadow-sm);
+  padding: 1.25rem;
+  display: inline-block;
+}
+
+.rs-qr-code-chip {
+  background: var(--rs-light-border-subtle);
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.rs-numbered-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.rs-numbered-step-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--rs-light-primary-tint);
+  color: var(--rs-light-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+// The shield icon in .rs-secure-note (defined in rentshield-shared.scss with
+// align-items:center) drifts to the vertical middle when the assurance
+// sentence wraps to two lines on a narrow panel. Top-align it here so it lines
+// up with the first line of text; on a single line this looks identical.
+// The "your documents stay private" reassurance reads as a soft violet
+// callout here (not a bare text line) -- it's the emotional anchor of the
+// trust moment, so give it a little card of its own. Scoped to this screen.
+.rs-secure-note {
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: var(--rs-light-violet-tint);
+  border: 1px solid rgba(107, 91, 214, 0.22);
+  border-radius: var(--rs-radius);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.rs-secure-note i-bs {
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}

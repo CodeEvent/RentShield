@@ -1,0 +1,171 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{% block title %}Create your account{% endblock %} - RentShield</title>
+    <style>
+        /* Shares the exact design system as the public landing
+           (landing.html): GOV.UK clarity (one question per page, plain
+           English, yellow keyboard focus, phase banner) blended with modern
+           SaaS polish (soft card, rounded inputs, pill buttons, subtle
+           gradient). Same tokens/colours so the whole site is uniform.
+           Self-contained so it also renders on the static nginx bridge. */
+        :root{
+            --green:#17541f; --green-strong:#0f3614; --green-deep:#0b2e12;
+            --mint:#eaf5ec; --violet:#6b5bd6; --violet-strong:#5a4bc4; --violet-tint:#f0edfd;
+            --ink:#0f1a12; --body:#3a4a3e; --muted:#6c7a70; --faint:#9aa79e;
+            --line:#e7ece8; --line-2:#eef2ef; --bg:#ffffff; --bg-soft:#f7faf8;
+            --error:#b4231c; --error-bg:#fdf2f1;
+            --focus:#ffdd00; --focus-ink:#0b0c0c;
+            --radius:16px; --radius-sm:12px; --radius-pill:999px;
+            --shadow-sm:0 1px 2px rgba(15,26,18,.05),0 2px 8px rgba(15,26,18,.04);
+            --shadow:0 20px 50px -20px rgba(11,46,18,.3),0 2px 10px rgba(15,46,18,.06);
+            --ease:cubic-bezier(.23,1,.32,1);
+            --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+            --mono:ui-monospace,"SF Mono","Cascadia Code",monospace;
+        }
+        *{box-sizing:border-box;}
+        html{font-size:100%;-webkit-text-size-adjust:100%;}
+        body{margin:0;min-height:100vh;color:var(--body);font-family:var(--font);font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased;
+            background:
+              radial-gradient(55rem 26rem at 12% -10%, var(--mint), transparent 60%),
+              radial-gradient(45rem 24rem at 95% 0%, var(--violet-tint), transparent 55%),
+              var(--bg);}
+        a{color:var(--green);text-decoration:none;}
+        a,button{-webkit-tap-highlight-color:transparent;}
+        h1,h2,h3{color:var(--ink);letter-spacing:-.02em;line-height:1.12;}
+        a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:0;box-shadow:0 2px 0 var(--focus-ink);}
+
+        /* header */
+        .rs-header{background:rgba(255,255,255,.82);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line-2);}
+        .rs-header-in{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+        .rs-brand{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);font-weight:800;font-size:1.3rem;letter-spacing:-.02em;}
+        .rs-brand svg{width:28px;height:28px;color:var(--green);}
+        .rs-brand .tag{display:none;}
+        .rs-header-link{color:var(--body);font-weight:600;font-size:.95rem;}
+        .rs-header-link:hover{color:var(--ink);}
+
+        /* phase banner */
+        .rs-phase{background:var(--bg-soft);border-bottom:1px solid var(--line-2);}
+        .rs-phase-in{max-width:1100px;margin:0 auto;padding:.55rem 1.5rem;font-size:.9rem;color:var(--muted);}
+        .rs-tag{display:inline-block;background:var(--violet);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;margin-right:.55rem;}
+
+        /* layout + card */
+        .rs-wrap{max-width:33rem;margin:0 auto;padding:2.75rem 1.25rem 4rem;}
+        .rs-col{width:100%;}
+        .rs-wizard-back{display:inline-block;margin-bottom:1.1rem;color:var(--green);font-weight:600;font-size:.95rem;}
+        .rs-wizard-back::before{content:"\2039  ";}
+        .rs-wizard-back:hover{color:var(--green-strong);}
+        .rs-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;animation:rsUp .5s var(--ease) both;}
+
+        h1{font-size:1.9rem;font-weight:800;margin:0 0 1.2rem;}
+        h2{font-size:1.3rem;font-weight:700;margin:1.6rem 0 .8rem;}
+        p,.rs-wizard-hint{margin:0 0 1.1rem;color:var(--body);}
+        .rs-lede{font-size:1.15rem;color:var(--body);margin:0 0 1.2rem;}
+        ul.rs-list{margin:0 0 1.2rem;padding-left:1.2rem;}
+        ul.rs-list li{margin-bottom:.5rem;}
+        .rs-inset{border-left:4px solid var(--line);padding:.3rem 0 .3rem 1rem;margin:1.3rem 0;color:var(--body);}
+        .rs-inset.violet{border-left-color:var(--violet);}
+
+        /* form */
+        .rs-field{margin-bottom:1.6rem;}
+        label{display:block;font-weight:700;color:var(--ink);margin-bottom:.4rem;}
+        label.rs-label-h1{font-size:1.9rem;font-weight:800;line-height:1.12;letter-spacing:-.02em;margin-bottom:.9rem;}
+        .rs-hint{display:block;color:var(--muted);font-size:1rem;font-weight:400;margin-bottom:.85rem;}
+        .rs-input{display:block;width:100%;max-width:26rem;font-family:inherit;font-size:1.0625rem;line-height:1.4;padding:.7rem .85rem;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:#fff;color:var(--ink);transition:border-color .14s var(--ease),box-shadow .14s var(--ease);}
+        .rs-input:hover{border-color:#c7cfc9;}
+        .rs-input:focus{outline:3px solid var(--focus);outline-offset:0;border-color:var(--ink);box-shadow:none;}
+        .rs-input-code{max-width:11rem;letter-spacing:.3em;font-weight:700;font-family:var(--mono);text-align:center;}
+
+        /* checkbox */
+        .rs-check{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:1.6rem;}
+        .rs-check input{width:1.4rem;height:1.4rem;margin-top:.1rem;accent-color:var(--green);flex:none;}
+        .rs-check label{font-weight:400;color:var(--body);margin:0;}
+
+        /* buttons (pill, matching landing) */
+        .rs-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;background:var(--green);color:#fff;border:none;border-radius:var(--radius-pill);font-family:inherit;font-size:1.0625rem;font-weight:600;line-height:1;padding:.85rem 1.5rem;cursor:pointer;text-decoration:none;box-shadow:0 1px 2px rgba(11,46,18,.25),0 8px 20px -8px rgba(11,46,18,.4);transition:transform .14s var(--ease),background-color .16s var(--ease);}
+        .rs-btn:hover:not(:disabled){background:var(--green-strong);color:#fff;}
+        .rs-btn:active:not(:disabled){transform:scale(.97);}
+        .rs-btn:disabled{opacity:.6;cursor:not-allowed;}
+        .rs-btn-start{font-size:1.15rem;padding:.95rem 1.7rem;}
+        .rs-btn .arr{transition:transform .16s var(--ease);}
+        .rs-btn:hover .arr{transform:translateX(3px);}
+        .rs-btn-link{background:none;color:var(--green);box-shadow:none;padding:.5rem 0;font-weight:600;}
+        .rs-btn-link:hover:not(:disabled){background:none;color:var(--green-strong);text-decoration:underline;}
+        .rs-btn-link:active:not(:disabled){transform:none;}
+
+        /* error summary + field error */
+        .rs-error-summary{border:1.5px solid var(--error);background:var(--error-bg);border-radius:var(--radius-sm);padding:1.1rem 1.2rem;margin-bottom:1.6rem;}
+        .rs-error-summary h2{margin:0 0 .5rem;font-size:1.15rem;color:var(--error);}
+        .rs-error-summary ul{margin:0;padding-left:1.1rem;}
+        .rs-error-summary a,.rs-error-summary li{color:var(--error);font-weight:700;}
+        .rs-field.has-error{border-left:4px solid var(--error);padding-left:1rem;}
+        .rs-field.has-error .rs-input{border-color:var(--error);}
+        .rs-error-msg{display:block;color:var(--error);font-weight:700;margin-bottom:.6rem;}
+
+        /* confirmation panel + steps (done page, if used) */
+        .rs-panel{background:var(--green);color:#fff;text-align:center;padding:2rem 1.3rem;border-radius:var(--radius);margin-bottom:1.6rem;}
+        .rs-panel h1{color:#fff;margin:0 0 .5rem;}
+        .rs-steps{counter-reset:s;list-style:none;padding:0;margin:0 0 1.2rem;}
+        .rs-steps li{position:relative;padding:0 0 .8rem 2.3rem;}
+        .rs-steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:-2px;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--violet-tint);color:var(--violet-strong);font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+
+        /* footer */
+        .rs-foot{border-top:1px solid var(--line-2);}
+        .rs-foot-in{max-width:1100px;margin:0 auto;padding:1.4rem 1.5rem;text-align:center;}
+        .rs-secure-note{display:inline-flex;align-items:center;gap:.45rem;color:var(--violet-strong);font-size:.92rem;font-weight:600;}
+        .rs-secure-note::before{content:"\1F6E1";}
+
+        /* spinner (preserved for signup-submit.js) */
+        .rs-spinner{width:1em;height:1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;opacity:.85;animation:rs-spin .6s linear infinite;}
+        @keyframes rs-spin{to{transform:rotate(360deg);}}
+        @keyframes rsUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+        @media (max-width:560px){ h1,label.rs-label-h1{font-size:1.6rem;} .rs-card{padding:1.5rem;} }
+        @media (prefers-reduced-motion:reduce){
+            .rs-card{animation:none;}
+            .rs-btn,.rs-input,.rs-btn .arr{transition:none;}
+            .rs-btn:active:not(:disabled){transform:none;}
+            .rs-spinner{animation-duration:1.6s;}
+        }
+    </style>
+</head>
+<body>
+    <header class="rs-header">
+        <div class="rs-header-in">
+            <a class="rs-brand" href="/welcome/">
+                {% include "paperless-ngx/snippets/svg_leaf.html" %}
+                RentShield
+            </a>
+            <a class="rs-header-link" href="/welcome/">Back to site</a>
+        </div>
+    </header>
+    <div class="rs-phase">
+        <div class="rs-phase-in"><span class="rs-tag">Beta</span>Passwordless, and verified by a Notary Public.</div>
+    </div>
+
+    <main class="rs-wrap">
+        <div class="rs-col">
+            {% block back_link %}{% endblock %}
+            {% if error %}
+            <div class="rs-error-summary" role="alert" tabindex="-1">
+                <h2>There is a problem</h2>
+                <ul><li>{{ error }}</li></ul>
+            </div>
+            {% endif %}
+            <div class="rs-card">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <footer class="rs-foot">
+        <div class="rs-foot-in">
+            <span class="rs-secure-note">Passwordless and verified. Secured by passkey.</span>
+        </div>
+    </footer>
+</body>
+</html>

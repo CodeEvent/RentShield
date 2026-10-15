@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scroll_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F4F6F8">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Header: title + a way out of the current session, available
+         from the moment the user is signed in: requested explicitly
+         "once the qr was scanned the user must have the ability to
+         reset the qr code at any time", not just from a screen buried
+         deep in the flow. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🛡️ RentShield Verification"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/button_sign_out"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan a different QR"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Persistent "where am I" indicator: the single biggest
+         orientation gap the old flow had: no sense of how many steps
+         remained or what came next. -->
+    <LinearLayout
+        android:id="@+id/section_step_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/step_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/step_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:trackCornerRadius="4dp"
+            app:indicatorColor="#2E7D32" />
+    </LinearLayout>
+
+    <!-- 1. Login: QR scan only. There is deliberately no manual
+         server/username/password fallback here: those fields typed on
+         a phone keyboard were the direct cause of this project's most
+         repeated real bug (a mistyped CAN, or the card's printed serial
+         number typed into the CAN field). Declaring the document and
+         signing in both now happen on the web, on a real keyboard;
+         see identity-verification.component.ts's "declare your
+         document" step and documents/rentshield_identity/
+         pairing_views.py. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👋 Let's get you verified"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="#555555"
+                android:text="Start on RentShield's website first: fill in your document details there, then scan the QR code it shows you to sign in here automatically." />
+
+            <Button
+                android:id="@+id/button_scan_pairing_qr"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:textSize="16sp"
+                android:text="📷 Scan QR to sign in" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 2. Biometric gate -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_biometric"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="20dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔒 Confirm it's you"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:textColor="#555555"
+                android:text="Use Face ID or your fingerprint to confirm this is your phone before continuing. This only proves you unlocked the device -- it isn't compared against your document." />
+
+            <Button
+                android:id="@+id/button_biometric"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:textSize="16sp"
+                android:text="Continue" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 3. Document entry -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_document"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="20dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📄 Your document"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textColor="#555555"
+                android:text="Pre-filled from what you typed on the website -- check it looks right, then continue." />
+
+            <RadioGroup
+                android:id="@+id/radio_document_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <RadioButton
+                    android:id="@+id/radio_passport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Passport"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radio_cie"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Italian Digital ID (CIE)"
+                    android:layout_marginStart="16dp" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:id="@+id/fields_passport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:hint="Passport number">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_passport_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters|textNoSuggestions" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:hint="Date of birth (YYMMDD)">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_date_of_birth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Passport expiry date (YYMMDD)">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_expiration_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/fields_cie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="CAN -- the 6-digit number only (NOT the card's longer ID/serial number)">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_can"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/button_card_photo"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"
+                android:text="📸 1. Photograph your ID card" />
+
+            <Button
+                android:id="@+id/button_scan"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:textSize="16sp"
+                android:text="📶 2. Ready to scan -- hold document to phone"
+                android:visibility="gone" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Status, per-step capture buttons, result -->
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:textSize="14sp"
+        android:text="" />
+
+    <ImageView
+        android:id="@+id/photo_preview"
+        android:layout_width="160dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="12dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Card photo or selfie preview" />
+
+    <Button
+        android:id="@+id/button_selfie"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="🤳 3. Take a selfie"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/button_video"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="🎥 4. Record a short confirmation video"
+        android:visibility="gone" />
+
+    <!-- Shared in-app camera preview for every still-photo capture
+         (card, selfie, additional-ID front/back), replacing the plain
+         MediaStore.ACTION_IMAGE_CAPTURE intent that used to launch the
+         system camera app. Real bug caught live (2026-09-14): on a
+         Samsung Galaxy A71 (and this isn't a one-off OEM quirk, it's a
+         well-documented inconsistency with ACTION_IMAGE_CAPTURE plus
+         EXTRA_OUTPUT), the returned JPEG's pixels were stored sideways
+         with NO EXIF Orientation tag at all: no metadata trail left
+         to correct it by. A perfectly sharp, in-focus, well-lit photo
+         of a real ID failed OCR outright because the text was
+         literally sideways. CameraX's ImageCapture (already used for
+         the confirmation video below) writes correctly-oriented output
+         deterministically instead of depending on whichever OEM camera
+         app happens to be installed; one shared section instead of
+         four separate ones since only one capture is ever active at a
+         time, same reasoning section_video_record already follows.
+         Also incidentally fixes a second reported bug: launching a
+         separate system camera Activity was exactly the kind of
+         backgrounded-foreground-activity situation Android can kill
+         this process for (see resumeSessionIfAvailable's own comment);
+         staying in-app removes that risk entirely instead of just
+         working around its symptom. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_photo_capture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="0dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="360dp">
+
+            <androidx.camera.view.PreviewView
+                android:id="@+id/photo_preview_camera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Selfie-only live alignment guide (requested explicitly,
+                 2026-09-14): red until MainActivity's face-detection
+                 analyzer reports a single, well-centered face, green once
+                 it does. Hidden (GONE) for the card-photo/additional-ID
+                 capture kinds, which reuse this same shared section. -->
+            <com.rentshield.passportreader.FaceGuideOverlay
+                android:id="@+id/face_guide_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <Button
+        android:id="@+id/button_capture_photo"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="📸 Capture"
+        android:visibility="gone" />
+
+    <!-- In-app video recording, replacing the plain camera intent used
+         for the card photo/selfie: the required sentence has to be
+         shown ON SCREEN while recording, which only a live in-app
+         preview (CameraX) can do; the system camera app's own UI
+         can't be made to display it. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_video_record"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="0dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="360dp">
+
+            <androidx.camera.view.PreviewView
+                android:id="@+id/video_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/video_prompt_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="#AA000000"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:padding="12dp"
+                android:text="" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <Button
+        android:id="@+id/button_record_toggle"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="⏺ Start Recording"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/button_done"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="✅ Done"
+        android:visibility="gone" />
+
+    <!-- A second, independent ID document: a MANDATORY pipeline step
+         (2026-09-13, superseding the earlier optional web upload),
+         shown right after the NFC read succeeds and blocking the
+         selfie step until it's done. Never the same document type as
+         the primary one (radio_additional_second_passport/
+         radio_additional_national_id gets hidden at runtime depending
+         on which primary type was declared, see
+         applyAdditionalIdTypeFilter()), and always front AND back. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/section_additional_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:contentPadding="20dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🪪 Second ID document (required)"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textColor="#555555"
+                android:text="A different document from the one you just scanned -- e.g. a driving licence. Photos of the front and back are both required." />
+
+            <RadioGroup
+                android:id="@+id/radio_additional_id_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
+
+                <RadioButton
+                    android:id="@+id/radio_additional_driving_licence"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Driving Licence" />
+
+                <RadioButton
+                    android:id="@+id/radio_additional_national_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="National ID Card" />
+
+                <RadioButton
+                    android:id="@+id/radio_additional_residence_visa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Residence Visa" />
+
+                <RadioButton
+                    android:id="@+id/radio_additional_second_passport"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Second Passport" />
+
+                <RadioButton
+                    android:id="@+id/radio_additional_other"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Other ID document" />
+            </RadioGroup>
+
+            <Button
+                android:id="@+id/button_additional_id_front"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:text="📸 Photograph the front" />
+
+            <Button
+                android:id="@+id/button_additional_id_back"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:text="📸 Photograph the back" />
+
+            <Button
+                android:id="@+id/button_additional_id_continue"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:textSize="16sp"
+                android:enabled="false"
+                android:text="Continue" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>
+</ScrollView>

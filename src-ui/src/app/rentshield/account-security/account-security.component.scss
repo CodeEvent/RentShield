@@ -1,0 +1,7 @@
+// Brings the branded rs-* primitives (rs-btn-emerald etc.) into this
+// component's encapsulated scope. Without a stylesheet that @use's the
+// shared file, those classes render unstyled here (Angular view
+// encapsulation -- see rentshield-shared.scss's own note). The
+// pngx-confirm-button buttons stay on Bootstrap classes on purpose:
+// they render inside a child component's view this scope can't reach.
+@use '../rentshield-shared' as *;

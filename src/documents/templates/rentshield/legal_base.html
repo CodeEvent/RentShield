@@ -1,0 +1,54 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Legal{% endblock %} - RentShield</title>
+  <style>
+    :root{
+      --green:#17541f;--green-deep:#0b2e12;--violet:#6b5bd6;--mint:#eaf5ec;
+      --ink:#101a12;--body:#39473c;--muted:#6c7a70;--line:#e3e8e4;--bg:#fff;
+      --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--body);font-family:var(--font);font-size:1.05rem;line-height:1.6;-webkit-font-smoothing:antialiased;}
+    a{color:var(--green);}
+    .hd{background:var(--green-deep);border-bottom:4px solid var(--violet);}
+    .hd-in{max-width:46rem;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+    .brand{display:inline-flex;align-items:center;gap:.5rem;color:#fff;font-weight:800;font-size:1.3rem;text-decoration:none;}
+    .brand svg{width:26px;height:26px;color:#fff;}
+    .hd-in a.back{color:#cfe6d5;font-size:.9rem;font-weight:600;text-decoration:none;}
+    main{max-width:46rem;margin:0 auto;padding:2.5rem 1.5rem 4rem;}
+    h1{font-size:2.1rem;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin:0 0 .3rem;}
+    .upd{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;}
+    h2{font-size:1.25rem;font-weight:700;color:var(--ink);margin:2rem 0 .6rem;}
+    p,li{color:var(--body);}
+    ul{padding-left:1.3rem;}
+    li{margin-bottom:.4rem;}
+    .draft{background:var(--mint);border:1px solid #cfe3d4;border-left:4px solid var(--green);border-radius:8px;padding:.9rem 1.1rem;margin:0 0 1.8rem;font-size:.92rem;color:var(--ink);}
+    .foot{border-top:1px solid var(--line);margin-top:3rem;padding-top:1.3rem;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+    .foot a{color:var(--green);}
+  </style>
+</head>
+<body>
+  <header class="hd">
+    <div class="hd-in">
+      <a class="brand" href="/welcome/">{% include "paperless-ngx/snippets/svg_leaf.html" %} RentShield</a>
+      <a class="back" href="/welcome/">Back to site</a>
+    </div>
+  </header>
+  <main>
+    <h1>{% block heading %}{% endblock %}</h1>
+    <p class="upd">Last updated {% now "j F Y" %}</p>
+    <div class="draft"><strong>Draft.</strong> This is starter wording, not final legal text. Have it reviewed by a UAE-qualified lawyer before launch.</div>
+    {% block content %}{% endblock %}
+    <div class="foot">
+      <a href="/welcome/privacy">Privacy</a>
+      <a href="/welcome/terms">Terms</a>
+      <span>&copy; {% now "Y" %} RentShield</span>
+    </div>
+  </main>
+</body>
+</html>

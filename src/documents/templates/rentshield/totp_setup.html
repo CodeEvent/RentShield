@@ -1,0 +1,23 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Set up your authenticator app{% endblock %}
+{% block content %}
+    <style>.rs-qr svg{width:190px;height:190px;display:block;}</style>
+    <h1>Set up your authenticator app</h1>
+    <p class="rs-wizard-hint">Open an authenticator app &mdash; Google Authenticator, Authy, 1Password, Microsoft Authenticator, or similar &mdash; and scan this code. Then enter the 6-digit code it shows, to confirm.</p>
+    <div style="display:flex;justify-content:center;margin:1.3rem 0 1rem;">
+        <div class="rs-qr" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;">{{ qr_svg|safe }}</div>
+    </div>
+    <p class="rs-hint" style="text-align:center;">Can't scan? Enter this key in your app:<br>
+        <code style="display:inline-block;margin-top:.4rem;font-family:var(--mono);font-weight:700;letter-spacing:.08em;word-break:break-all;color:var(--ink);">{{ secret }}</code>
+    </p>
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label for="id_totp">Enter the 6-digit code</label>
+            <input type="text" name="code" id="id_totp" class="rs-input rs-input-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+        </div>
+        <button type="submit" class="rs-btn"><span class="rs-btn-label">Confirm and finish</span></button>
+    </form>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

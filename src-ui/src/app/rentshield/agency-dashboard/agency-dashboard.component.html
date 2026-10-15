@@ -1,0 +1,196 @@
+<pngx-page-header title="Agency Dashboard" i18n-title [subTitle]="dashboard()?.organization?.name"></pngx-page-header>
+
+<div class="row g-4">
+  <div class="col-12 col-md-6 col-xl-3">
+    <pngx-widget-frame title="Active Notices" i18n-title titleIcon="journals" [loading]="loading()">
+      <div content class="display-6 text-center py-2">
+        {{ dashboard()?.active_notices_count ?? 0 }}
+      </div>
+    </pngx-widget-frame>
+  </div>
+
+  <div class="col-12 col-md-6 col-xl-9">
+    <pngx-widget-frame title="Workflow Status" i18n-title titleIcon="list-task" [loading]="loading()">
+      <div content>
+        @if (dashboard()?.status_breakdown?.length) {
+          <div class="d-flex justify-content-between align-items-center my-2">
+            <div class="progress flex-grow-1">
+              @for (row of dashboard().status_breakdown; track row.tags__name) {
+                <div
+                  class="progress-bar bg-primary"
+                  role="progressbar"
+                  [ngbPopover]="row.tags__name"
+                  triggers="mouseenter:mouseleave"
+                  [style.width]="statusPercent(row.count) + '%'"
+                  [attr.aria-label]="row.tags__name"
+                  [class.me-1px]="true"
+                  aria-valuemin="0"
+                  aria-valuemax="100">
+                </div>
+              }
+            </div>
+          </div>
+          <div class="list-group border-light">
+            @for (row of dashboard().status_breakdown; track row.tags__name) {
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                {{ row.tags__name }}
+                <span class="badge bg-secondary text-light rounded-pill">{{ row.count }}</span>
+              </div>
+            }
+          </div>
+        } @else if (!loading()) {
+          <p class="text-muted mb-0" i18n>No notices are currently in a tracked add-on pipeline (notarization, legal review, real notary, or AI review).</p>
+        }
+      </div>
+    </pngx-widget-frame>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <pngx-widget-frame title="Upcoming Deadlines" i18n-title titleIcon="calendar-event" [loading]="loading()">
+      <div content>
+        @if (dashboard()?.upcoming_deadlines?.length) {
+          <div class="list-group border-light">
+            @for (row of dashboard().upcoming_deadlines; track row.document_id) {
+              <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" [routerLink]="['/documents', row.document_id]">
+                <span class="text-truncate me-2">{{ row.title }}</span>
+                <span class="badge rounded-pill" [ngClass]="statusBadgeClass(row.days_remaining)">
+                  @if (row.days_remaining < 0) {
+                    <ng-container i18n>Overdue</ng-container>
+                  } @else {
+                    {{ row.days_remaining }} <ng-container i18n>days</ng-container>
+                  }
+                </span>
+              </a>
+            }
+          </div>
+        } @else if (!loading()) {
+          <p class="text-muted mb-0" i18n>No upcoming legal deadlines.</p>
+        }
+      </div>
+    </pngx-widget-frame>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <pngx-widget-frame title="Recent Activity" i18n-title titleIcon="clock-history" [loading]="loading()">
+      <div content>
+        @if (dashboard()?.recent_activity?.length) {
+          <div class="list-group border-light">
+            @for (row of dashboard().recent_activity; track row.id) {
+              <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" [routerLink]="['/documents', row.id]">
+                <span class="text-truncate me-2">{{ row.title }}</span>
+                <small class="text-muted text-nowrap">{{ row.owner__username }}</small>
+              </a>
+            }
+          </div>
+        } @else if (!loading()) {
+          <p class="text-muted mb-0" i18n>No recent activity.</p>
+        }
+      </div>
+    </pngx-widget-frame>
+  </div>
+
+  <div class="col-12">
+    <pngx-widget-frame title="Team" i18n-title titleIcon="people">
+      <div content>
+        <form class="d-flex gap-2" (ngSubmit)="inviteTeammate()">
+          <input
+            type="email"
+            class="form-control"
+            name="inviteEmail"
+            placeholder="teammate@company.com"
+            i18n-placeholder
+            required
+            [(ngModel)]="inviteEmail"
+            [disabled]="inviting()">
+          <button type="submit" class="btn rs-btn-emerald text-nowrap" [disabled]="inviting() || !inviteEmail.trim()">
+            @if (inviting()) {
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            } @else {
+              <i-bs class="me-1" name="envelope"></i-bs>
+            }
+            <ng-container i18n>Send Invite</ng-container>
+          </button>
+        </form>
+        <p class="text-muted small mt-2 mb-3" i18n>They'll get an email to join {{ dashboard()?.organization?.name }} and set up their own passkey -- no password to share.</p>
+
+        @if (membersLoading()) {
+          <div class="spinner-border spinner-border-sm" role="status"></div>
+        } @else {
+          @if (members().length > 5) {
+            <div class="input-group input-group-sm mb-2" style="max-width: 20rem">
+              <span class="input-group-text"><i-bs name="search"></i-bs></span>
+              <input
+                type="search"
+                class="form-control"
+                placeholder="Search by name or email"
+                i18n-placeholder
+                [(ngModel)]="memberSearch"
+                (ngModelChange)="onMemberSearchChange()">
+            </div>
+          }
+          <div class="list-group border-light">
+            @for (member of filteredMembers(); track member.id) {
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div>{{ member.username }}</div>
+                  <small class="text-muted">{{ member.email }}</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  @if (member.pending) {
+                    <span class="badge bg-warning text-dark" i18n>Pending</span>
+                    <button
+                      type="button"
+                      class="btn rs-btn-outline-slate btn-sm"
+                      [disabled]="isActingOn(member.id)"
+                      (click)="resendInvite(member)">
+                      <i-bs name="envelope"></i-bs>
+                      <ng-container i18n>Resend Link</ng-container>
+                    </button>
+                    <pngx-confirm-button
+                      label=""
+                      buttonClasses="btn-outline-danger btn-sm"
+                      iconName="trash"
+                      confirmMessage="Revoke this invite and free up {{ member.email }}?"
+                      i18n-confirmMessage
+                      [disabled]="isActingOn(member.id)"
+                      (confirm)="revokeInvite(member)">
+                    </pngx-confirm-button>
+                  } @else if (member.is_active) {
+                    <span class="badge bg-success" i18n>Active</span>
+                    @if (!isSelf(member)) {
+                      <pngx-confirm-button
+                        label=""
+                        buttonClasses="btn-outline-secondary btn-sm"
+                        iconName="slash-circle"
+                        confirmMessage="Deactivate {{ member.username }}? They'll lose access on their next login; their documents are unaffected."
+                        i18n-confirmMessage
+                        [disabled]="isActingOn(member.id)"
+                        (confirm)="deactivateTeammate(member)">
+                      </pngx-confirm-button>
+                    }
+                  } @else {
+                    <span class="badge bg-secondary" i18n>Deactivated</span>
+                    <button
+                      type="button"
+                      class="btn rs-btn-outline-slate btn-sm"
+                      [disabled]="isActingOn(member.id)"
+                      (click)="reactivateTeammate(member)">
+                      <i-bs name="arrow-clockwise"></i-bs>
+                      <ng-container i18n>Reactivate</ng-container>
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              @if (memberSearch.trim()) {
+                <p class="text-muted small mb-0" i18n>No team members match "{{ memberSearch }}".</p>
+              } @else {
+                <p class="text-muted small mb-0" i18n>No team members yet.</p>
+              }
+            }
+          </div>
+        }
+      </div>
+    </pngx-widget-frame>
+  </div>
+</div>

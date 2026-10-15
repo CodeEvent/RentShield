@@ -1,0 +1,46 @@
+@if (win(); as w) {
+  <section class="nw" [attr.data-state]="w.state" aria-label="Notice window">
+    <!-- Status strip -->
+    <header class="nw-status">
+      <span class="nw-dot" aria-hidden="true"></span>
+      <div class="nw-status-text">
+        @if (w.state === 'on-track') {
+          <strong>On track.</strong>
+          <span>{{ w.daysToServeBy }} days until the serve-by deadline for a 12-month notice.</span>
+        } @else if (w.state === 'approaching') {
+          <strong>Act soon.</strong>
+          <span>Only {{ w.daysToServeBy }} days left to serve a 12-month notice in time.</span>
+        } @else {
+          <strong>Window lapsed.</strong>
+          <span>The serve-by deadline passed {{ absServeBy() }} days ago. A 12-month
+            notice can no longer end this tenancy at expiry.</span>
+        }
+      </div>
+      <span class="nw-badge">365-day statutory buffer &middot; Art. 25(2)</span>
+    </header>
+
+    <!-- Timeline: Today -> Serve-by deadline -> Lease expiry -->
+    <ol class="nw-track" [style.--nw-progress.%]="w.progressPct">
+      <li class="nw-node nw-today">
+        <span class="nw-k">Today</span>
+        <span class="nw-v">{{ today | date: 'd MMM y' }}</span>
+      </li>
+      <li class="nw-node nw-deadline">
+        <span class="nw-k">Serve-by deadline</span>
+        <span class="nw-v">{{ w.serveBy | date: 'd MMM y' }}</span>
+        <span class="nw-sub">
+          @if (w.daysToServeBy >= 0) { in {{ w.daysToServeBy }} days }
+          @else { {{ absServeBy() }} days ago }
+        </span>
+      </li>
+      <li class="nw-node nw-expiry">
+        <span class="nw-k">Lease expiry</span>
+        <span class="nw-v">{{ w.expiry | date: 'd MMM y' }}</span>
+        <span class="nw-sub">
+          @if (w.daysToExpiry >= 0) { in {{ w.daysToExpiry }} days }
+          @else { {{ absExpiry() }} days ago }
+        </span>
+      </li>
+    </ol>
+  </section>
+}

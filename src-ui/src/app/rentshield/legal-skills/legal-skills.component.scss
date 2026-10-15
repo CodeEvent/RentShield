@@ -1,0 +1,23 @@
+@use '../rentshield-shared' as *;
+
+.list-group-item-action.active {
+  background: var(--rs-light-emerald-bg-subtle);
+  color: var(--rs-light-emerald-deep);
+  border-color: var(--rs-light-emerald-tint);
+}
+
+.rs-skill-body {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--rs-light-text-strong);
+}
+
+.rs-disclaimer {
+  font-size: 0.72rem;
+  // was #94a3b8 (2.56:1 on white -- fails WCAG AA's 4.5:1 for normal
+  // text); --rs-light-text-muted is the same "secondary" role at 4.76:1.
+  color: var(--rs-light-text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--rs-light-border-subtle);
+  padding-top: 0.75rem;
+}

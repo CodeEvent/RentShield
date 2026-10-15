@@ -1,0 +1,104 @@
+@use '../rentshield-shared' as *;
+
+.rs-cta-link {
+  display: inline-flex;
+  align-items: center;
+  // Was --rs-light-navy (a leftover accent): the primary "New Notice"
+  // action now reads in the brand primary green like every other
+  // primary action in the app. Press feedback matches the Phase 0 layer.
+  background: var(--rs-light-primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color .16s var(--rs-ease), transform .14s var(--rs-ease);
+}
+
+.rs-cta-link:hover {
+  background: var(--rs-light-primary-strong);
+  color: #fff;
+}
+
+.rs-cta-link:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-cta-link { transition: none; }
+  .rs-cta-link:active { transform: none; }
+}
+
+// Mobile: the 9-column table only ever got table-responsive's
+// horizontal scroll, leaving the Actions column (both RDSC buttons)
+// off-screen by default -- confirmed live at 390px. Below the
+// content-driven breakpoint (the point this exact table starts
+// clipping), transform rows into labeled cards instead -- the standard
+// data-label pattern (see each <td>'s data-label in the template) --
+// rather than just shrinking text to fit more columns, which would
+// make an already-dense table harder to read, not easier to use.
+// Scoped to max-width so desktop is untouched -- same table, same
+// markup, confirmed pixel-identical to before this pass.
+@media (max-width: 767px) {
+  .table-responsive {
+    overflow-x: visible;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    border-bottom: 1px solid var(--rs-light-border);
+    padding: 0.75rem 0;
+  }
+
+  .table tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    text-align: left !important;
+    padding: 0.2rem 0;
+    border: none;
+  }
+
+  // :not(.rs-actions-cell) rather than a separate override rule --
+  // confirmed live that a later "content: none" rule of equal-or-lower
+  // specificity doesn't beat this selector's [data-label] attribute,
+  // so "ACTIONS" still rendered above "Not yet served" until the
+  // exclusion moved into the selector itself.
+  .table td[data-label]:not(.rs-actions-cell)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--rs-light-text-muted);
+    margin-bottom: 0.1rem;
+  }
+
+  .rs-actions-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .rs-actions-cell .btn {
+    width: 100%;
+    margin: 0 !important;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+}

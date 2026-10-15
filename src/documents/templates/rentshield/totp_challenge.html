@@ -1,0 +1,18 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Enter your authenticator code{% endblock %}
+{% block content %}
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label class="rs-label-h1" for="id_totp">Enter your authenticator code</label>
+            <span class="rs-hint">Open your authenticator app and enter the current 6-digit code for RentShield.</span>
+            <input type="text" name="code" id="id_totp" class="rs-input rs-input-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+        </div>
+        <button type="submit" class="rs-btn"><span class="rs-btn-label">Sign in</span></button>
+    </form>
+    <p style="margin-top:.6rem;">
+        <a href="{% url 'rentshield-backup-code-login' %}" style="color:var(--green);font-weight:600;">Lost your authenticator? Use a backup code</a>
+    </p>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

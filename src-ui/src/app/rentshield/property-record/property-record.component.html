@@ -1,0 +1,292 @@
+<div class="pr">
+  @if (noticesLoading()) {
+    <div class="pr-loading">Loading your properties&hellip;</div>
+  } @else if (properties().length === 0) {
+    <div class="pr-empty pr-empty-page">
+      <i-bs name="house-door"></i-bs>
+      <p>No properties yet. Create a notice and the property it names appears here as a record.</p>
+      <button type="button" class="pr-btn pr-btn-primary pr-btn-sm" (click)="newNotice()">New notice</button>
+    </div>
+  } @else {
+  <!-- Record header: the address is the record -->
+  <div class="pr-head">
+    <div class="pr-title">
+      <i-bs name="house-door"></i-bs>
+      <span>{{ property()?.address }}</span>
+      @if (properties().length > 1) {
+        <select class="pr-switch" [value]="property()?.key" (change)="selectProperty($any($event.target).value)" aria-label="Switch property">
+          @for (pr of properties(); track pr.key) {
+            <option [value]="pr.key">{{ pr.address }}</option>
+          }
+        </select>
+      }
+    </div>
+    <div class="pr-head-body">
+      <div class="pr-meta">
+        <div class="pr-l1">
+          <strong>{{ property()?.type }}</strong> &middot; {{ property()?.community }} &middot; Ejari
+          {{ property()?.ejari }} &middot;
+          <span class="pr-tag ok">{{ property()?.status }}</span>
+        </div>
+        <dl class="pr-kv">
+          <dt>Owner</dt>
+          <dd>{{ property()?.owner }}</dd>
+          <dt>Current tenant</dt>
+          <dd>{{ property()?.tenant }}</dd>
+          <dt>Contract ends</dt>
+          <dd>{{ property()?.contractEnds }}</dd>
+          <dt>Open notices</dt>
+          <dd>{{ property()?.openNotices }}</dd>
+        </dl>
+      </div>
+      <div class="pr-side">
+        <div class="pr-id">Property ID {{ property()?.id }}</div>
+        <div class="pr-acts">
+           <button type="button" class="pr-btn pr-btn-primary" (click)="newNotice()">
+            <i-bs name="file-earmark-plus"></i-bs> New notice
+          </button>
+          <button type="button" class="pr-btn pr-btn-ghost">Edit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deterministic Notice Window: 365-day statutory buffer before expiry.
+       Shown only when the property has a contract-expiry date to compute from. -->
+  @if (property()?.ejariExpiry; as expiry) {
+    <app-notice-window [expiry]="expiry" />
+  }
+
+  <!-- Section tabs -->
+  <div class="pr-stabs" role="tablist">
+    @for (s of sections; track s.k) {
+      <button
+        type="button"
+        role="tab"
+        [class.on]="section() === s.k"
+        [attr.aria-selected]="section() === s.k"
+        (click)="selectSection(s.k)"
+      >
+        {{ s.l }}
+      </button>
+    }
+  </div>
+
+  <!-- Body: contextual sub-nav + content -->
+  <div class="pr-grid">
+    <nav class="pr-sub" aria-label="Section">
+      @for (n of subs(); track n.k) {
+        <button type="button" [class.on]="sub() === n.k" (click)="selectSub(n.k)">
+          {{ n.l }}
+        </button>
+      }
+    </nav>
+
+    <div class="pr-body">
+      @if (is('overview', 'summary')) {
+        <details class="pr-panel" open>
+          <summary>Property</summary>
+          <dl class="pr-kv2">
+            <dt>Address</dt><dd>{{ property()?.address }}</dd>
+            <dt>Community</dt><dd>{{ property()?.community }}</dd>
+            <dt>Type</dt><dd>{{ property()?.type }}</dd>
+            <dt>Unit / Plot</dt><dd>{{ property()?.id }} / {{ property()?.plot }}</dd>
+            <dt>Ejari no.</dt><dd>{{ property()?.ejari }}</dd>
+            <dt>Status</dt><dd><span class="pr-tag ok">{{ property()?.status }}</span></dd>
+          </dl>
+        </details>
+        <details class="pr-panel" open>
+          <summary>Current tenancy</summary>
+          <dl class="pr-kv2">
+            <dt>Tenant</dt><dd>{{ property()?.tenant }}</dd>
+            <dt>Annual rent</dt><dd>{{ property()?.annualRent }}</dd>
+            <dt>Contract</dt><dd>{{ property()?.contractStart }} &ndash; {{ property()?.contractEnds }}</dd>
+            <dt>Notice window</dt><dd><span class="pr-tag warn">Opens soon</span></dd>
+          </dl>
+        </details>
+        <details class="pr-panel">
+          <summary>Owner</summary>
+          <dl class="pr-kv2">
+            <dt>Owner</dt><dd>{{ property()?.owner }}</dd>
+            <dt>Identity</dt>
+            <dd>
+              @if (property()?.ownerVerified) {
+                <span class="pr-tag ok">Verified</span>
+              } @else {
+                <span class="pr-tag warn">Not verified</span>
+              }
+            </dd>
+          </dl>
+        </details>
+      } @else if (is('notices')) {
+        <details class="pr-panel" open>
+          <summary>
+            Notices for this property
+            <button type="button" class="pr-btn pr-btn-primary pr-btn-sm" (click)="newNotice()">+ New notice</button>
+          </summary>
+          @if (noticesLoading()) {
+            <p style="padding: 0.9rem; color: var(--rs-light-text-muted);">Loading notices&hellip;</p>
+          } @else if (propertyNotices().length === 0) {
+            <div class="pr-empty">
+              <i-bs name="inbox"></i-bs>
+              <p>No notices for this property yet.</p>
+              <button type="button" class="pr-btn pr-btn-ghost pr-btn-sm" (click)="newNotice()">+ New notice</button>
+            </div>
+          } @else {
+            <table class="pr-table">
+              <thead>
+                <tr><th>#</th><th>Reason</th><th>Period</th><th>Status</th><th class="r">Total</th></tr>
+              </thead>
+              <tbody>
+                @for (n of propertyNotices(); track n.id) {
+                  <tr>
+                    <td>#{{ n.id }}</td>
+                    <td>{{ n.reason_label }}</td>
+                    <td>{{ n.notice_period_days }} days</td>
+                    <td>
+                      <span class="pr-tag" [class.ok]="noticeStatus(n).cls === 'ok'" [class.warn]="noticeStatus(n).cls === 'warn'">{{ noticeStatus(n).label }}</span>
+                    </td>
+                    <td class="r"><strong>AED {{ n.total_price_aed }}</strong></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </details>
+      } @else if (is('compliance', 'checklist')) {
+        <details class="pr-panel" open>
+          <summary>Article 25 compliance</summary>
+          <ul class="pr-chk">
+            @for (c of checklist; track c.text) {
+              <li>
+                @if (c.ok) {
+                  <i-bs name="check-circle-fill" class="ok"></i-bs>
+                } @else {
+                  <i-bs name="x-circle-fill" class="no"></i-bs>
+                }
+                {{ c.text }}
+              </li>
+            }
+          </ul>
+        </details>
+      } @else if (is('timeline', 'activity')) {
+        <details class="pr-panel" open>
+          <summary>Activity</summary>
+          <ul class="pr-tl">
+            @for (a of activity; track a.when) {
+              <li><span class="dot"></span><time>{{ a.when }}</time><span>{{ a.text }}</span></li>
+            }
+          </ul>
+        </details>
+      } @else if (is('reminders')) {
+        <details class="pr-panel" open>
+          <summary>Reminders</summary>
+          <table class="pr-table">
+            <thead><tr><th>What</th><th>When</th><th class="r"></th></tr></thead>
+            <tbody>
+              @for (r of reminders(); track r.id) {
+                <tr>
+                  <td>{{ r.title }}</td>
+                  <td>{{ r.due }}</td>
+                  <td class="r">@if (r.urgent) { <span class="pr-tag warn">Soon</span> } @else { <span class="pr-tag">Scheduled</span> }</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </details>
+      } @else if (is('inspections')) {
+        <details class="pr-panel" open>
+          <summary>Inspections</summary>
+          <table class="pr-table">
+            <thead><tr><th>Date</th><th>Type</th><th class="r">Result</th></tr></thead>
+            <tbody>
+              @for (i of inspections(); track i.id) {
+                <tr><td>{{ i.date }}</td><td>{{ i.type }}</td><td class="r"><span class="pr-tag" [class.ok]="i.resultClass === 'ok'" [class.warn]="i.resultClass === 'warn'">{{ i.result }}</span></td></tr>
+              }
+            </tbody>
+          </table>
+        </details>
+      } @else if (is('maintenance')) {
+        <details class="pr-panel" open>
+          <summary>Maintenance</summary>
+          <table class="pr-table">
+            <thead><tr><th>Issue</th><th>Reported by</th><th>Date</th><th class="r">Status</th></tr></thead>
+            <tbody>
+              @for (m of maintenance(); track m.id) {
+                <tr><td>{{ m.summary }}</td><td>{{ m.reportedBy }}</td><td>{{ m.date }}</td><td class="r"><span class="pr-tag" [class.ok]="m.statusClass === 'ok'" [class.warn]="m.statusClass === 'warn'">{{ m.status }}</span></td></tr>
+              }
+            </tbody>
+          </table>
+        </details>
+      } @else if (is('messages')) {
+        <details class="pr-panel" open>
+          <summary>Messages</summary>
+          <ul class="pr-msgs">
+            @for (msg of messages(); track msg.id) {
+              <li [class.unread]="msg.unread"><div class="who">{{ msg.from }} <time>{{ msg.when }}</time></div><div class="prev">{{ msg.preview }}</div></li>
+            }
+          </ul>
+        </details>
+      } @else if (is('disputes')) {
+        <div class="pr-panel pr-rdsc">
+          <div class="pr-rdsc-head">
+            <h3>RDSC compliance</h3>
+            <p>All three checks must pass before this notice can be compiled into a
+              filing packet for the Rental Dispute Settlement Centre.</p>
+          </div>
+
+          @if (!rdscNotice()) {
+            <div class="pr-empty">
+              <i-bs name="inbox"></i-bs>
+              <p>No notice on this property to check yet.</p>
+            </div>
+          } @else if (rdscLoading()) {
+            <p class="pr-rdsc-loading">Checking compliance…</p>
+          } @else if (rdscReadiness(); as r) {
+            <ul class="pr-rdsc-grid">
+              @for (c of r.checkpoints; track c.key) {
+                <li class="pr-rdsc-card" [class.ok]="c.ok" [class.fail]="!c.ok">
+                  <span class="pr-rdsc-icon" aria-hidden="true">
+                    <i-bs [name]="c.ok ? 'check-circle-fill' : 'x-circle-fill'"></i-bs>
+                  </span>
+                  <span class="pr-rdsc-label">{{ c.label }}</span>
+                  <span class="pr-rdsc-state">{{ c.ok ? 'Pass' : 'Fail' }}</span>
+                  <span class="pr-rdsc-detail">{{ c.detail }}</span>
+                </li>
+              }
+            </ul>
+
+            <div class="pr-rdsc-gate">
+              <button
+                type="button"
+                class="pr-btn pr-btn-primary"
+                [class.is-locked]="!r.can_compile"
+                [disabled]="!r.can_compile || rdscCompiling()"
+                [attr.aria-disabled]="!r.can_compile"
+                [title]="r.can_compile ? 'Compile the RDSC filing packet' : 'All three checkpoints must pass first'"
+                (click)="compileRdscPacket()"
+              >
+                <i-bs name="file-earmark-zip"></i-bs>
+                {{ rdscCompiling() ? 'Compiling…' : 'Compile RDSC Packet' }}
+              </button>
+              @if (!r.can_compile) {
+                <span class="pr-rdsc-locknote">Locked until every checkpoint passes.</span>
+              }
+            </div>
+          }
+
+          @if (rdscMessage()) {
+            <p class="pr-rdsc-msg">{{ rdscMessage() }}</p>
+          }
+        </div>
+      } @else {
+        <div class="pr-empty">
+          <i-bs name="inbox"></i-bs>
+          <p>Nothing here yet.</p>
+          <button type="button" class="pr-btn pr-btn-ghost pr-btn-sm">Add</button>
+        </div>
+      }
+    </div>
+  </div>
+  }
+</div>

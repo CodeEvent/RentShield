@@ -1,0 +1,19 @@
+{
+  "name": "@rentshield/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@rentshield/shared": "*",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "gray-matter": "^4.0.3",
+    "multer": "^2.3.0",
+    "playwright": "^1.62.1"
+  }
+}

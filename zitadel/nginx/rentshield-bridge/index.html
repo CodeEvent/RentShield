@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  Passkey registration bridge (ZITADEL). The WebAuthn ceremony's rp.id is
+  "auth.rentshield.local", so it must run on the ZITADEL origin
+  (auth.rentshield.local:9092), not RentShield's app domain. It calls back
+  into Django (zitadel_passkey_start_view/verify_view) because
+  RegisterPasskey/VerifyPasskeyRegistration need the provisioner PAT, which
+  must never reach the browser; authorised by a single-use nonce in the URL.
+
+  Design is a hand-kept duplicate of documents/templates/rentshield/
+  signup_base.html's look (nginx serves this statically, so no shared build
+  step and no Django template includes) -- same tokens/card/pill button so
+  this page is visually identical to the rest of the signup flow.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Create your passkey - RentShield</title>
+<style>
+    :root{
+        --green:#17541f; --green-strong:#0f3614; --green-deep:#0b2e12;
+        --mint:#eaf5ec; --violet:#6b5bd6; --violet-strong:#5a4bc4; --violet-tint:#f0edfd;
+        --ink:#0f1a12; --body:#3a4a3e; --muted:#6c7a70;
+        --line:#e7ece8; --line-2:#eef2ef; --bg:#ffffff; --bg-soft:#f7faf8;
+        --verified:#10b981; --error:#b4231c; --error-bg:#fdf2f1;
+        --focus:#ffdd00; --focus-ink:#0b0c0c;
+        --radius:16px; --radius-sm:12px; --radius-pill:999px;
+        --shadow:0 20px 50px -20px rgba(11,46,18,.3),0 2px 10px rgba(15,46,18,.06);
+        --ease:cubic-bezier(.23,1,.32,1);
+        --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    html{font-size:100%;-webkit-text-size-adjust:100%;}
+    body{margin:0;min-height:100vh;color:var(--body);font-family:var(--font);font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased;
+        background:
+          radial-gradient(55rem 26rem at 12% -10%, var(--mint), transparent 60%),
+          radial-gradient(45rem 24rem at 95% 0%, var(--violet-tint), transparent 55%),
+          var(--bg);}
+    a{color:var(--green);text-decoration:none;}
+    a,button{-webkit-tap-highlight-color:transparent;}
+    h1{color:var(--ink);letter-spacing:-.02em;line-height:1.12;}
+    a:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:0;box-shadow:0 2px 0 var(--focus-ink);}
+
+    .rs-header{background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line-2);}
+    .rs-header-in{max-width:1100px;margin:0 auto;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
+    .rs-brand{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);font-weight:800;font-size:1.3rem;letter-spacing:-.02em;}
+    .rs-brand svg{width:28px;height:28px;color:var(--green);}
+    .rs-header-link{color:var(--body);font-weight:600;font-size:.95rem;}
+    .rs-header-link:hover{color:var(--ink);}
+
+    .rs-phase{background:var(--bg-soft);border-bottom:1px solid var(--line-2);}
+    .rs-phase-in{max-width:1100px;margin:0 auto;padding:.55rem 1.5rem;font-size:.9rem;color:var(--muted);}
+    .rs-tag{display:inline-block;background:var(--violet);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;margin-right:.55rem;}
+
+    .rs-wrap{max-width:33rem;margin:0 auto;padding:2.75rem 1.25rem 4rem;}
+    .rs-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;animation:rsUp .5s var(--ease) both;}
+    .rs-card.rs-card-verified{border-color:var(--verified);box-shadow:0 0 0 3px rgba(16,185,129,.22),var(--shadow);}
+    h1{font-size:1.9rem;font-weight:800;margin:0 0 .9rem;}
+    .rs-wizard-hint{color:var(--muted);font-size:1rem;line-height:1.5;margin:0 0 1.5rem;}
+    .rs-status{color:var(--muted);font-size:.9rem;margin-top:.9rem;}
+
+    .rs-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--radius-pill);font-family:inherit;font-size:1.0625rem;font-weight:600;line-height:1;padding:.9rem 1.5rem;cursor:pointer;box-shadow:0 1px 2px rgba(11,46,18,.25),0 8px 20px -8px rgba(11,46,18,.4);transition:transform .14s var(--ease),background-color .16s var(--ease);}
+    .rs-btn-primary:hover:not(:disabled){background:var(--green-strong);}
+    .rs-btn:active:not(:disabled){transform:scale(.98);}
+    .rs-btn:disabled{opacity:.6;cursor:not-allowed;}
+
+    .rs-wizard-error{background:var(--error-bg);border:1.5px solid var(--error);color:var(--error);padding:.9rem 1rem;margin:1.1rem 0 0;font-size:.95rem;font-weight:600;border-radius:var(--radius-sm);display:none;}
+    .rs-wizard-error.rs-visible{display:block;}
+    .rs-link{color:var(--muted);font-size:.92rem;display:inline-block;margin-top:1.1rem;}
+    .rs-link:hover{color:var(--ink);text-decoration:underline;}
+
+    .rs-foot{max-width:1100px;margin:0 auto;padding:1.4rem 1.5rem;text-align:center;}
+    .rs-secure-note{display:inline-flex;align-items:center;gap:.45rem;color:var(--violet-strong);font-size:.92rem;font-weight:600;}
+    .rs-secure-note::before{content:"\1F6E1";}
+
+    .rs-spinner{width:1em;height:1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;opacity:.85;animation:rs-spin .6s linear infinite;}
+    @keyframes rs-spin{to{transform:rotate(360deg);}}
+    @keyframes rsUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+    @media (max-width:560px){ h1{font-size:1.6rem;} .rs-card{padding:1.5rem;} }
+    @media (prefers-reduced-motion:reduce){ .rs-spinner{animation-duration:1.6s;} .rs-card,.rs-btn{transition:none;animation:none;} .rs-btn:active:not(:disabled){transform:none;} }
+</style>
+</head>
+<body>
+<header class="rs-header">
+    <div class="rs-header-in">
+        <a class="rs-brand" href="https://auth.rentshield.local:8443/welcome/">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" fill="currentColor"><path d="M341,949.1c-6.9-20.3-20.7-61.2-21.9-61-199.6-88.9-182.5-229.8-134.3-347.5,30,137.2,268.8,148.9,146.2,336-.9,2.2,10,27.8,19.5,51.3,22.7-51.9,58.6-115.5,55.8-120.8C178,398.7,724.9,299,807.1,18.5c83,251.5,53.1,659.8-377.4,814.9-2,1.4-63.5,148.6-66.9,150.2-.2-2.1-33.2,2.9-30.1-8.7,1.6-7,4.8-16.2,8.2-25.6h0v-.2h.1ZM323.1,846.2c48.3-71.9-12.7-120.8-56.9-152.2,81.2,107.4,66.4,120.8,56.9,152.2h0Z"/></svg>
+            RentShield
+        </a>
+        <a class="rs-header-link" href="https://auth.rentshield.local:8443/welcome/">Back to site</a>
+    </div>
+</header>
+<div class="rs-phase">
+    <div class="rs-phase-in"><span class="rs-tag">Beta</span>Passwordless, and verified by a Notary Public.</div>
+</div>
+
+<main class="rs-wrap">
+    <div class="rs-card" id="rs-card">
+        <h1 id="rs-heading">Create your passkey</h1>
+        <p class="rs-wizard-hint" id="rs-hint">
+            Use your face, fingerprint, or device screen lock to create a passkey for this account.
+            There is nothing to type or remember.
+        </p>
+        <button type="button" class="rs-btn rs-btn-primary" id="rs-register-btn">
+            <span id="rs-btn-label">Create passkey</span>
+        </button>
+        <div class="rs-status" id="rs-status" hidden></div>
+        <div class="rs-wizard-error" id="rs-error"></div>
+        <a class="rs-link" id="rs-back-link" href="#">Cancel and go back</a>
+    </div>
+</main>
+
+<footer class="rs-foot">
+    <span class="rs-secure-note">Passwordless and verified. Secured by passkey.</span>
+</footer>
+<script>
+(function () {
+  'use strict';
+
+  // Dev-only allowlist -- mirrors the redirect_uris already listed in
+  // authelia/configuration.secrets.yml for the same reason. A real
+  // deployment replaces this with RentShield's real origin(s).
+  var ALLOWED_RETURN_ORIGINS = [
+    'https://auth.rentshield.local:8443',
+  ];
+  var DJANGO_API_BASE = 'https://auth.rentshield.local:8443';
+
+  var params = new URLSearchParams(window.location.search);
+  var description = params.get('description') || 'My passkey';
+  var returnTo = params.get('return');
+  var nonce = params.get('nonce');
+
+  var card = document.getElementById('rs-card');
+  var btn = document.getElementById('rs-register-btn');
+  var btnLabel = document.getElementById('rs-btn-label');
+  var status = document.getElementById('rs-status');
+  var errorBox = document.getElementById('rs-error');
+  var backLink = document.getElementById('rs-back-link');
+
+  function succeed() {
+    var url = new URL(returnTo);
+    url.searchParams.set('passkeyAdded', '1');
+    window.location.replace(url.toString());
+  }
+
+  if (!returnTo || ALLOWED_RETURN_ORIGINS.indexOf(new URL(returnTo).origin) === -1 || !nonce) {
+    document.body.textContent = 'This page must be reached from RentShield.';
+    return;
+  }
+
+  backLink.href = returnTo;
+
+  function showError(message) {
+    errorBox.textContent = message + ' -- you can try again below.';
+    errorBox.classList.add('rs-visible');
+  }
+
+  function setLoading(isLoading) {
+    btn.disabled = isLoading;
+    if (isLoading) {
+      btnLabel.innerHTML = '<span class="rs-spinner" aria-hidden="true"></span> Waiting for your device…';
+      status.hidden = false;
+      status.textContent = 'Follow the prompt from your browser or device now.';
+    } else {
+      btnLabel.textContent = 'Create passkey';
+      status.hidden = true;
+    }
+  }
+
+  // Django endpoints, not ZITADEL's own API -- see this file's own
+  // header comment on why (the admin-level provisioner PAT stays
+  // server-side). credentials: 'omit' is deliberate, not an oversight:
+  // this deliberately doesn't rely on any shared cookie, only the
+  // single-use nonce already in the URL -- see zitadel_provisioning.py's
+  // issue_passkey_nonce for why.
+  async function djangoApi(path, body) {
+    var res = await fetch(DJANGO_API_BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      credentials: 'omit',
+    });
+    var data = await res.json().catch(function () { return null; });
+    if (!res.ok || (data && data.error)) {
+      throw new Error((data && data.error) || ('Request failed: ' + res.status));
+    }
+    return data;
+  }
+
+  async function register() {
+    errorBox.classList.remove('rs-visible');
+    setLoading(true);
+    try {
+      var startResult = await djangoApi('/zitadel/passkey/start', { nonce: nonce });
+      var creationOptions = startResult && startResult.publicKey;
+      if (!creationOptions) {
+        throw new Error('ZITADEL did not return WebAuthn creation options.');
+      }
+      var passkeyId = startResult.passkeyId;
+      var publicKey = PublicKeyCredential.parseCreationOptionsFromJSON(creationOptions);
+      // Confirmed live (2026-09-21): Chromium does not reliably honor
+      // publicKey.timeout on its own -- with no platform authenticator
+      // enrolled and no security key plugged in, navigator.credentials
+      // .create() just sits pending forever instead of rejecting once
+      // that timeout elapses, leaving the button stuck on "Waiting for
+      // your device..." with no error and no way back except the
+      // separate "Cancel and go back" link. AbortSignal.timeout gives
+      // this its own client-side deadline so the promise always settles.
+      var credential = await navigator.credentials.create({
+        publicKey: publicKey,
+        signal: AbortSignal.timeout((creationOptions.timeout || 120000) + 1000),
+      });
+      if (!credential) {
+        throw new Error('No credential was created.');
+      }
+      await djangoApi('/zitadel/passkey/verify', {
+        nonce: nonce,
+        passkeyId: passkeyId,
+        publicKeyCredential: credential.toJSON(),
+        passkeyName: description,
+      });
+      card.classList.add('rs-card-verified');
+      btnLabel.textContent = 'Passkey registered';
+      status.hidden = false;
+      status.textContent = 'Taking you back to RentShield…';
+      setTimeout(succeed, 500);
+    } catch (err) {
+      // The most common case by far: the person's OS/browser cancelled
+      // its own biometric prompt (they backed out, timed out, or the
+      // platform authenticator wasn't available) -- surfaced as
+      // NotAllowedError by the WebAuthn spec, not a server-side failure,
+      // so it's shown here rather than redirected away where the same
+      // message would flash past on navigation.
+      setLoading(false);
+      if (err && err.name === 'TimeoutError') {
+        showError('Timed out waiting for your device');
+      } else {
+        showError(err && err.message ? err.message : String(err));
+      }
+    }
+  }
+
+  if (!window.PublicKeyCredential) {
+    btn.disabled = true;
+    showError('This browser does not support passkeys');
+    return;
+  }
+
+  btn.addEventListener('click', register);
+})();
+</script>
+</body>
+</html>

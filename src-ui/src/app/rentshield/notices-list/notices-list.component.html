@@ -1,0 +1,120 @@
+<div class="row g-3 mb-4" tourAnchor="tour.rentshield-notices-stats">
+  <div class="col-6 col-md-3">
+    <div class="rs-stat-card">
+      <div class="rs-stat-icon rs-icon-slate"><i-bs name="file-text"></i-bs></div>
+      <div class="rs-stat-value">{{ total() }}</div>
+      <div class="rs-stat-label">Total Notices</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rs-stat-card">
+      <div class="rs-stat-icon rs-icon-primary"><i-bs name="calendar-event"></i-bs></div>
+      <div class="rs-stat-value">{{ statutory() }}</div>
+      <div class="rs-stat-label">12-Month Statutory</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rs-stat-card">
+      <div class="rs-stat-icon rs-icon-amber"><i-bs name="exclamation-triangle"></i-bs></div>
+      <div class="rs-stat-value">{{ breach() }}</div>
+      <div class="rs-stat-label">30-Day Breach</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rs-stat-card">
+      <div class="rs-stat-icon rs-icon-emerald"><i-bs name="check-circle"></i-bs></div>
+      <div class="rs-stat-value">{{ aiReviewed() }}</div>
+      <div class="rs-stat-label">AI-Reviewed</div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <p class="text-muted small mb-0">Every RentShield notice, newest first &mdash; real paperless-ngx Documents.</p>
+  <a routerLink="/notice/new" class="rs-cta-link">
+    <i-bs name="file-earmark-plus" class="me-1"></i-bs> New Notice
+  </a>
+</div>
+
+<div class="rs-panel" *ngIf="!loading() && !notices().length">
+  <div class="text-center text-muted py-5">
+    <i-bs name="inbox" class="fs-3 mb-2 d-block"></i-bs>
+    No notices saved yet &mdash; build your first one.
+  </div>
+</div>
+
+<div class="rs-panel" *ngIf="notices().length" tourAnchor="tour.rentshield-notices-table">
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead>
+        <tr class="small text-muted text-uppercase">
+          <th scope="col">Landlord &rarr; Tenant</th>
+          <th scope="col">Property</th>
+          <th scope="col">Reason</th>
+          <th scope="col">Period</th>
+          <th scope="col">Notice Date</th>
+          <th scope="col">Add-ons</th>
+          <th scope="col">Notarization</th>
+          <th scope="col" class="text-end">Total</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let n of notices()">
+          <td data-label="Landlord → Tenant">
+            <div class="fw-semibold">{{ n.landlord_name }} &rarr; {{ n.tenant_name }}</div>
+          </td>
+          <td class="text-muted" data-label="Property">{{ n.property_type }} {{ n.unit_no }}</td>
+          <td class="text-muted" data-label="Reason">{{ n.reason_label }}</td>
+          <td class="text-muted" data-label="Period">{{ n.notice_period_days }} days</td>
+          <td class="text-muted" data-label="Notice Date">{{ n.notice_date }}</td>
+          <td data-label="Add-ons">
+            <span class="badge rs-badge-ai me-1" *ngIf="n.add_ai_review">AI-Reviewed</span>
+            <span class="text-muted small" *ngIf="!n.add_notarization && !n.add_ai_review">None</span>
+          </td>
+          <td data-label="Notarization">
+            <span
+              class="badge me-1"
+              *ngIf="n.add_notarization"
+              [class.rs-badge-notarized]="n.esign_status !== 'completed'"
+              [class.rs-badge-ai]="n.esign_status === 'completed'"
+            >
+              {{ n.esign_status ? ('E-Signed · ' + n.esign_status) : 'E-Signature due' }}
+            </span>
+            <span
+              class="badge"
+              *ngIf="n.add_real_notarization"
+              [class.rs-badge-notarized]="n.notary_status !== 'completed'"
+              [class.rs-badge-ai]="n.notary_status === 'completed'"
+            >
+              {{ n.notary_status === 'completed' ? 'Notarized' : n.notary_status === 'rejected' ? 'Notarization rejected' : 'Awaiting Notary Public' }}
+            </span>
+            <span class="text-muted small" *ngIf="!n.add_notarization && !n.add_real_notarization">&mdash;</span>
+          </td>
+          <td class="text-end fw-bold" data-label="Total">{{ n.total_price_aed }} AED</td>
+          <td class="text-end rs-actions-cell" data-label="Actions">
+            <button
+              *ngIf="n.served_date"
+              type="button"
+              class="btn rs-btn-outline-slate btn-sm"
+              [disabled]="isGeneratingPacket(n.document_id!)"
+              (click)="generateRdscPacket(n)">
+              <span *ngIf="isGeneratingPacket(n.document_id!)" class="spinner-border spinner-border-sm me-1" role="status"></span>
+              RDSC Filing Packet
+            </button>
+            <button
+              *ngIf="n.served_date"
+              type="button"
+              class="btn rs-btn-outline-slate btn-sm ms-1"
+              [disabled]="isResolvingFilingTask(n.document_id!)"
+              (click)="recordRdcFiling(n)">
+              <span *ngIf="isResolvingFilingTask(n.document_id!)" class="spinner-border spinner-border-sm me-1" role="status"></span>
+              Record RDC Filing
+            </button>
+            <span *ngIf="!n.served_date" class="text-muted small" title="Set this notice's Served Date first">Not yet served</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

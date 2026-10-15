@@ -1,0 +1,18 @@
+{% extends "rentshield/signup_base.html" %}
+{% block title %}Sign in or register{% endblock %}
+{% block content %}
+    <h1>Sign in or register as a verified owner</h1>
+    <p class="rs-lede">A notice only holds up if the person sending it is who they say they are. RentShield proves that once, then builds every tenancy notice on it: the right law, both languages, a verified sender.</p>
+    <p class="rs-wizard-hint">Already have an account? Enter your email on the next page and we'll take you straight to signing in with your passkey.</p>
+
+    <h2>Before you start</h2>
+    <p>If you're new, you'll need:</p>
+    <ul class="rs-list">
+        <li>an email address you can check now</li>
+        <li>a valid photo ID (passport, national ID, driving licence, or residence visa)</li>
+        <li>your phone with the RentShield app, for the identity check at the end</li>
+    </ul>
+    <div class="rs-inset violet">There's no password to create. A passkey (your face, fingerprint, or device screen lock) is what signs you in from now on, and your biometric data never leaves the server.</div>
+
+    <p><a class="rs-btn rs-btn-start" href="{% url 'rentshield-signup-email' %}">Start now <span class="arr">&rarr;</span></a></p>
+{% endblock %}

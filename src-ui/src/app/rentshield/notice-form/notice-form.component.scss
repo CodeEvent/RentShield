@@ -1,0 +1,81 @@
+@use '../rentshield-shared' as *;
+
+.rs-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--rs-light-text-secondary);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.rs-reason-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--rs-light-border);
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+  background: var(--rs-light-panel-bg);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--rs-light-text-strong);
+  text-align: left;
+  // Press feedback + smooth state change, matching the Phase 0 button
+  // layer in rentshield-shared.scss (transform/opacity only, <=200ms).
+  transition: border-color .16s var(--rs-ease), background-color .16s var(--rs-ease),
+              color .16s var(--rs-ease), transform .14s var(--rs-ease);
+}
+
+// Selection moved from --rs-light-emerald to the brand primary green:
+// Phase 0 reclassified emerald as a success-only tone, so a *chosen*
+// card now reads in the same green as every other primary action.
+.rs-reason-card:hover {
+  border-color: var(--rs-light-primary);
+}
+
+.rs-reason-card:active {
+  transform: scale(0.97);
+}
+
+.rs-reason-active {
+  border-color: var(--rs-light-primary);
+  background: var(--rs-light-primary-tint);
+  color: var(--rs-light-primary-deep);
+}
+
+.rs-warning-box {
+  background: var(--rs-light-amber-tint);
+  border: 1px solid var(--rs-light-amber-border);
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.76rem;
+  color: var(--rs-light-amber-strong);
+}
+
+.rs-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--rs-light-border-subtle);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.rs-checkbox-row:last-of-type {
+  border-bottom: none;
+}
+
+.rs-checkbox-row input {
+  margin-top: 0.2rem;
+}
+
+// .rs-btn-emerald moved to ../rentshield-shared.scss (2026-09-13) --
+// this file's own copy was the ONLY place it existed, meaning every
+// other component referencing the class (identity-verification's own
+// buttons included) silently got an unstyled plain Bootstrap .btn.
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-reason-card { transition: none; }
+  .rs-reason-card:active { transform: none; }
+}

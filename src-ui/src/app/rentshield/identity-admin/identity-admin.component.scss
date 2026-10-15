@@ -1,0 +1,126 @@
+@use '../rentshield-shared' as *;
+
+.rs-evidence-thumb {
+  width: 90px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--rs-light-border);
+}
+
+// The confirmation video needs room for its own play/seek controls --
+// the same 90x110 photo-thumbnail size is too cramped to use.
+video.rs-evidence-thumb {
+  width: 160px;
+  height: 110px;
+  object-fit: contain;
+  background: #000;
+}
+
+// The confirmation video is the one piece of evidence actually being
+// manually judged here (everything else is already computed) -- given
+// real visual weight instead of a same-size thumbnail alongside the
+// photos, matching a real 9:16 phone-recorded portrait clip's own
+// aspect ratio instead of an arbitrary fixed box.
+.rs-video-featured {
+  width: 220px;
+  height: 300px;
+  object-fit: contain;
+  background: #000;
+  border-radius: 10px;
+  border: 1px solid var(--rs-light-border);
+}
+
+.rs-evidence-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.7rem;
+  // was #94a3b8 (2.56:1 on white -- fails WCAG AA's 4.5:1 for normal
+  // text); --rs-light-text-muted is the same "secondary" role at 4.76:1.
+  color: var(--rs-light-text-muted);
+  background: var(--rs-light-bg-subtle);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+// Status pill -- one color per IdentityVerification.status value,
+// mirroring the emerald/amber/slate/red palette already used for the
+// rs-icon-* stat-card variants in rentshield-shared.scss instead of
+// bootstrap's default badge colors.
+.rs-status-badge {
+  text-transform: capitalize;
+  font-weight: 700;
+}
+
+.rs-status-verified,
+.rs-status-completed {
+  background: var(--rs-light-emerald-tint) !important;
+  color: var(--rs-light-emerald-strong) !important;
+}
+
+.rs-status-failed,
+.rs-status-no_show {
+  background: var(--rs-light-red-tint) !important;
+  color: var(--rs-light-red) !important;
+}
+
+.rs-status-awaiting_notary_review,
+.rs-status-confirmed {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+.rs-status-manual_review,
+.rs-status-pending,
+.rs-status-proposed {
+  background: var(--rs-light-amber-tint) !important;
+  color: var(--rs-light-amber) !important;
+}
+
+.rs-status-cancelled {
+  background: var(--rs-light-border-subtle) !important;
+  color: var(--rs-light-text-secondary) !important;
+}
+
+// Distinct from awaiting_notary_review's blue -- this is "waiting on
+// the user again", not "waiting on a Notary". Shared with a video
+// call's own reschedule_requested for the same reason. Uses the brand
+// violet tokens (not a one-off indigo hex): violet is the app's
+// "identity / your action needed" accent -- the same colour as the
+// front door and the verified pill -- so the one status that's waiting
+// on the user reads in the colour that means exactly that.
+.rs-status-needs_more_info,
+.rs-status-reschedule_requested {
+  background: var(--rs-light-violet-tint) !important;
+  color: var(--rs-light-violet-strong) !important;
+}
+
+// A labeled block of read-only (or editable) data -- the declared/OCR/
+// chip/match-score columns -- given its own light card instead of
+// sitting as bare text, so each source of truth reads as a distinct
+// unit the Notary is comparing, not one undifferentiated paragraph.
+.rs-data-block {
+  background: var(--rs-light-bg-subtle);
+  border: 1px solid var(--rs-light-border);
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  height: 100%;
+}
+
+.rs-data-block-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--rs-light-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.4rem;
+}
+
+// .rs-hint-warn moved to ../rentshield-shared.scss (2026-09-14) -- the
+// identity-verification page needs the same amber "needs attention"
+// tone for its own needs_more_info message, and a class only this
+// component's stylesheet defines doesn't apply anywhere else (Angular
+// view encapsulation -- see rentshield-shared.scss's own comment on
+// .rs-btn-emerald for the bug this exact mistake caused before).

@@ -1,0 +1,14 @@
+{% extends "rentshield/signup_base.html" %}
+{% block title %}Create your passkey{% endblock %}
+{% block content %}
+    {% if passkey_error %}
+    <div class="rs-error-summary" role="alert" tabindex="-1">
+        <h2>There is a problem</h2>
+        <ul><li>That didn't go through ({{ passkey_error }}). No account changes were lost. Try again below.</li></ul>
+    </div>
+    {% endif %}
+    <h1>Create your passkey</h1>
+    <p>Your account is created. One step left: a passkey is how you'll sign in from now on, using your face, fingerprint, or your device's screen lock. There's no password to set, remember, or lose.</p>
+    <div class="rs-inset violet">When you select <strong>Create passkey</strong>, your device will ask you to confirm with your face, fingerprint, or PIN.</div>
+    <p><a class="rs-btn" href="{{ bridge_url }}">Create passkey</a></p>
+{% endblock %}

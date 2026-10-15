@@ -1,0 +1,33 @@
+<div class="modal-header">
+  <h4 class="modal-title" i18n>Record RDC filing</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="modal-body">
+    <p class="text-muted small" i18n>
+      Once you've filed the generated packet at rdc.gov.ae, record the case reference and filing date here.
+    </p>
+    <div class="mb-3">
+      <label for="rdc_case_reference" class="form-label" i18n>RDC case reference</label>
+      <input
+        id="rdc_case_reference"
+        type="text"
+        class="form-control"
+        formControlName="rdc_case_reference"
+        autofocus
+      />
+    </div>
+    <div class="mb-3">
+      <label for="filed_date" class="form-label" i18n>Filed date</label>
+      <input id="filed_date" type="date" class="form-control" formControlName="filed_date" />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="activeModal.dismiss()" i18n>
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid" i18n>
+      Save
+    </button>
+  </div>
+</form>

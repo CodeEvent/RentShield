@@ -1,0 +1,22 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Use a backup code{% endblock %}
+{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-verify' %}">Back</a>{% endblock %}
+{% block content %}
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label class="rs-label-h1" for="id_bc_email">Use a backup code</label>
+            <span class="rs-hint">Enter your email and one of the backup codes you saved when you signed up. Each code works once.</span>
+            <input type="email" name="email" id="id_bc_email" class="rs-input" value="{{ email }}" autocomplete="email" spellcheck="false" inputmode="email" required>
+        </div>
+        <div class="rs-field">
+            <label for="id_bc_code">Backup code</label>
+            <input type="text" name="code" id="id_bc_code" class="rs-input rs-input-code" autocomplete="one-time-code" maxlength="11" required autofocus>
+        </div>
+        <button type="submit" class="rs-btn">
+            <span class="rs-btn-label">Sign in</span>
+        </button>
+    </form>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

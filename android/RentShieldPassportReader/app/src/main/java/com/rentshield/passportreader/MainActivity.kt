@@ -1,0 +1,1142 @@
+package com.rentshield.passportreader
+
+import android.Manifest
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.IsoDep
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.RadioGroup
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.camera.core.ImageAnalysis
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetector
+import com.google.mlkit.vision.face.FaceDetectorOptions
+import org.jmrtd.AccessKeySpec
+import org.jmrtd.BACKey
+import org.jmrtd.PACEKeySpec
+import java.io.File
+import java.util.Calendar
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+/**
+ * Full flow: sign in -> Face ID/fingerprint gate (confirms phone
+ * ownership only, see NfcChipReader.kt) -> pick Passport or Italian CIE
+ * and enter its access key -> photograph the physical card (Idswyft
+ * OCRs it, RentShield auto-updates the account's name) -> tap the chip
+ * (cross-checked against the card photo's OCR, never a hard gate) ->
+ * selfie (matched against the card photo) -> a short recorded video ->
+ * a human (Notary Public) reviews everything within 24h before the
+ * account is actually marked verified.
+ */
+class MainActivity : AppCompatActivity() {
+
+    // VIDEO is deliberately not here anymore -- it's recorded in-app via
+    // CameraX (see section_video_record) instead of the plain camera
+    // intent this enum still drives for the other two capture kinds,
+    // specifically so the confirmation sentence can be shown on screen
+    // while recording (the system camera app's own UI can't display it).
+    private enum class CaptureKind { CARD_PHOTO, SELFIE, ADDITIONAL_ID_FRONT, ADDITIONAL_ID_BACK }
+
+    private lateinit var api: RentShieldApiClient
+
+    // Views
+    private lateinit var sectionLogin: View
+    private lateinit var sectionBiometric: View
+    private lateinit var sectionDocument: View
+    private lateinit var fieldsPassport: View
+    private lateinit var fieldsCie: View
+    private lateinit var statusText: TextView
+    private lateinit var photoPreview: ImageView
+    private lateinit var buttonCardPhoto: Button
+    private lateinit var buttonScan: Button
+    private lateinit var buttonSelfie: Button
+    private lateinit var buttonVideo: Button
+    private lateinit var buttonDone: Button
+    private lateinit var sectionVideoRecord: View
+    private lateinit var videoPreviewView: PreviewView
+    private lateinit var videoPromptOverlay: TextView
+    private lateinit var buttonRecordToggle: Button
+    private lateinit var sectionAdditionalId: View
+    private lateinit var radioAdditionalIdType: RadioGroup
+    private lateinit var buttonAdditionalIdFront: Button
+    private lateinit var buttonAdditionalIdBack: Button
+    private lateinit var buttonAdditionalIdContinue: Button
+    private lateinit var scrollRoot: ScrollView
+    private lateinit var sectionPhotoCapture: View
+    private lateinit var photoPreviewView: PreviewView
+    private lateinit var buttonCapturePhoto: Button
+    private var imageCapture: ImageCapture? = null
+    private lateinit var faceGuideOverlay: FaceGuideOverlay
+    private var faceDetector: FaceDetector? = null
+
+    // Face detection itself runs off Play Services' own threads, but
+    // converting each ImageProxy and kicking that off still shouldn't
+    // happen on the main thread -- one persistent single-thread executor
+    // for the activity's whole lifetime (see onDestroy) rather than a
+    // fresh one per selfie attempt.
+    private val faceAnalysisExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+
+    // Which primary document type the user declared on the web -- kept
+    // to filter the additional-document choices (never the same type
+    // as the primary, see applyAdditionalIdTypeFilter()).
+    private var primaryDocumentType: String = "passport"
+    private var additionalIdFrontBytes: ByteArray? = null
+    private var additionalIdBackBytes: ByteArray? = null
+    private lateinit var buttonSignOut: Button
+    private lateinit var sectionStepHeader: View
+    private lateinit var stepLabel: TextView
+    private lateinit var stepProgress: LinearProgressIndicator
+
+    // Pending NFC read request, set once "Ready to scan" is tapped and
+    // consumed in onNewIntent when the actual tap happens.
+    private var pendingPaceKey: AccessKeySpec? = null
+    private var pendingBacFallback: BACKey? = null
+
+    private var pendingCaptureKind: CaptureKind? = null
+
+    // Read straight off the NFC chip's own MRZ (onChipReadSuccess) -- the
+    // cryptographically signed data, not the (sometimes incomplete, see
+    // idswyft-community's own name-matching bug fixed this session)
+    // card-photo OCR -- used to build the sentence the user reads aloud
+    // on the confirmation video.
+    private var verifiedFullName: String = ""
+    private var verifiedAgeYears: Int? = null
+
+    private var videoCapture: VideoCapture<Recorder>? = null
+    private var activeRecording: Recording? = null
+    private val recordingHandler = Handler(Looper.getMainLooper())
+
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        sectionLogin = findViewById(R.id.section_login)
+        sectionBiometric = findViewById(R.id.section_biometric)
+        sectionDocument = findViewById(R.id.section_document)
+        fieldsPassport = findViewById(R.id.fields_passport)
+        fieldsCie = findViewById(R.id.fields_cie)
+        statusText = findViewById(R.id.status_text)
+        photoPreview = findViewById(R.id.photo_preview)
+        buttonCardPhoto = findViewById(R.id.button_card_photo)
+        buttonScan = findViewById(R.id.button_scan)
+        buttonSelfie = findViewById(R.id.button_selfie)
+        buttonVideo = findViewById(R.id.button_video)
+        buttonDone = findViewById(R.id.button_done)
+        sectionVideoRecord = findViewById(R.id.section_video_record)
+        videoPreviewView = findViewById(R.id.video_preview)
+        videoPromptOverlay = findViewById(R.id.video_prompt_overlay)
+        buttonRecordToggle = findViewById(R.id.button_record_toggle)
+        sectionAdditionalId = findViewById(R.id.section_additional_id)
+        radioAdditionalIdType = findViewById(R.id.radio_additional_id_type)
+        buttonAdditionalIdFront = findViewById(R.id.button_additional_id_front)
+        buttonAdditionalIdBack = findViewById(R.id.button_additional_id_back)
+        buttonAdditionalIdContinue = findViewById(R.id.button_additional_id_continue)
+        buttonSignOut = findViewById(R.id.button_sign_out)
+        sectionStepHeader = findViewById(R.id.section_step_header)
+        stepLabel = findViewById(R.id.step_label)
+        stepProgress = findViewById(R.id.step_progress)
+        scrollRoot = findViewById(R.id.scroll_root)
+        sectionPhotoCapture = findViewById(R.id.section_photo_capture)
+        photoPreviewView = findViewById(R.id.photo_preview_camera)
+        buttonCapturePhoto = findViewById(R.id.button_capture_photo)
+        faceGuideOverlay = findViewById(R.id.face_guide_overlay)
+
+        permissionLauncher.launch(
+            arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO),
+        )
+
+        findViewById<Button>(R.id.button_scan_pairing_qr).setOnClickListener { onScanPairingQrClicked() }
+        findViewById<Button>(R.id.button_biometric).setOnClickListener { runBiometricGate() }
+        buttonSignOut.setOnClickListener { signOut() }
+        findViewById<RadioGroup>(R.id.radio_document_type).setOnCheckedChangeListener { _, checkedId ->
+            val isCie = checkedId == R.id.radio_cie
+            fieldsPassport.visibility = if (isCie) View.GONE else View.VISIBLE
+            fieldsCie.visibility = if (isCie) View.VISIBLE else View.GONE
+        }
+        buttonCardPhoto.setOnClickListener { startInAppPhotoCapture(CaptureKind.CARD_PHOTO) }
+        buttonScan.setOnClickListener { onScanClicked() }
+        buttonSelfie.setOnClickListener { startInAppPhotoCapture(CaptureKind.SELFIE) }
+        buttonVideo.setOnClickListener { showVideoInstructionsThenRecord() }
+        buttonRecordToggle.setOnClickListener { onRecordToggleClicked() }
+        buttonCapturePhoto.setOnClickListener { onCapturePhotoClicked() }
+        buttonDone.setOnClickListener { resetToBiometricGate() }
+        buttonAdditionalIdFront.setOnClickListener { startInAppPhotoCapture(CaptureKind.ADDITIONAL_ID_FRONT) }
+        buttonAdditionalIdBack.setOnClickListener { startInAppPhotoCapture(CaptureKind.ADDITIONAL_ID_BACK) }
+        buttonAdditionalIdContinue.setOnClickListener { onAdditionalIdContinueClicked() }
+        radioAdditionalIdType.setOnCheckedChangeListener { _, _ -> updateAdditionalIdContinueEnabled() }
+
+        resumeSessionIfAvailable()
+    }
+
+    // MARK: -- Session persistence
+    //
+    // Real bug, reported live: launching the system camera app for the
+    // card photo (launchCamera below) is exactly the kind of foreground
+    // activity Android can reclaim memory from by killing this app's
+    // whole process while it's backgrounded -- common on real devices,
+    // not a hypothetical. `api` was only ever an in-memory lateinit var,
+    // so returning from the camera to a freshly recreated MainActivity
+    // meant `sectionLogin` (VISIBLE by default in the layout, and never
+    // otherwise reset) was the only thing left to show -- the user was
+    // sent all the way back to "scan the QR", losing a token a pairing
+    // code can't even be reused to get back (it's single-use). Persists
+    // just enough (server, token, and what was declared on the web) to
+    // resume straight into the biometric gate instead -- a fresh face/
+    // fingerprint check plus retaking the card photo is real but minor
+    // friction, versus needing an entirely new QR from the website.
+    private fun sessionPrefs() = getSharedPreferences("rentshield_session", MODE_PRIVATE)
+
+    private fun persistSession(server: String, token: String, declared: DeclaredDocument) {
+        sessionPrefs().edit()
+            .putString("server", server)
+            .putString("token", token)
+            .putString("declared_document_type", declared.documentType)
+            .putString("declared_document_number", declared.documentNumber)
+            .putString("declared_date_of_birth", declared.dateOfBirth)
+            .putString("declared_expiry_date", declared.expiryDate)
+            .putString("declared_can", declared.can)
+            .apply()
+    }
+
+    private fun resumeSessionIfAvailable() {
+        val prefs = sessionPrefs()
+        val server = prefs.getString("server", null)
+        val token = prefs.getString("token", null)
+        if (server == null || token == null) return
+
+        api = RentShieldApiClient(server, token)
+        prefillDeclaredDocument(
+            DeclaredDocument(
+                documentType = prefs.getString("declared_document_type", "").orEmpty(),
+                documentNumber = prefs.getString("declared_document_number", "").orEmpty(),
+                dateOfBirth = prefs.getString("declared_date_of_birth", "").orEmpty(),
+                expiryDate = prefs.getString("declared_expiry_date", "").orEmpty(),
+                can = prefs.getString("declared_can", "").orEmpty(),
+            ),
+        )
+        sectionLogin.visibility = View.GONE
+        sectionBiometric.visibility = View.VISIBLE
+        buttonSignOut.visibility = View.VISIBLE
+        updateStep(1, "Confirm it's you")
+    }
+
+    // "Where am I" indicator -- the flow has no sense of progress
+    // otherwise, one of the concrete UX gaps raised directly: "each
+    // steps must be more userfriendly and intuitive".
+    private fun updateStep(step: Int, label: String, total: Int = 7) {
+        sectionStepHeader.visibility = View.VISIBLE
+        stepLabel.text = "Step $step of $total -- $label"
+        stepProgress.max = total
+        stepProgress.setProgressCompat(step, true)
+    }
+
+    // "once the qr was scanned the user must have the ability to reset
+    // the qr code at any time" -- requested explicitly. Clears the
+    // persisted session (so a relaunch doesn't just resume back into
+    // it) and returns to the QR-scan screen from wherever the user
+    // currently is in the flow, not just the very first launch.
+    private fun signOut() {
+        sessionPrefs().edit().clear().apply()
+        clearCaptureState()
+        sectionBiometric.visibility = View.GONE
+        sectionDocument.visibility = View.GONE
+        sectionAdditionalId.visibility = View.GONE
+        sectionStepHeader.visibility = View.GONE
+        buttonSignOut.visibility = View.GONE
+        sectionLogin.visibility = View.VISIBLE
+    }
+
+    // MARK: -- Scan to sign in (documents/rentshield_identity/pairing_views.py)
+
+    private fun onScanPairingQrClicked() {
+        val scanner = GmsBarcodeScanning.getClient(
+            this,
+            GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build(),
+        )
+        scanner.startScan()
+            .addOnSuccessListener { barcode -> onPairingQrScanned(barcode.rawValue) }
+            .addOnFailureListener { toast(it.message ?: "Could not scan that code -- try again.") }
+        // No addOnCanceledListener: the user backing out of the scanner
+        // (no QR found, changed their mind) just returns them to this
+        // same login screen, nothing to handle.
+    }
+
+    private fun onPairingQrScanned(rawValue: String?) {
+        // rentshieldpair://pair?server=<url-encoded>&code=<code> -- see
+        // pairing_views.py's pair_start_view for why this is a real URI
+        // (survives a server address that itself contains a colon)
+        // instead of a hand-split string.
+        val uri = rawValue?.let { runCatching { Uri.parse(it) }.getOrNull() }
+        val server = uri?.getQueryParameter("server")
+        val code = uri?.getQueryParameter("code")
+        if (uri?.scheme != "rentshieldpair" || server.isNullOrEmpty() || code.isNullOrEmpty()) {
+            toast("That doesn't look like a RentShield sign-in code -- try again.")
+            return
+        }
+
+        api = RentShieldApiClient(server)
+        api.claimPairing(code) { result ->
+            runOnUiThread {
+                result.onSuccess {
+                    persistSession(server, it.token, it.declared)
+                    prefillDeclaredDocument(it.declared)
+                    sectionLogin.visibility = View.GONE
+                    sectionBiometric.visibility = View.VISIBLE
+                }.onFailure { toast(it.message ?: "That code is invalid or expired -- get a new one on the website.") }
+            }
+        }
+    }
+
+    // Pre-fills (still editable, never locked) the same fields
+    // section_document already had -- typed once on the web's real
+    // keyboard instead of asking for them again from scratch here. The
+    // web's date inputs are ISO (YYYY-MM-DD); BACKey needs yyMMdd.
+    private fun prefillDeclaredDocument(declared: DeclaredDocument) {
+        primaryDocumentType = declared.documentType
+        applyAdditionalIdTypeFilter()
+        if (declared.documentType == "cie") {
+            findViewById<RadioGroup>(R.id.radio_document_type).check(R.id.radio_cie)
+            findViewById<EditText>(R.id.input_can).setText(declared.can)
+        } else {
+            findViewById<RadioGroup>(R.id.radio_document_type).check(R.id.radio_passport)
+            findViewById<EditText>(R.id.input_passport_number).setText(declared.documentNumber)
+            findViewById<EditText>(R.id.input_date_of_birth).setText(isoDateToYyMMdd(declared.dateOfBirth))
+            findViewById<EditText>(R.id.input_expiration_date).setText(isoDateToYyMMdd(declared.expiryDate))
+        }
+    }
+
+    // The additional document can never be the same type as the primary
+    // one (requested explicitly, enforced again server-side -- see
+    // views.py's _DISALLOWED_ADDITIONAL_FOR_PRIMARY): hides whichever
+    // radio option would be redundant given what was just declared.
+    private fun applyAdditionalIdTypeFilter() {
+        // Real bug caught before it shipped: without resetting every
+        // option to visible first, signing out and back in with a
+        // DIFFERENT primary type (e.g. CIE, then later Passport) would
+        // leave the previous session's hidden option still hidden on
+        // top of the new one -- down to 3 real choices instead of 4.
+        for (id in listOf(
+            R.id.radio_additional_driving_licence, R.id.radio_additional_national_id,
+            R.id.radio_additional_residence_visa, R.id.radio_additional_second_passport,
+            R.id.radio_additional_other,
+        )) {
+            findViewById<View>(id).visibility = View.VISIBLE
+        }
+        val disallowedId = if (primaryDocumentType == "cie") R.id.radio_additional_national_id else R.id.radio_additional_second_passport
+        findViewById<View>(disallowedId).visibility = View.GONE
+    }
+
+    private fun isoDateToYyMMdd(iso: String): String {
+        val parts = iso.split("-")
+        if (parts.size != 3 || parts[0].length < 2) return ""
+        return parts[0].takeLast(2) + parts[1] + parts[2]
+    }
+
+    // MARK: -- Biometric gate
+
+    private fun runBiometricGate() {
+        val canAuth = BiometricManager.from(this)
+            .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+        if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+            toast("No Face ID/fingerprint/PIN set up on this device.")
+            return
+        }
+        val prompt = BiometricPrompt(
+            this,
+            ContextCompat.getMainExecutor(this),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    sectionBiometric.visibility = View.GONE
+                    sectionDocument.visibility = View.VISIBLE
+                    updateStep(2, "Confirm your document details")
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    toast("Confirmation required to continue: $errString")
+                }
+            },
+        )
+        // Combining BIOMETRIC_WEAK + DEVICE_CREDENTIAL: the system supplies
+        // its own PIN fallback UI, and setNegativeButtonText must NOT be
+        // called alongside it (androidx.biometric throws if both are set).
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Confirm it's you")
+            .setSubtitle("This only confirms you unlocked this phone -- it isn't compared against your document.")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+        prompt.authenticate(promptInfo)
+    }
+
+    // MARK: -- Card photo (Idswyft OCR + face-match reference)
+
+    private fun onCardPhotoCaptured(cardPhotoBytes: ByteArray) {
+        buttonCardPhoto.visibility = View.GONE
+        statusText.text = "Reading your card…"
+        BitmapFactory.decodeByteArray(cardPhotoBytes, 0, cardPhotoBytes.size)?.let { photoPreview.setImageBitmap(it) }
+
+        LocationHelper.requestOnce(this) { location ->
+            api.startVerification { startResult ->
+                startResult.onFailure { runOnUiThread { statusText.text = it.message; buttonCardPhoto.visibility = View.VISIBLE } }
+                startResult.onSuccess {
+                    api.uploadFrontDocument(cardPhotoBytes, "image/jpeg", location) { result ->
+                        runOnUiThread {
+                            result.onSuccess {
+                                // Real bug, reported: a card photo that fails
+                                // Idswyft's own quality check (e.g. OCR
+                                // confidence too low) still comes back as an
+                                // HTTP 200 with status="failed" in the body --
+                                // onSuccess only means "the network call
+                                // worked", not "verification passed". Without
+                                // this check the app let you proceed to NFC/
+                                // selfie on an already-dead session, and the
+                                // real failure only surfaced several steps
+                                // later as a confusing, unrelated-looking
+                                // selfie error.
+                                //
+                                // Requested explicitly (2026-09-14): a failed
+                                // step should let the user retake and retry
+                                // right here, not send them all the way back
+                                // to "Confirm it's you" (step 1) -- that used
+                                // to go through onVerificationComplete's Done
+                                // screen, whose only action is
+                                // resetToBiometricGate(). views.py's matching
+                                // fix (upload_front_document_view) un-sticks
+                                // the record on a retake that passes, so
+                                // simply re-showing this same button is
+                                // enough for a retry to actually work.
+                                if (it.status == "failed") {
+                                    statusText.text = it.detail ?: "That photo didn't pass automated checks -- retake it with better lighting/focus and try again."
+                                    buttonCardPhoto.visibility = View.VISIBLE
+                                } else {
+                                    statusText.text = "Card read. Now tap the chip: hold it flat against the back of your phone."
+                                    buttonScan.visibility = View.VISIBLE
+                                    updateStep(3, "Tap your document for the NFC read")
+                                }
+                            }
+                            result.onFailure {
+                                statusText.text = it.message
+                                buttonCardPhoto.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: -- NFC scan (cross-checked against the card photo's OCR, server-side)
+
+    // The CAN here is mandatory and cannot be swapped for the card's
+    // printed ID/serial number ("CA00000AA"-style) -- the chip's own
+    // firmware only recognizes CAN, MRZ, PIN, or PUK as valid PACE key
+    // material, full stop, the same way a bike lock only opens for its
+    // actual combination. The serial number IS still checked, just not
+    // here: once the chip is unlocked with the real CAN, its own copy of
+    // the document number (PassportReadResult.documentNumber) is sent to
+    // the backend and cross-checked against the card photo's OCR read
+    // (see views.py's _check_identity_mismatch) -- that's the "does the
+    // card number match the chip" check, just done after unlocking, not
+    // used to unlock.
+    private fun onScanClicked() {
+        val isCie = findViewById<RadioGroup>(R.id.radio_document_type).checkedRadioButtonId == R.id.radio_cie
+        if (isCie) {
+            val can = findViewById<EditText>(R.id.input_can).text.toString().trim()
+            if (can.length != 6) {
+                toast("The CAN is exactly 6 digits -- it's a different number from the card's longer alphanumeric ID/serial number.")
+                return
+            }
+            pendingPaceKey = PACEKeySpec.createCANKey(can)
+            pendingBacFallback = null
+        } else {
+            val passportNumber = findViewById<EditText>(R.id.input_passport_number).text.toString().trim()
+            val birthDate = findViewById<EditText>(R.id.input_date_of_birth).text.toString().trim()
+            val expirationDate = findViewById<EditText>(R.id.input_expiration_date).text.toString().trim()
+            if (passportNumber.isEmpty() || birthDate.isEmpty() || expirationDate.isEmpty()) {
+                toast("Fill in passport number, date of birth, and expiry date first.")
+                return
+            }
+            val bacKey = BACKey(passportNumber, birthDate, expirationDate)
+            pendingPaceKey = bacKey
+            pendingBacFallback = bacKey
+        }
+        statusText.text = "Hold the document flat against the back of your phone…"
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Every early-exit below used to be completely silent -- from
+        // the user's side, "this device genuinely has no NFC adapter",
+        // "dispatch is registered but the chip is never detected", and
+        // "the chip IS detected but pendingPaceKey was never set" are
+        // all indistinguishable from each other: nothing happens on
+        // screen either way. Reported live (2026-09-14) as "the NFC
+        // reader isn't triggered" with no way to tell which of those
+        // it actually was. Logged here (Logcat, `adb logcat -s
+        // RentShieldNfc`) since this fires on every resume, not just
+        // once -- a toast on every screen return would be real noise.
+        val adapter = NfcAdapter.getDefaultAdapter(this)
+        if (adapter == null) {
+            android.util.Log.w("RentShieldNfc", "onResume: NfcAdapter.getDefaultAdapter() returned null -- this device is not reporting NFC hardware to this app at all.")
+            return
+        }
+        val intent = Intent(applicationContext, javaClass).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_MUTABLE)
+        val filter = arrayOf(arrayOf(IsoDep::class.java.name))
+        try {
+            adapter.enableForegroundDispatch(this, pendingIntent, null, filter)
+            android.util.Log.i("RentShieldNfc", "onResume: enableForegroundDispatch succeeded, adapter.isEnabled=${adapter.isEnabled}")
+        } catch (e: Exception) {
+            // enableForegroundDispatch throws IllegalStateException if
+            // called while the Activity isn't actually resumed yet --
+            // a real, documented gotcha if this ever runs a beat too
+            // early relative to the lifecycle. Was previously
+            // uncaught, so a failure here would have looked identical
+            // to every other silent failure in this method.
+            android.util.Log.e("RentShieldNfc", "onResume: enableForegroundDispatch threw", e)
+            toast("NFC could not be enabled: ${e.message}")
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        NfcAdapter.getDefaultAdapter(this)?.disableForegroundDispatch(this)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Logged unconditionally, before any early-exit below -- this
+        // one line answers the single most important open question:
+        // does Android even call this method when the chip is tapped,
+        // or does the tap never reach the app's code at all (a device/
+        // antenna/positioning problem, not anything this app controls).
+        android.util.Log.i("RentShieldNfc", "onNewIntent fired, action=${intent.action}, pendingPaceKey=${if (pendingPaceKey != null) "set" else "NULL"}")
+        val paceKey = pendingPaceKey ?: run {
+            // A tag WAS detected (Android called this method), but
+            // "Ready to scan" was never tapped first (or its state got
+            // cleared some other way) -- previously silent, identical
+            // on screen to the tag never being detected at all.
+            android.util.Log.w("RentShieldNfc", "onNewIntent: tag intent received but pendingPaceKey is null -- ignoring")
+            toast("Chip detected, but tap \"Ready to scan\" first.")
+            return
+        }
+        @Suppress("DEPRECATION")
+        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) ?: run {
+            android.util.Log.w("RentShieldNfc", "onNewIntent: pendingPaceKey was set but EXTRA_TAG was null/missing on the intent")
+            toast("NFC event received but no tag data was attached -- try tapping again.")
+            return
+        }
+        val isoDep = IsoDep.get(tag) ?: run {
+            statusText.text = "That isn't a passport/ID chip -- try again."
+            return
+        }
+
+        statusText.text = "Reading chip…"
+        Thread {
+            try {
+                val result = NfcChipReader.read(isoDep, paceKey, pendingBacFallback)
+                runOnUiThread { onChipReadSuccess(result) }
+            } catch (t: Throwable) {
+                // Throwable, not Exception -- a real crash was reported
+                // here (app crash + logout) that this didn't catch.
+                // PACE-IM's cryptography (needed for CIE, added when
+                // JMRTD was upgraded from 0.7.18 to 0.8.1) is heavier
+                // than passports' Generic Mapping and pulls in a much
+                // newer BouncyCastle (jdk18on) that has never been
+                // exercised on real Android hardware before now -- an
+                // Error subtype (NoSuchMethodError, OutOfMemoryError,
+                // ...) from that combination wouldn't have been caught
+                // by `catch (e: Exception)` and would kill the whole
+                // process, which also explains the reported "logs me
+                // out" (the in-memory login token doesn't survive a
+                // process restart). Whatever this actually is will now
+                // show on screen instead of crashing blind.
+                runOnUiThread { statusText.text = "Could not read the chip: ${t::class.simpleName}: ${t.message}" }
+            }
+        }.start()
+    }
+
+    private fun onChipReadSuccess(result: PassportReadResult) {
+        pendingPaceKey = null
+        sectionDocument.visibility = View.GONE
+        statusText.text = "Checking chip details against your card photo…"
+        val fullName = "${result.firstName} ${result.lastName}".trim()
+        // Kept for the confirmation-video sentence -- the chip's own MRZ
+        // is the most authoritative name/DOB source on-device (see
+        // README's 2026-09-13 note on the OCR name-matching bug fixed
+        // in idswyft-community itself), more reliable than re-deriving
+        // this from a server round-trip.
+        verifiedFullName = fullName
+        verifiedAgeYears = ageFromMrzDateOfBirth(result.dateOfBirth)
+        api.submitChipData(fullName, result.dateOfBirth, result.documentNumber, result.photoBytes, result.photoMimeType) { chipResult ->
+            runOnUiThread {
+                chipResult.onSuccess {
+                    statusText.text = "Chip read: $fullName. Now add a second ID document."
+                    sectionAdditionalId.visibility = View.VISIBLE
+                    updateStep(4, "Add a second ID document")
+                }
+                chipResult.onFailure {
+                    statusText.text = it.message
+                    sectionDocument.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    // MRZ dates of birth are 2-digit years (YYMMDD) -- the standard ICAO
+    // century rule: a year greater than the current two-digit year is
+    // assumed to be the previous century (nobody's MRZ DOB is in the
+    // future), otherwise this century.
+    private fun ageFromMrzDateOfBirth(yyMMdd: String): Int? {
+        if (yyMMdd.length != 6 || !yyMMdd.all { it.isDigit() }) return null
+        val yy = yyMMdd.substring(0, 2).toInt()
+        val month = yyMMdd.substring(2, 4).toInt()
+        val day = yyMMdd.substring(4, 6).toInt()
+        val now = Calendar.getInstance()
+        val currentTwoDigitYear = now.get(Calendar.YEAR) % 100
+        val century = if (yy > currentTwoDigitYear) 1900 else 2000
+        val birthYear = century + yy
+        var age = now.get(Calendar.YEAR) - birthYear
+        val birthdayAlreadyPassedThisYear =
+            (now.get(Calendar.MONTH) + 1 > month) ||
+                (now.get(Calendar.MONTH) + 1 == month && now.get(Calendar.DAY_OF_MONTH) >= day)
+        if (!birthdayAlreadyPassedThisYear) age -= 1
+        return age
+    }
+
+    // MARK: -- Selfie (Idswyft matches this against the card photo)
+
+    private fun onSelfieCaptured(selfieBytes: ByteArray) {
+        buttonSelfie.visibility = View.GONE
+        statusText.text = "Verifying selfie…"
+        BitmapFactory.decodeByteArray(selfieBytes, 0, selfieBytes.size)?.let { photoPreview.setImageBitmap(it) }
+
+        LocationHelper.requestOnce(this) { location ->
+            api.uploadLiveCapture(selfieBytes, location) { result ->
+                runOnUiThread {
+                    result.onSuccess {
+                        // Same reasoning as onCardPhotoCaptured's matching
+                        // fix: retry this same step in place instead of
+                        // sending the user back to step 1 (views.py's
+                        // upload_live_capture_view un-sticks the record on
+                        // a retake that passes).
+                        if (it.status == "failed") {
+                            statusText.text = it.detail ?: "That selfie didn't pass automated checks -- try again with your whole face clearly visible."
+                            buttonSelfie.visibility = View.VISIBLE
+                        } else {
+                            statusText.text = "Selfie submitted. Last step: record a short confirmation video."
+                            buttonVideo.visibility = View.VISIBLE
+                            updateStep(6, "Record your confirmation video")
+                        }
+                    }
+                    result.onFailure {
+                        // Real bug found going through this step by step
+                        // (2026-09-14): unlike every other capture step's
+                        // onFailure, this never re-showed buttonSelfie --
+                        // it was hidden at the top of this function and a
+                        // network failure here left no way to retry at all.
+                        statusText.text = it.message
+                        buttonSelfie.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: -- Confirmation video (reviewed by a Notary Public within 24h)
+    //
+    // Recorded in-app via CameraX, not the plain video-capture intent the
+    // card photo/selfie steps still use: the user must be shown, ON
+    // SCREEN, the exact sentence to read aloud while recording -- only a
+    // live in-app preview can display an overlay like that; the system
+    // camera app's own UI is opaque to this process. Requested
+    // explicitly: informed with the sentence BEFORE recording starts
+    // (the dialog below), and shown the same sentence again as an
+    // overlay WHILE recording (videoPromptOverlay).
+
+    private fun confirmationSentence(): String {
+        val age = verifiedAgeYears?.toString() ?: "my age"
+        val name = verifiedFullName.ifBlank { "my name" }
+        return "Hi, I'm $name and I'm $age years old."
+    }
+
+    private fun showVideoInstructionsThenRecord() {
+        AlertDialog.Builder(this)
+            .setTitle("Before you record")
+            .setMessage(
+                "You'll record a short video to confirm your identity. Please read the " +
+                    "following sentence aloud, clearly, while looking at the camera " +
+                    "(it'll stay on screen the whole time):\n\n\"${confirmationSentence()}\"",
+            )
+            .setCancelable(false)
+            .setPositiveButton("I'm ready") { _, _ -> startVideoRecordingUi() }
+            .show()
+    }
+
+    private fun startVideoRecordingUi() {
+        buttonVideo.visibility = View.GONE
+        sectionVideoRecord.visibility = View.VISIBLE
+        videoPromptOverlay.text = confirmationSentence()
+        buttonRecordToggle.visibility = View.VISIBLE
+        buttonRecordToggle.text = "Start Recording"
+        updateStep(7, "Recording your video")
+
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener(
+            {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(videoPreviewView.surfaceProvider)
+                }
+                val recorder = Recorder.Builder().build()
+                videoCapture = VideoCapture.withOutput(recorder)
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        this, CameraSelector.DEFAULT_FRONT_CAMERA, preview, videoCapture,
+                    )
+                } catch (e: Exception) {
+                    toast("Could not start the camera: ${e.message}")
+                }
+            },
+            ContextCompat.getMainExecutor(this),
+        )
+    }
+
+    private fun onRecordToggleClicked() {
+        val capture = videoCapture ?: return
+        if (activeRecording != null) {
+            activeRecording?.stop()
+            activeRecording = null
+            return
+        }
+
+        val hasAudio = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            toast("Camera permission is required to record.")
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
+            return
+        }
+
+        val dir = File(cacheDir, "videos").apply { mkdirs() }
+        val file = File(dir, "confirmation_${System.currentTimeMillis()}.mp4")
+        val outputOptions = FileOutputOptions.Builder(file).build()
+        var recording = capture.output.prepareRecording(this, outputOptions)
+        if (hasAudio) recording = recording.withAudioEnabled()
+        activeRecording = recording.start(ContextCompat.getMainExecutor(this)) { event ->
+            if (event is VideoRecordEvent.Finalize) {
+                runOnUiThread {
+                    sectionVideoRecord.visibility = View.GONE
+                    buttonRecordToggle.visibility = View.GONE
+                    if (!event.hasError()) {
+                        onVideoCaptured(file.readBytes())
+                    } else {
+                        toast("Recording failed: ${event.cause?.message ?: "unknown error"}")
+                        buttonVideo.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+        buttonRecordToggle.text = "Stop Recording"
+        // A couple of sentences, not a monologue -- same limit the old
+        // intent-based capture enforced via EXTRA_DURATION_LIMIT.
+        recordingHandler.postDelayed({
+            activeRecording?.stop()
+            activeRecording = null
+        }, 20_000)
+    }
+
+    private fun onVideoCaptured(videoBytes: ByteArray) {
+        statusText.text = "Uploading video…"
+        api.uploadVideo(videoBytes) { result ->
+            runOnUiThread {
+                result.onSuccess { onVerificationComplete(it) }
+                result.onFailure {
+                    statusText.text = it.message
+                    buttonVideo.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    // MARK: -- Second ID document (mandatory, front + back, right after
+    // the NFC read -- see views.py's upload_additional_id_view for the
+    // matching server-side enforcement of both the pipeline order and
+    // the "never the same type as the primary" rule).
+
+    // Radio button id -> the exact key views.py's
+    // IdentityVerification.AdditionalIdType expects on the wire.
+    private fun additionalIdTypeKey(): String? = when (radioAdditionalIdType.checkedRadioButtonId) {
+        R.id.radio_additional_driving_licence -> "driving_licence"
+        R.id.radio_additional_national_id -> "national_id"
+        R.id.radio_additional_residence_visa -> "residence_visa"
+        R.id.radio_additional_second_passport -> "second_passport"
+        R.id.radio_additional_other -> "other"
+        else -> null
+    }
+
+    private fun updateAdditionalIdContinueEnabled() {
+        buttonAdditionalIdContinue.isEnabled =
+            additionalIdTypeKey() != null && additionalIdFrontBytes != null && additionalIdBackBytes != null
+    }
+
+    private fun onAdditionalIdFrontCaptured(photoBytes: ByteArray) {
+        additionalIdFrontBytes = photoBytes
+        buttonAdditionalIdFront.text = "✓ Front photographed (tap to retake)"
+        updateAdditionalIdContinueEnabled()
+    }
+
+    private fun onAdditionalIdBackCaptured(photoBytes: ByteArray) {
+        additionalIdBackBytes = photoBytes
+        buttonAdditionalIdBack.text = "✓ Back photographed (tap to retake)"
+        updateAdditionalIdContinueEnabled()
+    }
+
+    private fun onAdditionalIdContinueClicked() {
+        val idType = additionalIdTypeKey() ?: return
+        val front = additionalIdFrontBytes ?: return
+        val back = additionalIdBackBytes ?: return
+        buttonAdditionalIdContinue.isEnabled = false
+        buttonAdditionalIdContinue.text = "Uploading…"
+        api.uploadAdditionalId(idType, front, "image/jpeg", back, "image/jpeg") { result ->
+            runOnUiThread {
+                result.onSuccess {
+                    sectionAdditionalId.visibility = View.GONE
+                    buttonSelfie.visibility = View.VISIBLE
+                    updateStep(5, "Take a selfie")
+                }
+                result.onFailure {
+                    buttonAdditionalIdContinue.isEnabled = true
+                    buttonAdditionalIdContinue.text = "Continue"
+                    toast(it.message ?: "Could not upload that document -- try again.")
+                }
+            }
+        }
+    }
+
+    // MARK: -- Shared camera helper (card photo, selfie, additional-ID
+    // front/back all take a still photo)
+    //
+    // In-app via CameraX's ImageCapture, not the plain
+    // MediaStore.ACTION_IMAGE_CAPTURE intent this used to launch to the
+    // system camera app. Real bug caught live (2026-09-14): on a real
+    // device (Samsung Galaxy A71), that intent's returned JPEG had its
+    // pixels stored sideways with no EXIF Orientation tag at all -- no
+    // metadata trail left to correct it by after the fact, so a
+    // perfectly sharp photo of a real ID failed OCR outright because
+    // the text was literally sideways. CameraX writes correctly-
+    // oriented output deterministically instead of depending on
+    // whichever OEM camera app happens to be installed. Also
+    // incidentally removes the "backgrounded foreground activity can
+    // get this process killed" risk resumeSessionIfAvailable's own
+    // comment describes -- staying in the same Activity removes that
+    // risk entirely instead of just working around its symptom.
+
+    private fun cameraSelectorFor(kind: CaptureKind): CameraSelector =
+        if (kind == CaptureKind.SELFIE) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+
+    private fun startInAppPhotoCapture(kind: CaptureKind) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            toast("Camera permission is required for this step.")
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+            return
+        }
+        pendingCaptureKind = kind
+        imageCapture = null
+        // A previous selfie attempt's detector, if any -- closed and
+        // rebuilt fresh rather than reused, same reasoning as
+        // imageCapture above (a stale reference from an earlier attempt
+        // must never keep running against a since-unbound camera).
+        faceDetector?.close()
+        faceDetector = null
+        faceGuideOverlay.visibility = if (kind == CaptureKind.SELFIE) View.VISIBLE else View.GONE
+        faceGuideOverlay.setAligned(false)
+        sectionPhotoCapture.visibility = View.VISIBLE
+        buttonCapturePhoto.visibility = View.VISIBLE
+        // Real bug caught live (2026-09-14): the camera provider binds
+        // asynchronously below, but this button used to become tappable
+        // immediately -- tap it before binding actually finishes (very
+        // easy to do; the preview card appears the instant this
+        // function runs, well before a live camera feed is actually
+        // showing in it) and onCapturePhotoClicked's `imageCapture ?:
+        // return` silently did nothing at all: no photo, no error, no
+        // feedback, indistinguishable from the app being broken.
+        // Disabled here and only re-enabled once bindToLifecycle below
+        // actually succeeds.
+        buttonCapturePhoto.isEnabled = false
+        buttonCapturePhoto.text = "Starting camera…"
+        // The capture button lives right after the preview in document
+        // order, but this section can be triggered from steps well
+        // above it (card photo) or below it (additional-ID) -- without
+        // this, the phone stays scrolled wherever it already was and
+        // the newly-visible camera preview can land off-screen.
+        scrollRoot.post { scrollRoot.smoothScrollTo(0, sectionPhotoCapture.top) }
+
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener(
+            {
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(photoPreviewView.surfaceProvider)
+                }
+                val capture = ImageCapture.Builder().build()
+                val useCases = mutableListOf<androidx.camera.core.UseCase>(preview, capture)
+                if (kind == CaptureKind.SELFIE) {
+                    val detector = FaceDetection.getClient(
+                        FaceDetectorOptions.Builder()
+                            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                            .build(),
+                    )
+                    faceDetector = detector
+                    useCases += ImageAnalysis.Builder().build().also {
+                        it.setAnalyzer(faceAnalysisExecutor) { proxy -> analyzeSelfieFrame(proxy, detector) }
+                    }
+                }
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(this, cameraSelectorFor(kind), *useCases.toTypedArray())
+                    imageCapture = capture
+                    buttonCapturePhoto.isEnabled = true
+                    buttonCapturePhoto.text = "📸 Capture"
+                } catch (e: Exception) {
+                    toast("Could not start the camera: ${e.message}")
+                    buttonCapturePhoto.text = "📸 Capture"
+                }
+            },
+            ContextCompat.getMainExecutor(this),
+        )
+    }
+
+    // Runs on faceAnalysisExecutor, not the main thread -- ImageAnalysis
+    // requires every ImageProxy to be closed exactly once or the camera
+    // stalls (no more frames delivered), so `close()` happens in
+    // addOnCompleteListener, which fires whether detection succeeded or
+    // failed. `detector` is passed in rather than read from the
+    // faceDetector field so a stray late frame from a just-replaced
+    // detector (see startInAppPhotoCapture's close-and-rebuild) can never
+    // run against the wrong one.
+    private fun analyzeSelfieFrame(proxy: androidx.camera.core.ImageProxy, detector: FaceDetector) {
+        val mediaImage = proxy.image
+        if (mediaImage == null) {
+            proxy.close()
+            return
+        }
+        val image = InputImage.fromMediaImage(mediaImage, proxy.imageInfo.rotationDegrees)
+        detector.process(image)
+            .addOnSuccessListener { faces ->
+                runOnUiThread { faceGuideOverlay.setAligned(isWellPositioned(faces, image.width, image.height)) }
+            }
+            .addOnFailureListener {
+                runOnUiThread { faceGuideOverlay.setAligned(false) }
+            }
+            .addOnCompleteListener { proxy.close() }
+    }
+
+    // A single face, filling a reasonable fraction of the frame and
+    // roughly centered -- a live hint, not the real gate: Idswyft's own
+    // liveness/face-match checks (see onSelfieCaptured) are still what
+    // actually decides pass/fail, this just means a badly framed selfie
+    // doesn't have to be discovered only after uploading it.
+    private fun isWellPositioned(faces: List<Face>, frameWidth: Int, frameHeight: Int): Boolean {
+        val face = faces.singleOrNull() ?: return false
+        val box = face.boundingBox
+        val widthRatio = box.width().toFloat() / frameWidth
+        if (widthRatio < 0.2f || widthRatio > 0.9f) return false
+        val centerX = box.exactCenterX() / frameWidth
+        val centerY = box.exactCenterY() / frameHeight
+        return centerX in 0.25f..0.75f && centerY in 0.2f..0.85f
+    }
+
+    private fun onCapturePhotoClicked() {
+        // Defense in depth: the button itself is disabled until the
+        // camera is actually ready (see startInAppPhotoCapture), so
+        // this should be unreachable -- but silently doing nothing here
+        // would be exactly the confusing "tapped it, nothing happened"
+        // failure mode that bug was about, so a stray tap still gets a
+        // visible response rather than dead silence.
+        val capture = imageCapture ?: run {
+            toast("Camera is still starting -- try again in a moment.")
+            return
+        }
+        val kind = pendingCaptureKind ?: return
+        val dirName = when (kind) {
+            CaptureKind.CARD_PHOTO -> "cards"
+            CaptureKind.SELFIE -> "selfies"
+            CaptureKind.ADDITIONAL_ID_FRONT -> "additional_ids"
+            CaptureKind.ADDITIONAL_ID_BACK -> "additional_ids"
+        }
+        val dir = File(cacheDir, dirName).apply { mkdirs() }
+        val file = File(dir, "${dirName}_${System.currentTimeMillis()}.jpg")
+        buttonCapturePhoto.isEnabled = false
+        capture.takePicture(
+            ImageCapture.OutputFileOptions.Builder(file).build(),
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    runOnUiThread {
+                        // Real bug found going through this step by step
+                        // (2026-09-14): nothing here ever released the
+                        // camera after a successful capture. CameraX
+                        // use cases bound via bindToLifecycle only let go
+                        // automatically when the Activity itself drops
+                        // below STARTED -- it stays RESUMED for the
+                        // entire rest of this flow (NFC scan, additional
+                        // ID, selfie, video all happen in the same
+                        // Activity), so the camera was left actively
+                        // bound and streaming to a hidden PreviewView
+                        // for the whole time in between, for every
+                        // capture except the last. Real resource/power
+                        // contention right through the NFC step,
+                        // plausibly contributing to it feeling
+                        // unresponsive on top of being wasteful on its
+                        // own. imageCapture is nulled alongside so a
+                        // stray late takePicture() call can't fire
+                        // against an unbound use case.
+                        ProcessCameraProvider.getInstance(this@MainActivity).get().unbindAll()
+                        imageCapture = null
+                        faceDetector?.close()
+                        faceDetector = null
+                        faceGuideOverlay.visibility = View.GONE
+                        // Immediate confirmation that the capture itself
+                        // worked, distinct from whatever the upload/OCR
+                        // result (statusText, a few seconds later) turns
+                        // out to be -- without this there was no signal
+                        // at all between "tapped Capture" and "next
+                        // step's text appeared", which read as "nothing
+                        // happened" even when it had.
+                        toast("Photo captured")
+                        sectionPhotoCapture.visibility = View.GONE
+                        buttonCapturePhoto.visibility = View.GONE
+                        buttonCapturePhoto.isEnabled = true
+                        when (kind) {
+                            CaptureKind.CARD_PHOTO -> onCardPhotoCaptured(file.readBytes())
+                            CaptureKind.SELFIE -> onSelfieCaptured(file.readBytes())
+                            CaptureKind.ADDITIONAL_ID_FRONT -> onAdditionalIdFrontCaptured(file.readBytes())
+                            CaptureKind.ADDITIONAL_ID_BACK -> onAdditionalIdBackCaptured(file.readBytes())
+                        }
+                    }
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    runOnUiThread {
+                        buttonCapturePhoto.isEnabled = true
+                        toast("Could not capture photo: ${exception.message}")
+                    }
+                }
+            },
+        )
+    }
+
+    // MARK: -- Result
+
+    private fun onVerificationComplete(status: VerificationStatus) {
+        val summary = when (status.status) {
+            "verified" -> "Verified."
+            "failed" -> "Verification failed."
+            "awaiting_notary_review" -> "Submitted -- a Notary Public will review your video within 24 hours."
+            "manual_review" -> "Submitted -- under manual review."
+            else -> "Submitted -- processing."
+        }
+        // Idswyft's own rejection detail (e.g. "OCR confidence 0.23 is
+        // below minimum 0.6") is real, specific, and actionable -- a
+        // bare "Verification failed." left a real failure looking like
+        // an unexplained dead end.
+        statusText.text = if (status.detail != null) "$summary ${status.detail}" else summary
+        buttonDone.visibility = View.VISIBLE
+        sectionStepHeader.visibility = View.GONE
+    }
+
+    // Shared by resetToBiometricGate() (start a fresh document within
+    // the same session) and signOut() (leave the session entirely) --
+    // both need every capture-in-progress flag and UI element cleared,
+    // they just differ on which section to land on afterward.
+    private fun clearCaptureState() {
+        pendingCaptureKind = null
+        pendingPaceKey = null
+        pendingBacFallback = null
+        activeRecording?.stop()
+        activeRecording = null
+        videoCapture = null
+        imageCapture = null
+        faceDetector?.close()
+        faceDetector = null
+        runCatching { ProcessCameraProvider.getInstance(this).get().unbindAll() }
+        buttonCardPhoto.visibility = View.VISIBLE
+        buttonScan.visibility = View.GONE
+        buttonSelfie.visibility = View.GONE
+        buttonVideo.visibility = View.GONE
+        buttonDone.visibility = View.GONE
+        sectionVideoRecord.visibility = View.GONE
+        buttonRecordToggle.visibility = View.GONE
+        sectionPhotoCapture.visibility = View.GONE
+        buttonCapturePhoto.visibility = View.GONE
+        faceGuideOverlay.visibility = View.GONE
+        photoPreview.setImageDrawable(null)
+        statusText.text = ""
+
+        sectionAdditionalId.visibility = View.GONE
+        radioAdditionalIdType.clearCheck()
+        additionalIdFrontBytes = null
+        additionalIdBackBytes = null
+        buttonAdditionalIdFront.text = "📸 Photograph the front"
+        buttonAdditionalIdBack.text = "📸 Photograph the back"
+        buttonAdditionalIdContinue.isEnabled = false
+        buttonAdditionalIdContinue.text = "Continue"
+    }
+
+    private fun resetToBiometricGate() {
+        clearCaptureState()
+        sectionDocument.visibility = View.GONE
+        sectionBiometric.visibility = View.VISIBLE
+        updateStep(1, "Confirm it's you")
+    }
+
+    private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+    override fun onDestroy() {
+        super.onDestroy()
+        faceDetector?.close()
+        faceAnalysisExecutor.shutdown()
+    }
+}

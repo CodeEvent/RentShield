@@ -1,0 +1,175 @@
+import { CommonModule } from '@angular/common'
+import { Component, OnInit, inject, signal } from '@angular/core'
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms'
+import { ActivatedRoute, RouterModule } from '@angular/router'
+import { NgxBootstrapIconsModule } from 'ngx-bootstrap-icons'
+import { TourNgBootstrap } from 'ngx-ui-tour-ng-bootstrap'
+import {
+  AddOn,
+  Reason,
+  RentshieldApiService,
+} from '../services/rentshield-api.service'
+
+@Component({
+  selector: 'app-notice-form',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NgxBootstrapIconsModule, TourNgBootstrap],
+  templateUrl: './notice-form.component.html',
+  styleUrl: './notice-form.component.scss',
+})
+export class NoticeFormComponent implements OnInit {
+  private fb = inject(FormBuilder)
+  private api = inject(RentshieldApiService)
+  private route = inject(ActivatedRoute)
+
+  reasons = signal<Record<string, Reason>>({})
+  statutoryKeys = ['sale', 'personal', 'demolition', 'renovation']
+  breachKeys = ['nonpayment', 'sublease']
+
+  basePriceAed = signal(95)
+  addOns = signal<Record<string, AddOn>>({})
+
+  saving = signal(false)
+  saveError = signal<string | null>(null)
+  savedId = signal<number | null>(null)
+
+  form: FormGroup = this.fb.group({
+    landlord_name: ['', Validators.required],
+    landlord_email: [''],
+    tenant_name: ['', Validators.required],
+    property_type: ['Apartment'],
+    unit_no: [''],
+    building_name: [''],
+    plot_number: [''],
+    ejari_number: ['', Validators.required],
+    notice_date: [new Date().toISOString().slice(0, 10), Validators.required],
+    reason: ['', Validators.required],
+    reason_requirements_acknowledged: [false, Validators.requiredTrue],
+    add_notarization: [true],
+    add_ai_review: [false],
+    add_legal_review: [false],
+    add_real_notarization: [false],
+  })
+
+  // FormGroup.valid/.value are plain getters, not Angular Signals —
+  // computed() would only read them once and never re-evaluate. These
+  // are real signals kept in sync via statusChanges/valueChanges.
+  isReady = signal(false)
+  needsLandlordEmail = signal(false)
+
+  ngOnInit(): void {
+    this.api.getReasons().subscribe((res) => this.reasons.set(res.reasons))
+    this.api.getPricing().subscribe((res) => {
+      this.basePriceAed.set(res.base_price_aed)
+      this.addOns.set(res.add_ons)
+    })
+
+    this.form.statusChanges.subscribe(() => this.isReady.set(this.form.valid))
+    this.isReady.set(this.form.valid)
+
+    // Prefill from query params when opened from a property record
+    // (?landlord_name=&tenant_name=&unit_no=&building_name=&ejari_number=...).
+    const qp = this.route.snapshot.queryParamMap
+    const prefill: Record<string, string> = {}
+    for (const key of [
+      'landlord_name',
+      'tenant_name',
+      'property_type',
+      'unit_no',
+      'building_name',
+      'plot_number',
+      'ejari_number',
+    ]) {
+      const val = qp.get(key)
+      if (val) {
+        prefill[key] = val
+      }
+    }
+    if (Object.keys(prefill).length) {
+      this.form.patchValue(prefill)
+    }
+
+    this.form.valueChanges.subscribe((v) => {
+      this.needsLandlordEmail.set((!!v.add_notarization || !!v.add_real_notarization) && !v.landlord_email)
+    })
+    // Notarization now defaults to checked, so this can already be true
+    // before the user has touched anything -- compute it once up front
+    // the same way isReady is above, not just on the next valueChanges.
+    this.needsLandlordEmail.set(
+      (!!this.form.value.add_notarization || !!this.form.value.add_real_notarization) && !this.form.value.landlord_email
+    )
+  }
+
+  totalPriceAed(): number {
+    const v = this.form.value
+    let total = this.basePriceAed()
+    if (v.add_notarization) total += this.addOns()['certified_esignature']?.price_aed ?? 0
+    if (v.add_ai_review) total += this.addOns()['ai_review']?.price_aed ?? 0
+    if (v.add_legal_review) total += this.addOns()['legal_review']?.price_aed ?? 0
+    if (v.add_real_notarization) total += this.addOns()['real_notarization']?.price_aed ?? 0
+    return total
+  }
+
+  selectReason(key: string): void {
+    // Reselecting the reason resets the acknowledgment -- each reason
+    // carries its own distinct legal warning (constants.py's ALL_REASONS),
+    // so acknowledging one doesn't carry over to a different one.
+    this.form.patchValue({ reason: key, reason_requirements_acknowledged: false })
+  }
+
+  generate(): void {
+    if (!this.form.valid) return
+    if (this.needsLandlordEmail()) {
+      this.saveError.set('A landlord email is required when Notarization is selected.')
+      return
+    }
+    this.saving.set(true)
+    this.saveError.set(null)
+    const addNotarization = !!this.form.value.add_notarization
+
+    // The real, payment-gated path: create a checkout Order, then either
+    // redirect to Stripe's hosted checkout (real payment configured
+    // server-side) or, in demo mode, the notice is already generated by
+    // the time this resolves — see RentshieldApiService.checkout().
+    this.api.checkout(this.form.value).subscribe({
+      next: (res) => {
+        if (res.checkout_url) {
+          window.location.href = res.checkout_url
+          return
+        }
+        this.saving.set(false)
+        if (!res.document_id) {
+          this.saveError.set('Payment succeeded but notice generation failed — check the server logs and try again.')
+          return
+        }
+        this.savedId.set(res.document_id)
+        if (addNotarization) {
+          this.api.notarize(res.document_id).subscribe()
+        }
+      },
+      error: (err) => {
+        this.saving.set(false)
+        this.saveError.set(err?.error?.error || err?.message || 'Checkout failed')
+      },
+    })
+  }
+
+  generateAnother(): void {
+    this.savedId.set(null)
+    this.saveError.set(null)
+    this.form.reset({
+      property_type: 'Apartment',
+      notice_date: new Date().toISOString().slice(0, 10),
+      reason_requirements_acknowledged: false,
+      add_notarization: true,
+      add_ai_review: false,
+      add_legal_review: false,
+      add_real_notarization: false,
+    })
+  }
+}
