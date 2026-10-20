@@ -20,3 +20,9 @@ venv/
 media/
 data/
 *.sqlite3
+
+# F-05: never commit signing/keystore material
+*.keystore
+*.jks
+*.p12
+*.pfx

@@ -183,8 +183,17 @@ REST_FRAMEWORK = {
     "ALLOWED_VERSIONS": ["9", "10"],
     # DRF Spectacular default schema
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        # F-02: rate-limit UNauthenticated traffic (the real abuse/DoS
+        # surface: signer-verify, device-pairing claim, the internal
+        # webhooks). AnonRateThrottle only applies to anonymous requests,
+        # so the authenticated Angular SPA (SessionAuthentication) is
+        # unaffected.
+        "rest_framework.throttling.AnonRateThrottle",
+    ],
     "DEFAULT_THROTTLE_RATES": {
         "login": os.getenv("PAPERLESS_TOKEN_THROTTLE_RATE", "5/min"),
+        "anon": os.getenv("PAPERLESS_ANON_THROTTLE_RATE", "120/min"),
     },
 }
 
@@ -1355,6 +1364,15 @@ RENTSHIELD_INTERNAL_URL = os.getenv(
     "PAPERLESS_RENTSHIELD_INTERNAL_URL",
     "http://localhost:8000",
 ).rstrip("/")
+
+# F-01: shared secret the internal Celery-worker webhooks
+# (documents/rentshield_views.py analyze_uploaded_view / notarize_uploaded_view)
+# require in an "X-RentShield-Internal" header, so they authenticate the
+# caller instead of trusting the network. The paperless Workflow webhook
+# action attaches it (see create_rentshield_workflows). STRONGLY recommended
+# in production: when set, those endpoints reject any request without it; the
+# nginx path-deny (nginx/app-proxy) is the always-on control regardless.
+RENTSHIELD_INTERNAL_SECRET = os.getenv("PAPERLESS_RENTSHIELD_INTERNAL_SECRET", "")
 
 # Where to notify an admin that a notice requested the Legal Review
 # add-on (documents/rentshield/service.py's generate_and_consume()) --

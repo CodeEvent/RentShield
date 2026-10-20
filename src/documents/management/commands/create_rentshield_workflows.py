@@ -317,6 +317,9 @@ class Command(BaseCommand):
             "as_json": True,
             "params": {"doc_id": "{{ doc_id }}"},
             "include_document": False,
+            # F-01: authenticate this internal call to analyze_uploaded_view.
+            # Re-run this command after changing PAPERLESS_RENTSHIELD_INTERNAL_SECRET.
+            "headers": {"X-RentShield-Internal": settings.RENTSHIELD_INTERNAL_SECRET},
         }
 
         self._create_workflow(
@@ -385,6 +388,9 @@ class Command(BaseCommand):
                         "as_json": True,
                         "params": {"doc_id": "{{ doc_id }}"},
                         "include_document": False,
+                        # F-01: authenticate this internal call to notarize_uploaded_view.
+                        # Re-run this command after changing PAPERLESS_RENTSHIELD_INTERNAL_SECRET.
+                        "headers": {"X-RentShield-Internal": settings.RENTSHIELD_INTERNAL_SECRET},
                     },
                 },
             ],

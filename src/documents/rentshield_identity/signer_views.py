@@ -52,16 +52,26 @@ def _load_verification(token: str):
 
 def _names_roughly_match(a: str, b: str) -> bool:
     """Loose, not exact -- OCR'd vs. typed spelling of the same name
-    routinely differs (middle names, diacritics, word order). Every word
-    in the shorter name has to appear in the longer one; catches
+    routinely differs (middle names, diacritics, word order). Catches
     "different person entirely" without false-flagging e.g. "Mohammed Al
-    Futtaim" vs. "Mohammed A. Al Futtaim"."""
-    words_a = set(a.lower().split())
-    words_b = set(b.lower().split())
-    if not words_a or not words_b:
+    Futtaim" vs. "Mohammed A. Al Futtaim". A False result routes to Notary
+    review; it is not an automatic reject.
+
+    F-03 hardening: a plain subset test let a single shared forename
+    ("Mohammed") pass against a full name. Require the surname (last token)
+    to match AND at least two shared name tokens, so one common first name
+    is never enough on its own."""
+    tokens_a = [w for w in a.lower().split() if w]
+    tokens_b = [w for w in b.lower().split() if w]
+    if not tokens_a or not tokens_b:
         return True  # nothing to compare against isn't evidence of a mismatch
-    shorter, longer = (words_a, words_b) if len(words_a) <= len(words_b) else (words_b, words_a)
-    return shorter.issubset(longer)
+    set_a, set_b = set(tokens_a), set(tokens_b)
+    shorter = set_a if len(set_a) <= len(set_b) else set_b
+    longer = set_b if shorter is set_a else set_a
+    if not shorter.issubset(longer):
+        return False
+    surname_matches = tokens_a[-1] == tokens_b[-1]
+    return surname_matches and len(shorter) >= 2
 
 
 def notice_signer_verify_page_view(request):

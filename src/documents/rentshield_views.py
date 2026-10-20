@@ -11,6 +11,7 @@
 # bespoke -- see src-ui's rentshield-api.service.ts.
 from __future__ import annotations
 
+import hmac
 import json
 import logging
 import re
@@ -21,6 +22,7 @@ from urllib.parse import quote
 from urllib.parse import urlencode
 
 from allauth.socialaccount.models import SocialAccount
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import logout as django_logout
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -869,6 +871,27 @@ def rdsc_filing_complete_view(request, document_id: int):
     return Response({"status": "done"})
 
 
+def _internal_webhook_authenticated(request) -> bool:
+    """F-01: the AllowAny internal webhooks below are invoked by paperless-ngx's
+    own Workflow webhook action (the Celery worker), which attaches the shared
+    secret in an X-RentShield-Internal header (see create_rentshield_workflows).
+    When settings.RENTSHIELD_INTERNAL_SECRET is configured we require it and
+    compare in constant time; a missing/wrong secret is rejected. When it is
+    unset we fall back to the nginx path-deny (the always-on control) but log a
+    warning -- these endpoints must never be publicly reachable."""
+    secret = settings.RENTSHIELD_INTERNAL_SECRET
+    if not secret:
+        logger.warning(
+            "RENTSHIELD_INTERNAL_SECRET is not set -- internal webhook %s is "
+            "relying on network isolation alone. Set "
+            "PAPERLESS_RENTSHIELD_INTERNAL_SECRET to authenticate the caller.",
+            request.path,
+        )
+        return True
+    sent = request.headers.get("X-RentShield-Internal", "")
+    return hmac.compare_digest(sent, secret)
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def analyze_uploaded_view(request):
@@ -890,6 +913,9 @@ def analyze_uploaded_view(request):
     action (queue AI review for a doc id that must already exist) rather
     than exposing anything readable/writable beyond that.
     """
+    if not _internal_webhook_authenticated(request):
+        return Response({"error": "forbidden"}, status=403)
+
     from documents.tasks import run_ai_review_task
 
     doc_id = request.data.get("doc_id") or request.data.get("document_id")
@@ -927,6 +953,9 @@ def notarize_uploaded_view(request):
     must already exist) rather than exposing anything readable/writable
     beyond that.
     """
+    if not _internal_webhook_authenticated(request):
+        return Response({"error": "forbidden"}, status=403)
+
     from documents.tasks import run_notarization_task
 
     doc_id = request.data.get("doc_id") or request.data.get("document_id")
