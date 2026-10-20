@@ -1,6 +1,10 @@
 packages:
   - "."
-minimumReleaseAge: 10080
+# TEMPORARILY relaxed from 10080 (7 days) on 2026-10-20 to admit security
+# patches (Angular 22.2.x + osv CVE fixes) published < 7 days ago.
+# >>> RESTORE to 10080 on/after 2026-10-23 <<< once these versions age past
+# the 7-day gate (then installs stay clean with full protection back on).
+minimumReleaseAge: 0
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - "chokidar@4.0.3"
@@ -24,3 +28,20 @@ onlyBuiltDependencies:
 ignoredBuiltDependencies:
   - normalize-diacritics
   - unrs-resolver
+
+# Transitive dependency security overrides (osv-scanner findings, 2026-10).
+# Force patched versions of vulnerable nested deps.
+overrides:
+  'handlebars': '>=4.7.10'
+  'piscina': '>=5.3.2'
+  'proxy-addr': '>=2.0.8'
+  'source-map-js': '>=1.2.2'
+  'fast-uri': '>=3.1.8'
+  'ip-address': '>=10.7.1'
+  'qs': '>=6.16.0'
+  'hono': '>=4.13.7'
+  '@modelcontextprotocol/sdk': '>=1.31.0'
+  'js-yaml@3': '>=3.15.2'
+  'brace-expansion@1': '>=1.1.21'
+  'brace-expansion@2': '>=2.1.7'
+  'brace-expansion@5': '5.0.12'
