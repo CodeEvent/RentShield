@@ -1,37 +1,108 @@
-{% extends "rentshield/legal_base.html" %}
-{% block title %}Terms &amp; conditions{% endblock %}
-{% block heading %}Terms &amp; conditions{% endblock %}
-{% block content %}
-<p>These terms govern your use of RentShield. By creating an account you agree to them.</p>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Use — RentShield</title>
+<meta name="description" content="RentShield Terms of Use — the terms governing your use of the RentShield platform for generating Dubai tenancy notices under UAE Law No. 33 of 2008.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'rentshield/legal.css' %}">
+</head>
+<body>
+<header class="nav"><div class="in">
+  <a class="brand" href="/welcome/"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> RentShield</a>
+  <a class="back" href="/welcome/">← Back to home</a>
+</div></header>
 
-<h2>What RentShield is</h2>
-<p>RentShield is a software tool that helps you verify your identity and generate Dubai tenancy notices from the details you provide. It is a workflow tool, not a law firm.</p>
+<div class="hero"><div class="in">
+  <span class="eye">Legal</span>
+  <h1>Terms of Use</h1>
+  <p class="upd">Last updated: 26 October 2026 · Governing law: United Arab Emirates &amp; the Emirate of Dubai</p>
+</div></div>
 
-<h2>Not legal advice</h2>
-<ul>
-  <li>RentShield does not provide legal advice and is not a substitute for a licensed UAE lawyer.</li>
-  <li>The guidance shown in the app is general information to help you, not legal advice. Check with a qualified lawyer before relying on it for a decision.</li>
-  <li>You are responsible for the accuracy of the details you enter and for serving any notice correctly.</li>
-</ul>
+<main class="wrap">
+  <div class="note"><b>Draft template — not legal advice.</b> This document is a starting draft prepared for RentShield and must be reviewed and adapted by a lawyer licensed in the UAE before it is published or relied upon. Bracketed items are placeholders for your entity details.</div>
 
-<h2>Your account</h2>
-<ul>
-  <li>Keep your sign-in methods (passkey, authenticator, backup codes) secure.</li>
-  <li>Use RentShield only for lawful purposes and only for property you are entitled to act on.</li>
-</ul>
+  <p class="lede">These Terms of Use (“Terms”) govern your access to and use of the RentShield website and platform (the “Service”), operated by [RentShield — legal entity name, trade licence no., registered address, Emirate]. By accessing or using the Service, you agree to these Terms.</p>
 
-<h2>Payments</h2>
-<p>You pay per notice, plus any add-ons you choose. Prices are shown before you confirm. Payments are handled by our payment provider.</p>
+  <div class="toc"><h2>Contents</h2><ol>
+    <li><a href="#accept">Acceptance</a></li>
+    <li><a href="#what">What RentShield is</a></li>
+    <li><a href="#notadvice">Not legal advice</a></li>
+    <li><a href="#eligibility">Eligibility &amp; accounts</a></li>
+    <li><a href="#responsibilities">Your responsibilities</a></li>
+    <li><a href="#service">Service, notices &amp; signing</a></li>
+    <li><a href="#fees">Fees &amp; payment</a></li>
+    <li><a href="#ip">Intellectual property</a></li>
+    <li><a href="#prohibited">Prohibited use</a></li>
+    <li><a href="#liability">Disclaimers &amp; liability</a></li>
+    <li><a href="#indemnity">Indemnity</a></li>
+    <li><a href="#law">Governing law &amp; disputes</a></li>
+    <li><a href="#changes">Changes &amp; contact</a></li>
+  </ol></div>
 
-<h2>Availability</h2>
-<p>We work to keep the service available but do not guarantee it will be uninterrupted or error-free.</p>
+  <h2 id="accept"><span class="no">1.</span>Acceptance</h2>
+  <p>By creating an account, generating a document, or otherwise using the Service, you confirm that you have read, understood and agree to these Terms, our <a href="/welcome/privacy">Privacy Policy</a>, <a href="/welcome/cookies">Cookie Policy</a>, <a href="/welcome/disclaimer">Disclaimer</a> and <a href="/welcome/editorial">Editorial Policy</a>. If you do not agree, do not use the Service.</p>
 
-<h2>Liability</h2>
-<p>To the extent allowed by law, RentShield is not liable for losses arising from how a notice is used, served, or relied upon, or from decisions you make using the service.</p>
+  <h2 id="what"><span class="no">2.</span>What RentShield is</h2>
+  <p>RentShield is a software and information platform that helps verified property owners and their authorised representatives prepare bilingual (English and Arabic) tenancy notices referencing UAE Law No. 33 of 2008 (amending Law No. 26 of 2007) concerning the relationship between landlords and tenants in the Emirate of Dubai. RentShield provides tools and information; it does not represent you, appear for you, or serve documents on your behalf except where expressly stated (for example, routing to a Notary Public or registered-mail provider).</p>
 
-<h2>Changes</h2>
-<p>We may update these terms. We will show the updated date at the top of this page.</p>
+  <h2 id="notadvice"><span class="no">3.</span>Not legal advice</h2>
+  <p><strong>RentShield is not a law firm and does not provide legal advice.</strong> Using the Service does not create a lawyer–client relationship. The Service is not a substitute for advice from an advocate licensed in the UAE. For any contested matter, or where you are unsure whether a notice is appropriate for your circumstances, you should consult a licensed UAE advocate. See our full <a href="/welcome/disclaimer">Disclaimer</a>.</p>
 
-<h2>Contact</h2>
-<p>For any question about these terms, contact us at the email address on your account.</p>
-{% endblock %}
+  <h2 id="eligibility"><span class="no">4.</span>Eligibility &amp; accounts</h2>
+  <ul>
+    <li>You must be at least 18 years old and legally able to enter into a binding contract under UAE law.</li>
+    <li>You must be the property owner, or a person duly authorised to act for the owner (for example, a licensed property-management agency), and you must be able to evidence that authority on request.</li>
+    <li>You are responsible for the accuracy of the information you provide and for keeping your account credentials secure. You are responsible for all activity under your account.</li>
+    <li>Identity verification may be required before certain actions (such as generating or signing a notice).</li>
+  </ul>
+
+  <h2 id="responsibilities"><span class="no">5.</span>Your responsibilities</h2>
+  <ul>
+    <li>You are responsible for ensuring the information you enter (owner and tenant details, the registered Ejari contract, dates, grounds and amounts) is true, accurate and complete.</li>
+    <li>You are responsible for determining that a notice is appropriate and lawful for your situation, and for arranging lawful service of any notice.</li>
+    <li>You remain responsible for complying with all applicable UAE federal laws and Dubai regulations, including those administered by the Dubai Land Department and the Rental Disputes Settlement Centre (RDSC).</li>
+  </ul>
+
+  <h2 id="service"><span class="no">6.</span>Service, notices &amp; signing</h2>
+  <p>RentShield generates a draft notice based on the information and the ground you select, and indicates the statutory notice period and the Article it relies on. Any identity verification, electronic signature, or routing to a Notary Public or registered mail is provided to help you, but:</p>
+  <ul>
+    <li>An electronic signature certifies the signatory’s identity; it does <strong>not</strong> by itself constitute legal service on the tenant. Lawful service under Article 25(3) requires a Notary Public, registered mail, or a court bailiff, as applicable.</li>
+    <li>RentShield does not guarantee any particular outcome before the RDSC or any court.</li>
+  </ul>
+
+  <h2 id="fees"><span class="no">7.</span>Fees &amp; payment</h2>
+  <p>Fees are shown in UAE Dirhams (AED) and are payable as described at the point of purchase (for example, per notice, or under an agency plan). Unless stated otherwise or required by the UAE Consumer Protection Law (Federal Law No. 15 of 2020) and its regulations, fees for digital documents already generated and delivered are non-refundable. Applicable taxes (including VAT) will be added where required.</p>
+
+  <h2 id="ip"><span class="no">8.</span>Intellectual property</h2>
+  <p>The Service, including its software, text, design, templates and trade marks, is owned by RentShield or its licensors and is protected by UAE and international intellectual-property law. You receive a limited, non-exclusive, non-transferable right to use the Service for your own lawful purposes. Documents you generate using your own information are yours to use for those purposes; the underlying templates and platform remain RentShield’s.</p>
+
+  <h2 id="prohibited"><span class="no">9.</span>Prohibited use</h2>
+  <ul>
+    <li>Using the Service for any unlawful purpose, or to harass, defraud or mislead any person.</li>
+    <li>Submitting false information or impersonating another person or entity.</li>
+    <li>Copying, scraping, reverse-engineering or reselling the Service or its templates.</li>
+    <li>Attempting to breach security, bypass verification, or disrupt the Service.</li>
+  </ul>
+
+  <h2 id="liability"><span class="no">10.</span>Disclaimers &amp; limitation of liability</h2>
+  <p>The Service is provided “as is” and “as available”. To the maximum extent permitted by UAE law, RentShield excludes all implied warranties and is not liable for indirect or consequential loss, or for loss arising from your reliance on a document where the information you provided was inaccurate or where a notice was not lawfully served. Nothing in these Terms limits any liability that cannot be excluded under UAE law.</p>
+
+  <h2 id="indemnity"><span class="no">11.</span>Indemnity</h2>
+  <p>You agree to indemnify RentShield against claims, losses and reasonable costs arising from your breach of these Terms, your misuse of the Service, or the inaccuracy of information you provide.</p>
+
+  <h2 id="law"><span class="no">12.</span>Governing law &amp; disputes</h2>
+  <p>These Terms are governed by the federal laws of the United Arab Emirates and the laws of the Emirate of Dubai. The courts of Dubai shall have jurisdiction, without prejudice to any mandatory consumer-protection rights or to the jurisdiction of the Rental Disputes Settlement Centre over tenancy disputes.</p>
+
+  <h2 id="changes"><span class="no">13.</span>Changes &amp; contact</h2>
+  <p>We may update these Terms from time to time; the “last updated” date shows the latest version, and material changes will be notified where required. Questions about these Terms: <a href="mailto:legal@rentshield.ae">legal@rentshield.ae</a> · [registered address, Emirate].</p>
+</main>
+
+<footer><div class="in">
+  Your use of this site is subject to our <a href="/welcome/terms">Terms of Use</a>, <a href="/welcome/disclaimer">Disclaimer</a>, <a href="/welcome/cookies">Cookie Policy</a>, <a href="/welcome/privacy">Privacy Policy</a> and <a href="/welcome/editorial">Editorial Policy</a>. RentShield is not a law firm and cannot provide legal advice. We provide information and software, and you are responsible for using this material appropriately. © 2026 RentShield. All rights reserved. This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+</div></footer>
+</body>
+</html>
