@@ -296,22 +296,23 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
         <div class="picker">
           <div class="lbl">Ground for eviction — updates the notice live</div>
           <div class="chips" role="group" aria-label="Ground for eviction">
-            <button class="chip" aria-pressed="true"  data-g="use">Owner's own use</button>
-            <button class="chip" aria-pressed="false" data-g="sale">Sale</button>
-            <button class="chip" aria-pressed="false" data-g="demo">Demolition</button>
-            <button class="chip" aria-pressed="false" data-g="reno">Renovation</button>
-            <button class="chip" aria-pressed="false" data-g="nonpay">Non-payment</button>
+            {% for r in statutory_reasons %}
+            <button class="chip" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}" data-label="{{ r.label }}" data-period="12 months" data-article="Article 25(2)" data-clause="{{ r.clause_en|truncatechars:170 }}">{{ r.label }}</button>
+            {% endfor %}
+            {% for r in breach_reasons %}
+            <button class="chip" aria-pressed="false" data-label="{{ r.label }}" data-period="30 days" data-article="Article 25(1)" data-clause="{{ r.clause_en|truncatechars:170 }}">{{ r.label }}</button>
+            {% endfor %}
           </div>
         </div>
         <div class="nbody">
           <div class="frow"><span class="k">Emirate</span><span class="v">Dubai</span></div>
           <div class="frow"><span class="k">Reference</span><span class="v">RS-2026-0001</span></div>
-          <div class="frow"><span class="k">Ground / السبب</span><span class="v fade" id="d-ground">Owner's own use</span></div>
+          <div class="frow"><span class="k">Ground / السبب</span><span class="v fade" id="d-ground">{{ statutory_reasons.0.label }}</span></div>
           <div class="period">
             <div class="pl fade" id="d-pl">Statutory notice period<br>مدة الإشعار القانونية</div>
             <div class="pn fade" id="d-num">12 months</div>
           </div>
-          <p class="clause fade"><b id="d-art">Article 25(2)(c)</b> — <span id="d-arttext">eviction at expiry for the owner's personal use of the property.</span></p>
+          <p class="clause fade"><b id="d-art">Article 25(2)</b> — <span id="d-arttext">{{ statutory_reasons.0.clause_en|truncatechars:170 }}</span></p>
         </div>
         <div class="nfoot"><span id="d-serve">Served via Notary Public or registered mail · Art. 25(3)</span><span class="draft">DRAFT</span></div>
       </div>
@@ -465,6 +466,14 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
           <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Identity-verified e-signature &amp; audit trail</li>
           <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Dashboard tracking for every notice</li>
         </ul>
+        <div style="padding:0 2rem 1.3rem">
+          <div style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem">Optional add-ons</div>
+          <ul style="list-style:none;margin:0;padding:0;display:grid;gap:0">
+          {% for a in add_ons.values %}
+            <li style="display:flex;justify-content:space-between;gap:1rem;font-size:.98rem;color:var(--body);border-top:1px solid var(--line);padding:.6rem 0"><span>{{ a.label }}</span><span style="font-weight:700;color:var(--ink);white-space:nowrap">AED {{ a.price_aed }}</span></li>
+          {% endfor %}
+          </ul>
+        </div>
         <div class="act"><a class="btn btn-primary" href="/login/">Book a demo</a></div>
       </div>
     </div>
@@ -511,20 +520,24 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
 
 <script>
 (function(){
-  var MAP = {
-    use:   {g:"Owner's own use",      art:"Article 25(2)(c)", t:"eviction at expiry for the owner's personal use of the property.", num:"12 months", serve:"Served via Notary Public or registered mail · Art. 25(3)"},
-    sale:  {g:"Sale of property",     art:"Article 25(2)",    t:"eviction at expiry where the owner intends to sell the property.", num:"12 months", serve:"Served via Notary Public or registered mail · Art. 25(3)"},
-    demo:  {g:"Demolition / rebuild", art:"Article 25(2)(b)", t:"eviction at expiry for demolition or full reconstruction.", num:"12 months", serve:"Served via Notary Public or registered mail · Art. 25(3)"},
-    reno:  {g:"Major renovation",     art:"Article 25(2)(a)", t:"eviction at expiry for works requiring the property to be vacant.", num:"12 months", serve:"Served via Notary Public or registered mail · Art. 25(3)"},
-    nonpay:{g:"Non-payment of rent",  art:"Article 25(1)(a)", t:"eviction during the term for failure to pay rent within 30 days of notice.", num:"30 days", serve:"Served via Notary Public or registered mail · Art. 25(3)"}
-  };
   var card=document.getElementById('start');
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  function set(k){var m=MAP[k];if(!m)return;
-    function apply(){document.getElementById('d-ground').textContent=m.g;document.getElementById('d-art').textContent=m.art;document.getElementById('d-arttext').textContent=m.t;document.getElementById('d-num').textContent=m.num;document.getElementById('d-serve').textContent=m.serve;}
-    if(reduce){apply();return;}card.classList.add('swapping');setTimeout(function(){apply();card.classList.remove('swapping');},150);
+  function apply(d){
+    document.getElementById('d-ground').textContent=d.label;
+    document.getElementById('d-art').textContent=d.article;
+    document.getElementById('d-arttext').textContent=d.clause;
+    document.getElementById('d-num').textContent=d.period;
   }
-  document.querySelectorAll('#start .chip').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('#start .chip').forEach(function(x){x.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');set(b.dataset.g);});});
+  document.querySelectorAll('#start .chip').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#start .chip').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      var d=b.dataset;
+      if(reduce){apply(d);return;}
+      card.classList.add('swapping');
+      setTimeout(function(){apply(d);card.classList.remove('swapping');},150);
+    });
+  });
 })();
 </script>
 </body>
