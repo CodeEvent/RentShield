@@ -1751,3 +1751,18 @@ def privacy_view(request):
 def terms_view(request):
     """GET /welcome/terms -- public terms & conditions (draft wording)."""
     return render(request, "rentshield/terms.html")
+
+
+def cookies_view(request):
+    """GET /welcome/cookies -- public cookie policy (draft wording)."""
+    return render(request, "rentshield/cookies.html")
+
+
+def disclaimer_view(request):
+    """GET /welcome/disclaimer -- public disclaimer (draft wording)."""
+    return render(request, "rentshield/disclaimer.html")
+
+
+def editorial_view(request):
+    """GET /welcome/editorial -- public editorial policy (draft wording)."""
+    return render(request, "rentshield/editorial.html")
