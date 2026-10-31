@@ -1,42 +1,97 @@
-{% extends "rentshield/legal_base.html" %}
-{% block title %}Privacy notice{% endblock %}
-{% block heading %}Privacy notice{% endblock %}
-{% block content %}
-<p>This notice explains what RentShield collects when you use the service, why, and how it is handled. RentShield helps Dubai property owners verify their identity and generate tenancy notices.</p>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — RentShield</title>
+<meta name="description" content="RentShield Privacy Policy — how we collect, use, share and protect personal data under the UAE Personal Data Protection Law (Federal Decree-Law No. 45 of 2021).">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'rentshield/legal.css' %}">
+</head>
+<body>
+<header class="nav"><div class="in">
+  <a class="brand" href="/welcome/"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> RentShield</a>
+  <a class="back" href="/welcome/">← Back to home</a>
+</div></header>
 
-<h2>What we collect</h2>
-<ul>
-  <li><strong>Account details</strong>: your email address and the passkey/authenticator you set up to sign in.</li>
-  <li><strong>Identity data</strong>: your passport (or ID) chip data and a live selfie, used once to verify you are who you say you are. Biometric data is template-protected and does not leave the server.</li>
-  <li><strong>Property and tenancy details</strong>: the information you enter to generate a notice (owner, tenant, unit, Ejari number, dates, reason).</li>
-  <li><strong>Documents</strong>: the notices and files you generate or upload, stored in your own document vault.</li>
-  <li><strong>Payment information</strong>: handled by our payment provider; we do not store full card details.</li>
-</ul>
+<div class="hero"><div class="in">
+  <span class="eye">Legal</span>
+  <h1>Privacy Policy</h1>
+  <p class="upd">Last updated: 26 October 2026 · UAE Personal Data Protection Law (Federal Decree-Law No. 45 of 2021)</p>
+</div></div>
 
-<h2>Why we use it</h2>
-<ul>
-  <li>To confirm your identity and keep your account secure.</li>
-  <li>To generate correct, bilingual tenancy notices and store them for you.</li>
-  <li>To provide optional add-ons you request (e-signature, legal review, notary).</li>
-  <li>To meet our legal and regulatory obligations.</li>
-</ul>
+<main class="wrap">
+  <div class="note"><b>Draft template — not legal advice.</b> This draft follows the UAE PDPL. It must be reviewed by a UAE-licensed lawyer and matched to how you actually process data (your sub-processors, transfers and retention) before publishing.</div>
 
-<h2>Who processes it</h2>
-<p>We use trusted services to run RentShield, including an identity-verification provider, an authentication provider, and a payment provider. They process data only to provide their part of the service.</p>
+  <p class="lede">This Privacy Policy explains how RentShield (the “Controller”) collects, uses, shares and protects personal data when you use the Service, and your rights under the UAE Personal Data Protection Law, Federal Decree-Law No. 45 of 2021 (“PDPL”).</p>
 
-<h2>How long we keep it</h2>
-<p>We keep your account and documents for as long as your account is active, and as required by law. You can ask us to delete data that we are not legally required to retain.</p>
+  <div class="toc"><h2>Contents</h2><ol>
+    <li><a href="#controller">Who we are</a></li>
+    <li><a href="#data">Data we collect</a></li>
+    <li><a href="#purposes">Purposes &amp; legal basis</a></li>
+    <li><a href="#verification">Identity verification</a></li>
+    <li><a href="#sharing">Sharing &amp; processors</a></li>
+    <li><a href="#transfers">Cross-border transfers</a></li>
+    <li><a href="#retention">Retention</a></li>
+    <li><a href="#rights">Your rights</a></li>
+    <li><a href="#security">Security &amp; breaches</a></li>
+    <li><a href="#children">Children</a></li>
+    <li><a href="#contact">Contact &amp; complaints</a></li>
+  </ol></div>
 
-<h2>Your choices</h2>
-<ul>
-  <li>Access, correct, or request deletion of your data.</li>
-  <li>Manage how you sign in from your account security settings.</li>
-  <li>RentShield is self-hostable, so your data can stay under your control.</li>
-</ul>
+  <h2 id="controller"><span class="no">1.</span>Who we are</h2>
+  <p>The Controller is [RentShield — legal entity name, trade licence no., registered address, Emirate]. For privacy matters, contact our Data Protection Officer at <a href="mailto:dpo@rentshield.ae">dpo@rentshield.ae</a>.</p>
 
-<h2>Cookies</h2>
-<p>We use only essential cookies needed to keep you signed in. We do not run advertising trackers.</p>
+  <h2 id="data"><span class="no">2.</span>Personal data we collect</h2>
+  <ul>
+    <li><b>Account data:</b> name, email, phone, password.</li>
+    <li><b>Identity-verification data:</b> Emirates ID / passport details and, where used, a photo or liveness check, processed to confirm you are the owner or an authorised agent. This may include biometric data, which is “sensitive personal data” under the PDPL.</li>
+    <li><b>Tenancy &amp; document data:</b> owner and tenant details, the registered Ejari contract, property details, grounds, dates and amounts you enter to generate a notice.</li>
+    <li><b>Transaction data:</b> payment details (processed by our payment provider) and billing records.</li>
+    <li><b>Technical &amp; usage data:</b> device, IP address, log data and cookies (see our <a href="/welcome/cookies">Cookie Policy</a>).</li>
+  </ul>
 
-<h2>Contact</h2>
-<p>For any privacy question or request, contact us at the email address on your account.</p>
-{% endblock %}
+  <h2 id="purposes"><span class="no">3.</span>Purposes &amp; legal basis</h2>
+  <table>
+    <thead><tr><th>Purpose</th><th>Legal basis under the PDPL</th></tr></thead>
+    <tbody>
+      <tr><td>Provide the Service and generate your documents</td><td>Performance of a contract with you</td></tr>
+      <tr><td>Verify identity and prevent fraud</td><td>Legal obligation / legitimate interest; explicit consent for sensitive (biometric) data</td></tr>
+      <tr><td>Process payments and keep records</td><td>Contract / legal obligation</td></tr>
+      <tr><td>Improve and secure the Service</td><td>Legitimate interest</td></tr>
+      <tr><td>Marketing (where applicable)</td><td>Consent</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="verification"><span class="no">4.</span>Identity verification</h2>
+  <p>Identity verification may be carried out using a specialist provider. Where this involves biometric or other sensitive personal data, we process it only with your explicit consent and only for verification, and we apply additional safeguards as required by the PDPL.</p>
+
+  <h2 id="sharing"><span class="no">5.</span>Sharing &amp; processors</h2>
+  <p>We share personal data only as needed to run the Service, with processors bound to protect it, including: identity-verification, electronic-signature, payment, hosting and analytics providers, and — where you instruct it — a Notary Public or registered-mail provider. We may disclose data where required by UAE law or a competent authority (for example, the Rental Disputes Settlement Centre or a court). We do not sell personal data.</p>
+
+  <h2 id="transfers"><span class="no">6.</span>Cross-border transfers</h2>
+  <p>Where personal data is transferred outside the UAE, we do so only in line with the PDPL — to jurisdictions with an adequate level of protection, or under appropriate safeguards (such as contractual clauses) or a permitted exception. Details of our processors and transfer mechanisms are available on request.</p>
+
+  <h2 id="retention"><span class="no">7.</span>Retention</h2>
+  <p>We keep personal data only as long as necessary for the purposes above and to meet legal, tax and record-keeping obligations under UAE law, after which it is deleted or anonymised. Specific retention periods are set out in our internal retention schedule.</p>
+
+  <h2 id="rights"><span class="no">8.</span>Your rights</h2>
+  <p>Subject to the PDPL, you have the right to: be informed; access your data; have it corrected; have it erased; restrict or object to processing; withdraw consent; receive your data in a portable form; and not be subject to decisions based solely on automated processing that significantly affect you. To exercise any right, contact <a href="mailto:dpo@rentshield.ae">dpo@rentshield.ae</a>; we will respond within the period required by law.</p>
+
+  <h2 id="security"><span class="no">9.</span>Security &amp; breaches</h2>
+  <p>We apply technical and organisational measures (including encryption in transit, access controls and audit trails) to protect personal data. If a personal-data breach occurs that meets the PDPL threshold, we will notify the UAE Data Office and affected individuals as and when the law requires.</p>
+
+  <h2 id="children"><span class="no">10.</span>Children</h2>
+  <p>The Service is for adults (18+) and is not directed at children. We do not knowingly collect children’s data.</p>
+
+  <h2 id="contact"><span class="no">11.</span>Contact &amp; complaints</h2>
+  <p>Contact our DPO at <a href="mailto:dpo@rentshield.ae">dpo@rentshield.ae</a>. If you are not satisfied, you may lodge a complaint with the UAE Data Office, the federal authority responsible for data protection.</p>
+</main>
+
+<footer><div class="in">
+  Your use of this site is subject to our <a href="/welcome/terms">Terms of Use</a>, <a href="/welcome/disclaimer">Disclaimer</a>, <a href="/welcome/cookies">Cookie Policy</a>, <a href="/welcome/privacy">Privacy Policy</a> and <a href="/welcome/editorial">Editorial Policy</a>. RentShield is not a law firm and cannot provide legal advice. We provide information and software, and you are responsible for using this material appropriately. © 2026 RentShield. All rights reserved. This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+</div></footer>
+</body>
+</html>

@@ -85,6 +85,9 @@ from documents.rentshield_views import robots_txt_view
 from documents.rentshield_views import sitemap_xml_view
 from documents.rentshield_views import privacy_view
 from documents.rentshield_views import terms_view
+from documents.rentshield_views import cookies_view
+from documents.rentshield_views import disclaimer_view
+from documents.rentshield_views import editorial_view
 from documents.rentshield_views import totp_setup_view
 from documents.rentshield_views import totp_challenge_view
 from documents.rentshield_views import account_security_view
@@ -874,6 +877,9 @@ urlpatterns = [
     path("robots.txt", robots_txt_view, name="robots-txt"),
     re_path(r"^welcome/privacy/?$", privacy_view, name="rentshield-privacy"),
     re_path(r"^welcome/terms/?$", terms_view, name="rentshield-terms"),
+    re_path(r"^welcome/cookies/?$", cookies_view, name="rentshield-cookies"),
+    re_path(r"^welcome/disclaimer/?$", disclaimer_view, name="rentshield-disclaimer"),
+    re_path(r"^welcome/editorial/?$", editorial_view, name="rentshield-editorial"),
     path("sitemap.xml", sitemap_xml_view, name="sitemap-xml"),
     re_path(r"^login/?$", signup_start_view, name="rentshield-signup-start"),
     re_path(r"^login/email/?$", signup_email_view, name="rentshield-signup-email"),

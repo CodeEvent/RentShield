@@ -1,502 +1,544 @@
-<!doctype html>
 {% load static %}
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="RentShield: get your Dubai eviction notice right the first time. Verified owners, the correct notice period, English and Arabic, cited to UAE Law No. 33 of 2008.">
-  <title>RentShield: Dubai eviction notices, done right</title>
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="RentShield">
-  <meta property="og:title" content="RentShield: Dubai eviction notices, done right">
-  <meta property="og:description" content="Verified property owners generate bilingual, statute-cited Dubai tenancy notices under UAE Law No. 33 of 2008.">
-  <meta property="og:url" content="https://auth.rentshield.local:8443/welcome/">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="RentShield: Dubai eviction notices, done right">
-  <meta name="twitter:description" content="Verified owners. Correct notice period. English and Arabic. Cited to UAE Law No. 33 of 2008.">
-  <style>
-    /* Original design: GOV.UK clarity (plain English, clear structure,
-       yellow keyboard focus, phase banner) blended with modern-SaaS polish
-       (product mock hero, feature rows, soft cards, subtle gradients), in
-       RentShield's own brand. Self-contained, no external CSS. Not a copy
-       of any specific company's site. */
-    :root{
-      --green:#17541f; --green-2:#1e6b2a; --green-strong:#0f3614; --green-deep:#0b2e12;
-      --mint:#eaf5ec; --mint-2:#d8eddc;
-      --violet:#6b5bd6; --violet-2:#8577e4; --violet-tint:#f0edfd;
-      --ink:#0f1a12; --body:#3a4a3e; --muted:#6c7a70; --faint:#9aa79e;
-      --line:#e7ece8; --line-2:#eef2ef; --bg:#ffffff; --bg-soft:#f7faf8;
-      --focus:#ffdd00; --focus-ink:#0b0c0c;
-      --radius:16px; --radius-sm:12px; --radius-pill:999px;
-      --shadow-sm:0 1px 2px rgba(15,26,18,.05),0 2px 8px rgba(15,26,18,.04);
-      --shadow:0 12px 40px -12px rgba(15,46,18,.22),0 2px 10px rgba(15,46,18,.06);
-      --shadow-lg:0 30px 70px -20px rgba(11,46,18,.35);
-      --ease:cubic-bezier(.23,1,.32,1);
-      --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    }
-    *{box-sizing:border-box;}
-    html{font-size:100%;-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
-    body{margin:0;background:var(--bg);color:var(--body);font-family:var(--font);font-size:1.0625rem;line-height:1.6;-webkit-font-smoothing:antialiased;}
-    a{color:var(--green);text-decoration:none;}
-    a,button{-webkit-tap-highlight-color:transparent;}
-    h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;line-height:1.08;margin:0;}
-    .wrap{max-width:1140px;margin:0 auto;padding:0 1.5rem;}
-    /* GOV.UK-style yellow keyboard focus */
-    a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:0;box-shadow:0 2px 0 var(--focus-ink);text-decoration:none;}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RentShield Landing</title>
+<meta name="description" content="RentShield: verified Dubai property owners and agencies generate bilingual, statute-cited eviction and tenancy notices under UAE Law No. 33 of 2008 — the correct notice period, served correctly, the first time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ──────────────────────────────────────────────────────────────
+   RentShield — enterprise legal-tech (Clio / DocuSign bar).
+   Trust blue + navy + white, Inter, product screenshots, proof,
+   dense structure, polished depth.
+   ────────────────────────────────────────────────────────────── */
+:root{
+  --white:#ffffff; --bg:#f6f9fd; --bg-2:#eef4fb;
+  --navy:#0a1f3c; --ink:#0d2140; --body:#45546e; --muted:#6a788f; --line:#e4eaf2; --line-2:#d3dde9;
+  --blue:#1657b0; --blue-strong:#104591; --blue-tint:#e9f1fc; --blue-ring:#b9d2f0;
+  --green:#157347; --green-tint:#e4f2ea; --gold:#e0a93b;
+  --focus:#1657b0;
+  --radius:12px; --radius-sm:9px; --radius-pill:999px;
+  --shadow-xs:0 1px 2px rgba(10,31,60,.06);
+  --shadow-sm:0 2px 6px rgba(10,31,60,.07),0 1px 2px rgba(10,31,60,.05);
+  --shadow:0 10px 28px -10px rgba(10,31,60,.22),0 4px 10px -4px rgba(10,31,60,.12);
+  --shadow-lg:0 30px 70px -24px rgba(10,31,60,.35),0 10px 24px -12px rgba(10,31,60,.2);
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ar:"Noto Naskh Arabic",serif;
+  --wrap:1200px; --edge:clamp(18px,4vw,32px);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+body{margin:0;background:var(--white);color:var(--body);font-family:var(--ui);
+  font-size:1.0625rem;line-height:1.6;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.14;letter-spacing:-.022em;font-weight:700;}
+p{margin:0;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;text-underline-offset:2px;}
+img{max-width:100%;display:block;}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:3px;}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--edge);}
+.skip{position:absolute;left:-9999px;top:0;background:var(--navy);color:#fff;padding:.6rem 1rem;z-index:100;}
+.skip:focus{left:8px;top:8px;}
+.eyebrow{display:inline-block;font-size:.8125rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);}
+.sample{font-size:.8rem;color:var(--muted);font-style:italic;}
 
-    /* buttons */
-    .btn{display:inline-flex;align-items:center;gap:.5rem;font-family:inherit;font-weight:600;font-size:1rem;border:none;border-radius:var(--radius-pill);padding:.8rem 1.4rem;cursor:pointer;transition:transform .14s var(--ease),background-color .16s var(--ease),box-shadow .16s var(--ease);}
-    .btn:active{transform:scale(.97);}
-    .btn-primary{background:var(--green);color:#fff;box-shadow:0 1px 2px rgba(11,46,18,.25),0 8px 20px -8px rgba(11,46,18,.4);}
-    .btn-primary:hover{background:var(--green-strong);}
-    .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
-    .btn-ghost:hover{border-color:var(--green);color:var(--green);}
-    .btn-lg{padding:.95rem 1.7rem;font-size:1.05rem;}
-    .btn .arr{transition:transform .16s var(--ease);}
-    .btn:hover .arr{transform:translateX(3px);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font-family:var(--ui);
+  font-weight:600;font-size:1rem;border:1px solid transparent;border-radius:var(--radius-sm);
+  padding:.8rem 1.35rem;cursor:pointer;min-height:50px;transition:background .15s,border-color .15s,box-shadow .15s,transform .1s,color .15s;}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(10,31,60,.2),0 8px 18px -8px rgba(22,87,176,.5);}
+.btn-primary:hover{background:var(--blue-strong);text-decoration:none;}
+.btn-outline{background:#fff;color:var(--ink);border-color:var(--line-2);box-shadow:var(--shadow-xs);}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue);text-decoration:none;}
+.btn-sm{min-height:44px;padding:.6rem 1.05rem;font-size:.95rem;}
 
-    /* nav */
-    .nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.8);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid transparent;transition:border-color .2s ease,box-shadow .2s ease;}
-    .nav.scrolled{border-bottom-color:var(--line);box-shadow:0 6px 24px -18px rgba(15,46,18,.4);}
-    .nav-in{display:flex;align-items:center;justify-content:space-between;gap:1rem;max-width:1140px;margin:0 auto;padding:.85rem 1.5rem;position:relative;}
-    .brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.3rem;color:var(--ink);letter-spacing:-.02em;}
-    .brand svg{width:28px;height:28px;color:var(--green);}
-    .nav-links{display:flex;align-items:center;gap:1.9rem;}
-    .nav-links a{color:var(--body);font-weight:500;font-size:.98rem;}
-    .nav-links a:hover{color:var(--ink);}
-    .nav-cta{display:flex;align-items:center;gap:1rem;}
-    .nav-signin{color:var(--ink);font-weight:600;font-size:.98rem;}
-    .nav-toggle{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:1.3rem;align-items:center;justify-content:center;cursor:pointer;}
+/* nav */
+.nav{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.9);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line);}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:74px;}
+.brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:800;font-size:1.25rem;color:var(--ink);letter-spacing:-.02em;}
+.brand svg{width:26px;height:30px;flex:none;}
+.navlinks{display:flex;align-items:center;gap:1.9rem;}
+.navlinks a{color:var(--body);font-weight:500;font-size:.98rem;}
+.navlinks a:hover{color:var(--ink);text-decoration:none;}
+.navcta{display:flex;align-items:center;gap:1.1rem;}
+.navcta .signin{color:var(--ink);font-weight:600;font-size:.98rem;}
 
-    /* GOV.UK phase banner */
-    .phase{background:var(--bg-soft);border-bottom:1px solid var(--line-2);}
-    .phase-in{max-width:1140px;margin:0 auto;padding:.55rem 1.5rem;font-size:.9rem;color:var(--muted);}
-    .tag{display:inline-block;background:var(--violet);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;margin-right:.55rem;}
+/* hero */
+.hero{position:relative;background:
+   radial-gradient(1200px 500px at 85% -10%,rgba(22,87,176,.1),transparent 60%),
+   linear-gradient(180deg,var(--bg) 0%,var(--white) 70%);
+   border-bottom:1px solid var(--line);overflow:hidden;}
+.hero .wrap{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(32px,5vw,70px);align-items:center;padding-top:clamp(52px,7vw,88px);padding-bottom:clamp(40px,6vw,64px);}
+.hero .badge{display:inline-flex;align-items:center;gap:.5rem;background:#fff;color:var(--blue-strong);border:1px solid var(--blue-ring);
+  font-weight:600;font-size:.85rem;border-radius:var(--radius-pill);padding:.4rem .9rem;margin-bottom:1.4rem;box-shadow:var(--shadow-xs);}
+.hero h1{font-size:clamp(2.5rem,1.7rem + 3vw,3.6rem);font-weight:800;letter-spacing:-.032em;max-width:15ch;color:var(--ink);}
+.hero .sub{font-size:clamp(1.1rem,1rem + .4vw,1.3rem);color:var(--body);max-width:46ch;margin-top:1.3rem;line-height:1.5;}
+.hero .actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2rem;}
+.rating{display:flex;align-items:center;gap:.7rem;margin-top:1.8rem;color:var(--body);font-size:.95rem;}
+.stars{display:inline-flex;gap:2px;color:var(--gold);}
+.rating b{color:var(--ink);}
 
-    /* hero */
-    .hero{position:relative;overflow:hidden;background:
-      radial-gradient(60rem 30rem at 15% -10%, var(--mint), transparent 60%),
-      radial-gradient(50rem 28rem at 92% 0%, var(--violet-tint), transparent 55%);
-      padding:4.5rem 0 4rem;}
-    .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3.5rem;align-items:center;}
-    .pill{display:inline-flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line);border-radius:var(--radius-pill);padding:.4rem .9rem;font-size:.85rem;font-weight:600;color:var(--green);box-shadow:var(--shadow-sm);}
-    .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--violet);}
-    .hero h1{font-size:clamp(2.4rem,5vw,3.6rem);margin:1.4rem 0 0;font-weight:800;}
-    .hero h1 .hl{color:var(--green);}
-    .hero p.sub{font-size:1.2rem;color:var(--body);margin:1.3rem 0 0;max-width:34rem;}
-    .hero-cta{display:flex;align-items:center;gap:1rem;margin:2rem 0 0;flex-wrap:wrap;}
-    .hero-note{display:flex;gap:1.3rem;flex-wrap:wrap;margin-top:1.6rem;color:var(--muted);font-size:.9rem;}
-    .hero-note span{display:inline-flex;align-items:center;gap:.4rem;}
-    .hero-note svg{width:16px;height:16px;color:var(--green);}
+/* live notice card */
+.ncard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;}
+.ncard .nhead{background:var(--navy);color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.ncard .nhead .t{font-weight:700;font-size:1.05rem;letter-spacing:-.01em;display:flex;align-items:center;gap:.5rem;}
+.ncard .nhead .ar{font-family:var(--ar);font-size:1.05rem;direction:rtl;opacity:.95;}
+.ncard .picker{padding:1rem 1.25rem;border-bottom:1px solid var(--line);background:var(--bg);}
+.ncard .picker .lbl{font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.06em;}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;}
+.chip{font-family:var(--ui);font-weight:500;font-size:.875rem;background:#fff;border:1px solid var(--line-2);
+  color:var(--ink);border-radius:var(--radius-pill);padding:.45rem .85rem;cursor:pointer;min-height:40px;transition:all .14s;}
+.chip:hover{border-color:var(--blue);color:var(--blue);}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff;}
+.ncard .nbody{padding:1.25rem;}
+.ncard .frow{display:flex;justify-content:space-between;gap:1rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.95rem;}
+.ncard .frow:last-of-type{border-bottom:none;}
+.ncard .frow .k{color:var(--muted);}
+.ncard .frow .v{font-weight:600;color:var(--ink);text-align:right;}
+.ncard .period{margin:1rem 0 0;background:var(--blue-tint);border:1px solid #cfe0f6;border-radius:var(--radius-sm);
+  padding:1rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.ncard .period .pl{font-size:.8rem;color:var(--blue-strong);font-weight:600;line-height:1.35;}
+.ncard .period .pn{font-size:1.9rem;font-weight:800;color:var(--blue-strong);letter-spacing:-.02em;line-height:1;flex:none;}
+.ncard .clause{margin-top:.9rem;font-size:.875rem;color:var(--body);line-height:1.5;}
+.ncard .clause b{color:var(--blue-strong);}
+.ncard .nfoot{padding:.85rem 1.25rem;background:var(--bg);border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.ncard .draft{font-weight:700;color:var(--blue);letter-spacing:.04em;border:1px solid var(--blue-ring);border-radius:4px;padding:.15rem .45rem;font-size:.72rem;}
+.fade{transition:opacity .3s var(--ease);}
+.swapping .fade{opacity:.25;}
+@media (prefers-reduced-motion:reduce){.fade{transition:none;}}
 
-    /* product mock (original, stylised representation of the app) */
-    .mock{position:relative;}
-    .mock-win{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;}
-    .mock-bar{display:flex;align-items:center;gap:.45rem;padding:.7rem .9rem;border-bottom:1px solid var(--line-2);background:var(--bg-soft);}
-    .mock-bar i{width:10px;height:10px;border-radius:50%;background:#dfe5e0;}
-    .mock-bar .url{margin-left:.6rem;font-size:.72rem;color:var(--faint);background:#fff;border:1px solid var(--line);border-radius:999px;padding:.15rem .7rem;}
-    .mock-body{padding:1.2rem;}
-    .mock-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
-    .mock-h b{font-size:1rem;color:var(--ink);}
-    .vbadge{display:inline-flex;align-items:center;gap:.35rem;background:var(--violet-tint);color:var(--violet);font-weight:700;font-size:.72rem;padding:.25rem .6rem;border-radius:999px;}
-    .vbadge svg{width:13px;height:13px;}
-    .mock-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:700;margin-bottom:.5rem;}
-    .chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem;}
-    .chip{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:.35rem .7rem;color:var(--body);background:#fff;}
-    .chip.on{background:var(--green);color:#fff;border-color:var(--green);}
-    .doc{border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:.9rem;background:var(--bg-soft);}
-    .doc-row{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);padding:.25rem 0;}
-    .doc-row b{color:var(--ink);}
-    .doc-art{font-size:.72rem;color:var(--green);font-weight:700;}
-    .mock-float{position:absolute;right:-14px;bottom:28px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:.7rem .9rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:600;color:var(--ink);}
-    .mock-float .ok{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;}
-    .mock-float .ok svg{width:15px;height:15px;}
+/* logos strip */
+.logos{background:var(--white);border-bottom:1px solid var(--line);}
+.logos .wrap{padding:2.2rem var(--edge);text-align:center;}
+.logos .cap{font-size:.85rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1.3rem;}
+.logorow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2.6rem;}
+.logo{display:inline-flex;align-items:center;gap:.5rem;color:#9aa7b8;font-weight:800;font-size:1.15rem;letter-spacing:-.02em;opacity:.9;}
+.logo svg{width:22px;height:22px;flex:none;}
 
-    /* trust strip */
-    .trust{border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);background:var(--bg-soft);}
-    .trust-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1rem 2.4rem;padding:1.3rem 1.5rem;}
-    .trust span{color:var(--muted);font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;gap:.5rem;}
-    .trust svg{width:17px;height:17px;color:var(--green);}
+/* generic section */
+.section{padding:clamp(60px,8vw,104px) 0;}
+.section.alt{background:var(--bg);border-block:1px solid var(--line);}
+.shead{max-width:46ch;margin:0 auto clamp(2.4rem,4vw,3.4rem);text-align:center;}
+.shead h2{font-size:clamp(2rem,1.4rem + 2.2vw,2.8rem);font-weight:800;letter-spacing:-.028em;}
+.shead p{color:var(--body);margin-top:.85rem;font-size:1.15rem;}
 
-    /* sections */
-    section{padding:5rem 0;}
-    .sec-head{text-align:center;max-width:42rem;margin:0 auto 3rem;}
-    .eyebrow{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--violet);margin-bottom:.9rem;}
-    h2{font-size:clamp(1.9rem,3.5vw,2.6rem);font-weight:800;}
-    .sec-head p{font-size:1.15rem;color:var(--muted);margin:1rem 0 0;}
+/* feature split with product screenshot */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:center;}
+.split + .split{margin-top:clamp(48px,7vw,88px);}
+.split .copy .eyebrow{margin-bottom:.9rem;}
+.split .copy h3{font-size:clamp(1.6rem,1.2rem + 1.4vw,2.1rem);font-weight:800;letter-spacing:-.025em;margin-bottom:.9rem;}
+.split .copy p{font-size:1.1rem;color:var(--body);}
+.split .copy ul{list-style:none;margin:1.3rem 0 0;padding:0;display:grid;gap:.75rem;}
+.split .copy li{display:flex;gap:.65rem;align-items:flex-start;font-size:1.02rem;color:var(--body);}
+.split .copy li svg{color:var(--green);flex:none;margin-top:4px;}
+.split.rev .copy{order:2;}
 
-    /* feature rows */
-    .frow{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;margin-bottom:4.5rem;}
-    .frow:last-child{margin-bottom:0;}
-    .frow.flip .ftext{order:2;}
-    .fstep{display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;border-radius:12px;background:var(--mint);color:var(--green);font-weight:800;margin-bottom:1rem;}
-    .frow h3{font-size:1.6rem;font-weight:800;}
-    .frow p{margin:1rem 0 0;color:var(--body);font-size:1.08rem;}
-    .flist{list-style:none;padding:0;margin:1.2rem 0 0;}
-    .flist li{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem;color:var(--body);}
-    .flist svg{width:20px;height:20px;color:var(--green);flex:none;margin-top:2px;}
-    .fvis{background:linear-gradient(160deg,var(--bg-soft),#fff);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;}
+/* browser-framed screenshot */
+.shot{border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--line);overflow:hidden;background:#fff;}
+.shot .bar{display:flex;align-items:center;gap:.5rem;padding:.7rem .9rem;background:#f1f5fa;border-bottom:1px solid var(--line);}
+.shot .bar i{width:11px;height:11px;border-radius:50%;background:#cdd7e3;display:inline-block;}
+.shot .bar .url{margin-left:.6rem;flex:1;background:#fff;border:1px solid var(--line);border-radius:6px;padding:.25rem .7rem;font-size:.78rem;color:var(--muted);}
+/* app mock: notices dashboard */
+.app{display:grid;grid-template-columns:140px 1fr;min-height:300px;font-size:.85rem;}
+.app .side{background:var(--navy);color:#c3d1e6;padding:1rem .9rem;display:flex;flex-direction:column;gap:.3rem;}
+.app .side .lg{color:#fff;font-weight:800;font-size:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem;}
+.app .side a{color:#aebdd4;padding:.5rem .6rem;border-radius:6px;font-size:.85rem;}
+.app .side a.on{background:rgba(255,255,255,.12);color:#fff;font-weight:600;}
+.app .main{padding:1.1rem 1.2rem;background:#fff;}
+.app .main h4{font-size:1.05rem;margin-bottom:.9rem;}
+.app table{width:100%;border-collapse:collapse;}
+.app th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:.5rem .4rem;border-bottom:1px solid var(--line);}
+.app td{padding:.65rem .4rem;border-bottom:1px solid var(--line);color:var(--ink);font-weight:500;}
+.pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;}
+.pill.draft{background:#eef2f7;color:#5b6a80;}
+.pill.served{background:var(--green-tint);color:var(--green);}
+.pill.verif{background:var(--blue-tint);color:var(--blue-strong);}
 
-    /* why band */
-    .band{background:linear-gradient(160deg,var(--green-deep),var(--green));color:#eaf5ec;border-radius:28px;}
-    .band-in{padding:3.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
-    .band h2{color:#fff;}
-    .band p{color:#cfe6d5;font-size:1.12rem;margin:1.1rem 0 0;}
-    .band .q{font-size:1.5rem;font-weight:700;color:#fff;line-height:1.3;}
-    .band .q .u{color:var(--violet-2);}
+/* stats band */
+.statband{background:var(--navy);color:#fff;}
+.statband .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;padding:clamp(40px,6vw,64px) var(--edge);}
+.statband .n{font-size:2.4rem;font-weight:800;letter-spacing:-.03em;line-height:1;}
+.statband .l{color:#aebdd1;margin-top:.5rem;font-size:.95rem;}
 
-    /* metrics */
-    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
-    .metric{text-align:center;padding:1.5rem;}
-    .metric b{display:block;font-size:2.6rem;font-weight:800;color:var(--green);letter-spacing:-.03em;}
-    .metric span{color:var(--muted);font-size:.98rem;}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;}
+.step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:1.6rem;box-shadow:var(--shadow-sm);}
+.step .num{width:38px;height:38px;border-radius:10px;background:var(--blue-tint);color:var(--blue-strong);font-weight:800;display:grid;place-items:center;margin-bottom:1rem;}
+.step h3{font-size:1.12rem;font-weight:700;margin-bottom:.4rem;}
+.step p{font-size:.95rem;color:var(--body);}
 
-    /* pricing */
-    .price-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:1.5rem;max-width:62rem;margin:0 auto;align-items:start;}
-    .plan{position:relative;background:#fff;border:2px solid var(--green);border-radius:20px;padding:2rem 2rem 1.9rem;box-shadow:0 26px 64px -28px rgba(23,84,31,.5);}
-    .plan-ribbon{position:absolute;top:-.85rem;left:2rem;background:var(--green);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.32rem .8rem;border-radius:999px;}
-    .plan-name{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-top:.3rem;}
-    .plan-price{font-size:3rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1;margin:.5rem 0 .35rem;}
-    .plan-price span{font-size:1rem;font-weight:500;color:var(--muted);letter-spacing:0;}
-    .plan-sub{color:var(--muted);font-size:.98rem;margin:0 0 1.4rem;}
-    .plan .btn{width:100%;}
-    .plan-feats{list-style:none;padding:1.4rem 0 0;margin:1.4rem 0 0;border-top:1px solid var(--line-2);}
-    .plan-feats li{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.75rem;color:var(--body);font-size:.98rem;}
-    .plan-feats svg{width:20px;height:20px;color:var(--green);flex:none;margin-top:1px;}
-    .addons{background:var(--bg-soft);border:1px solid var(--line);border-radius:20px;padding:1.7rem;}
-    .addons-h{font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:.4rem;}
-    .addons-h span{display:block;font-size:.88rem;font-weight:400;color:var(--muted);margin-top:.2rem;}
-    .addon{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;padding:.95rem 0;border-bottom:1px solid var(--line-2);}
-    .addon:last-child{border-bottom:none;}
-    .addon b{display:block;color:var(--ink);font-size:.98rem;}
-    .addon small{color:var(--muted);font-size:.86rem;line-height:1.4;display:block;margin-top:.15rem;}
-    .addon .amt{font-weight:800;color:var(--green);white-space:nowrap;}
+/* testimonials */
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.tcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:1.8rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;}
+.tcard .stars{margin-bottom:1rem;}
+.tcard blockquote{margin:0 0 1.3rem;font-size:1.05rem;color:var(--ink);line-height:1.55;flex:1;}
+.tcard .who{display:flex;align-items:center;gap:.8rem;}
+.tcard .av{width:42px;height:42px;border-radius:50%;background:var(--blue-tint);color:var(--blue-strong);display:grid;place-items:center;font-weight:800;font-size:.95rem;}
+.tcard .who b{display:block;color:var(--ink);font-size:.95rem;}
+.tcard .who span{font-size:.85rem;color:var(--muted);}
 
-    /* faq */
-    .faq{max-width:46rem;margin:0 auto;}
-    details.q{border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:.8rem;background:#fff;overflow:hidden;}
-    details.q summary{list-style:none;cursor:pointer;padding:1.1rem 1.3rem;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;gap:1rem;align-items:center;}
-    details.q summary::-webkit-details-marker{display:none;}
-    details.q summary::after{content:"+";font-size:1.4rem;color:var(--green);font-weight:400;}
-    details.q[open] summary::after{content:"\2212";}
-    details.q .a{padding:0 1.3rem 1.2rem;color:var(--body);}
-    details.q[open] .a{animation:fade .22s var(--ease) both;}
+/* security strip */
+.secrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;}
+.secitem{display:flex;gap:.8rem;align-items:flex-start;}
+.secitem svg{color:var(--blue);flex:none;margin-top:2px;}
+.secitem b{color:var(--ink);display:block;font-size:1rem;}
+.secitem span{font-size:.9rem;color:var(--body);}
 
-    /* closing CTA */
-    .cta{text-align:center;background:
-      radial-gradient(40rem 20rem at 50% 120%, var(--violet-tint), transparent 60%),
-      var(--mint);border-radius:28px;padding:4rem 2rem;}
-    .cta h2{margin-bottom:1rem;}
-    .cta p{color:var(--body);font-size:1.15rem;max-width:34rem;margin:0 auto 2rem;}
+/* pricing */
+.pricebox{max-width:580px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.pricebox .top{padding:2rem;text-align:center;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--bg),#fff);}
+.pricebox .amt{font-size:3rem;font-weight:800;color:var(--ink);letter-spacing:-.03em;line-height:1;}
+.pricebox .amt small{font-size:1.05rem;color:var(--muted);font-weight:500;}
+.pricebox .note{color:var(--muted);margin-top:.6rem;font-size:.95rem;}
+.pricebox ul{list-style:none;margin:0;padding:1.6rem 2rem;display:grid;gap:.9rem;}
+.pricebox li{display:flex;gap:.7rem;align-items:flex-start;font-size:1rem;color:var(--body);}
+.pricebox li svg{color:var(--green);flex:none;margin-top:3px;}
+.pricebox .act{padding:0 2rem 2rem;}
+.pricebox .act .btn{width:100%;}
 
-    /* footer */
-    .footer{background:var(--green-deep);color:#bcd3c2;padding:3.5rem 0 2rem;margin-top:5rem;}
-    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2rem;}
-    .footer .brand{color:#fff;}
-    .footer .brand svg{color:#fff;}
-    .footer h6{color:#fff;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;margin:0 0 .9rem;}
-    .footer a{display:block;color:#bcd3c2;margin-bottom:.5rem;font-size:.95rem;}
-    .footer a:hover{color:#fff;}
-    .footer-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;border-top:1px solid rgba(255,255,255,.12);margin-top:2.5rem;padding-top:1.5rem;font-size:.85rem;color:#8ca893;}
+/* faq */
+.faq{max-width:780px;margin:0 auto;}
+.faq details{border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;margin-bottom:.8rem;box-shadow:var(--shadow-xs);}
+.faq summary{padding:1.15rem 1.35rem;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:1rem;font-size:1.05rem;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:"+";color:var(--blue);font-weight:400;font-size:1.5rem;line-height:1;}
+.faq details[open] summary::after{content:"–";}
+.faq p{padding:0 1.35rem 1.2rem;color:var(--body);}
 
-    /* motion */
-    @keyframes fade{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
-    @keyframes up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
-    .hero .ea{animation:up .55s var(--ease) both;}
-    .hero .ea:nth-child(2){animation-delay:.06s;}
-    .hero .ea:nth-child(3){animation-delay:.12s;}
-    .hero .ea:nth-child(4){animation-delay:.18s;}
-    .hero .ea:nth-child(5){animation-delay:.24s;}
-    .mock{animation:up .6s var(--ease) both .15s;}
-    .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
-    .reveal.in{opacity:1;transform:none;}
+/* cta */
+.ctaband{background:
+   radial-gradient(800px 300px at 80% 0%,rgba(22,87,176,.5),transparent 60%),var(--navy);color:#fff;}
+.ctaband .wrap{padding:clamp(52px,7vw,84px) var(--edge);text-align:center;}
+.ctaband h2{color:#fff;font-size:clamp(2rem,1.4rem + 2.2vw,2.8rem);font-weight:800;letter-spacing:-.028em;max-width:22ch;margin:0 auto 1.6rem;}
+.ctaband .btns{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;}
+.ctaband .btn-primary{background:#fff;color:var(--navy);}
+.ctaband .btn-primary:hover{background:var(--blue-tint);}
+.ctaband .btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.4);box-shadow:none;}
+.ctaband .btn-outline:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.08);}
+.ctaband p{color:#aebdd1;margin-top:1.2rem;font-size:.95rem;}
 
-    @media (max-width:900px){
-      .hero-grid,.frow,.frow.flip .ftext,.band-in,.footer-grid,.price-layout{grid-template-columns:1fr;}
-      .frow.flip .ftext{order:0;}
-      .metrics{grid-template-columns:1fr;}
-      .band-in{padding:2.4rem;}
-      .nav-links,.nav-signin{display:none;}
-      .nav-toggle{display:inline-flex;}
-      .nav-menu-open .nav-links{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:1rem 1.5rem;gap:1rem;}
-      .mock-float{display:none;}
-    }
-    @media (prefers-reduced-motion:reduce){
-      html{scroll-behavior:auto;}
-      .hero .ea,.mock{animation:none;}
-      .reveal{opacity:1;transform:none;transition:none;}
-      .btn:active{transform:none;}
-    }
-  </style>
+/* footer */
+footer{background:var(--navy);color:#9fb0c6;}
+footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2rem;padding:clamp(44px,6vw,68px) var(--edge) 2rem;}
+footer .brand{color:#fff;margin-bottom:.8rem;}
+footer h4{color:#fff;font-size:.95rem;font-weight:700;margin-bottom:1rem;}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:.6rem;}
+footer a{color:#9fb0c6;font-size:.95rem;}
+footer a:hover{color:#fff;}
+footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-top:1rem;padding-top:1.5rem;font-size:.85rem;color:#7d8ea6;line-height:1.6;}
+
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;}
+  .split{grid-template-columns:1fr;}
+  .split.rev .copy{order:0;}
+  .statband .wrap,.secrow{grid-template-columns:repeat(2,1fr);}
+  .steps{grid-template-columns:repeat(2,1fr);}
+  .tgrid{grid-template-columns:1fr;}
+  .navlinks{display:none;}
+  footer .wrap{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:560px){
+  .statband .wrap,.secrow,.steps{grid-template-columns:1fr;}
+  .navcta .signin{display:none;}
+  .logorow{gap:1.6rem;}
+  footer .wrap{grid-template-columns:1fr;}
+}
+</style>
 </head>
 <body>
-<nav class="nav" id="nav">
-  <div class="nav-in">
-    <a class="brand" href="#top">{% include "paperless-ngx/snippets/svg_leaf.html" %} RentShield</a>
-    <div class="nav-links">
-      <a href="#why">Why</a>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/welcome/"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> RentShield</a>
+    <nav class="navlinks" aria-label="Primary">
+      <a href="#product">Product</a>
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-    </div>
-    <div class="nav-cta">
-      <a class="nav-signin" href="{% url 'rentshield-signup-start' %}">Sign in</a>
-      <a class="btn btn-primary" href="{% url 'rentshield-signup-start' %}">Get started</a>
-    </div>
-    <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
-  </div>
-</nav>
-
-<div class="phase">
-  <div class="phase-in"><span class="tag">Beta</span>This is a new service for Dubai landlords. Your feedback helps us improve it.</div>
-</div>
-
-<header id="top" class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="pill ea"><span class="dot"></span> Verified owners, valid notices</span>
-      <h1 class="ea">Get your Dubai eviction notice <span class="hl">right the first time.</span></h1>
-      <p class="sub ea">A wrong date or the wrong way of sending it gets a notice thrown out, and you lose months. RentShield makes yours correct, in English and Arabic, from an owner we have checked is real.</p>
-      <div class="hero-cta ea">
-        <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
-        <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
-      </div>
-      <div class="hero-note ea">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> From AED {{ base_price_aed }} per notice</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> No subscription</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Checked by a Notary</span>
-      </div>
-    </div>
-    <div class="mock" aria-hidden="true">
-      <div class="mock-win">
-        <div class="mock-bar"><i></i><i></i><i></i><span class="url">app.rentshield.local/notice/new</span></div>
-        <div class="mock-body">
-          <div class="mock-h"><b>New eviction notice</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Verified owner</span></div>
-          <div class="mock-label">Reason</div>
-          <div class="chips">
-            <span class="chip on">Sale of property</span>
-            <span class="chip">Personal use</span>
-            <span class="chip">Non-payment</span>
-            <span class="chip">Demolition</span>
-          </div>
-          <div class="mock-label">Notice preview</div>
-          <div class="doc">
-            <div class="doc-row"><span>Notice period</span><b>12 months</b></div>
-            <div class="doc-row"><span>Languages</span><b>English &amp; Arabic</b></div>
-            <div class="doc-row"><span>Cited</span><span class="doc-art">Article 25(2)</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="mock-float"><span class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></span> Ready to serve</div>
+    </nav>
+    <div class="navcta">
+      <a class="signin" href="/login/">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="/login/">Book a demo</a>
     </div>
   </div>
 </header>
 
-<div class="trust">
-  <div class="trust-in">
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/></svg> UAE Law No. 33 of 2008</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l8-2 8 2M4 8v8l8 2 8-2V8"/></svg> RERA &amp; RDSC aligned</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Biometrics stay private</span>
-    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg> Open source</span>
-  </div>
-</div>
-
-<section id="why">
-  <div class="wrap">
-    <div class="band reveal">
-      <div class="band-in">
-        <div>
-          <span class="eyebrow" style="color:var(--violet-2);">Why we built this</span>
-          <h2>A bad notice helps no one</h2>
-          <p>Most notices that get disputed fail for a small reason: the wrong number of days, the wrong way of sending it, or no proof of who sent it. When that happens at the Rental Dispute Settlement Centre, the months you waited count for nothing.</p>
+<main id="main">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="badge">⚖︎ Built on UAE Law No. 33 of 2008</span>
+        <h1>Dubai eviction notices, done right the first time.</h1>
+        <p class="sub">The platform for verified owners and agencies to generate bilingual, statute-cited tenancy notices — with the correct period, the correct Article, and lawful service.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/login/">Book a demo</a>
+          <a class="btn btn-outline" href="#how">See how it works</a>
         </div>
-        <div>
-          <p class="q">We think the notice should be the one thing you <span class="u">never have to worry about.</span> So we get the law, the dates, both languages, and the sender's identity right for you.</p>
+        <div class="rating">
+          <span class="stars" aria-hidden="true">★★★★★</span>
+          <span><b>Sample</b> — add your real G2 / client rating here</span>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<section id="how" style="padding-top:1rem;">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">How it works</span>
-      <h2>Three steps, no guesswork</h2>
-      <p>You prove who you are once. After that, every notice is built on it.</p>
-    </div>
-
-    <div class="frow reveal">
-      <div class="ftext">
-        <div class="fstep">1</div>
-        <h3>Prove who you are</h3>
-        <p>Scan your passport chip and take a selfie. A Notary Public checks it. You only do this once.</p>
-        <ul class="flist">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Reads the chip, not a photo anyone can fake</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Your biometric data never leaves the server</li>
-        </ul>
-      </div>
-      <div class="fvis">
-        <div class="mock-h"><b>Verify your identity</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Approved</span></div>
-        <div class="doc"><div class="doc-row"><span>Passport chip</span><b>Read</b></div><div class="doc-row"><span>Live selfie</span><b>Matched</b></div><div class="doc-row"><span>Notary review</span><span class="doc-art">Passed</span></div></div>
-      </div>
-    </div>
-
-    <div class="frow flip reveal">
-      <div class="ftext">
-        <div class="fstep">2</div>
-        <h3>Create the notice</h3>
-        <p>Pick your reason. We choose the right notice period and write it in English and Arabic, with the exact article cited.</p>
-        <ul class="flist">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> 12 months or 30 days, chosen for you</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Saved as a document you can search</li>
-        </ul>
-      </div>
-      <div class="fvis">
-        <div class="mock-label">Reason</div>
-        <div class="chips"><span class="chip on">Non-payment</span><span class="chip">Sale</span><span class="chip">Personal use</span></div>
-        <div class="doc"><div class="doc-row"><span>Notice period</span><b>30 days</b></div><div class="doc-row"><span>Cited</span><span class="doc-art">Article 25(1)</span></div></div>
-      </div>
-    </div>
-
-    <div class="frow reveal">
-      <div class="ftext">
-        <div class="fstep">3</div>
-        <h3>Serve it properly</h3>
-        <p>Add a certified e-signature or a real notary so your notice is served the way the law accepts, not by an email that does not count.</p>
-        <ul class="flist">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Certified delivery, or a licensed UAE notary</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Holds up if the tenant disputes it</li>
-        </ul>
-      </div>
-      <div class="fvis">
-        <div class="mock-h"><b>Serve</b><span class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Certified</span></div>
-        <div class="doc"><div class="doc-row"><span>Certified e-signature</span><b>Add-on</b></div><div class="doc-row"><span>Real Notary Public</span><b>Optional</b></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section style="background:var(--bg-soft);">
-  <div class="wrap">
-    <div class="metrics reveal">
-      <div class="metric"><b>2</b><span>languages on every notice (English and Arabic)</span></div>
-      <div class="metric"><b>Art. 25</b><span>of UAE Law No. 33 of 2008, cited on each notice</span></div>
-      <div class="metric"><b>1</b><span>identity check, then every notice is verified</span></div>
-    </div>
-  </div>
-</section>
-
-<section id="pricing">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Pricing</span>
-      <h2>Simple pricing. No subscription.</h2>
-      <p>One price per notice. Add the official extras only when you need them.</p>
-    </div>
-    <div class="price-layout reveal">
-      <div class="plan">
-        <span class="plan-ribbon">Pay as you go</span>
-        <div class="plan-name">Per notice</div>
-        <div class="plan-price">AED {{ base_price_aed }} <span>/ notice</span></div>
-        <p class="plan-sub">Everything you need to issue a valid notice. You only pay when you make one.</p>
-        <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
-        <ul class="plan-feats">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Verified-owner identity, checked once</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Correct notice period, chosen for you</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> English and Arabic, with Article 25 cited</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Saved as a searchable document</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> No subscription, no per-seat fees</li>
-        </ul>
-      </div>
-      <div class="addons">
-        <div class="addons-h">Optional add-ons<span>Stack these onto any notice, priced per use.</span></div>
-        {% for key, addon in add_ons.items %}
-        <div class="addon"{% if addon.available == False %} style="opacity:.55;"{% endif %}>
-          <div><b>{{ addon.label }}</b><small>{{ addon.description }}</small></div>
-          <div class="amt">+AED {{ addon.price_aed }}</div>
+      <div class="ncard" id="start">
+        <div class="nhead">
+          <span class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/></svg> Eviction Notice</span>
+          <span class="ar">إشعار بالإخلاء</span>
         </div>
-        {% endfor %}
+        <div class="picker">
+          <div class="lbl">Ground for eviction — updates the notice live</div>
+          <div class="chips" role="group" aria-label="Ground for eviction">
+            {% for r in statutory_reasons %}
+            <button class="chip" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}" data-label="{{ r.label }}" data-period="12 months" data-article="Article 25(2)" data-clause="{{ r.clause_en|truncatechars:170 }}">{{ r.label }}</button>
+            {% endfor %}
+            {% for r in breach_reasons %}
+            <button class="chip" aria-pressed="false" data-label="{{ r.label }}" data-period="30 days" data-article="Article 25(1)" data-clause="{{ r.clause_en|truncatechars:170 }}">{{ r.label }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="nbody">
+          <div class="frow"><span class="k">Emirate</span><span class="v">Dubai</span></div>
+          <div class="frow"><span class="k">Reference</span><span class="v">RS-2026-0001</span></div>
+          <div class="frow"><span class="k">Ground / السبب</span><span class="v fade" id="d-ground">{{ statutory_reasons.0.label }}</span></div>
+          <div class="period">
+            <div class="pl fade" id="d-pl">Statutory notice period<br>مدة الإشعار القانونية</div>
+            <div class="pn fade" id="d-num">12 months</div>
+          </div>
+          <p class="clause fade"><b id="d-art">Article 25(2)</b> — <span id="d-arttext">{{ statutory_reasons.0.clause_en|truncatechars:170 }}</span></p>
+        </div>
+        <div class="nfoot"><span id="d-serve">Served via Notary Public or registered mail · Art. 25(3)</span><span class="draft">DRAFT</span></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="faq" style="background:var(--bg-soft);">
-  <div class="wrap">
-    <div class="sec-head"><span class="eyebrow">FAQ</span><h2>Common questions</h2></div>
-    <div class="faq reveal">
-      <details class="q"><summary>Why do I need to prove my identity?</summary><div class="a">A notice carries legal weight, so we check the person sending it is real. You do it once, with your passport chip and a selfie, and a Notary Public approves it. Every notice you make after that is tied to your verified identity.</div></details>
-      <details class="q"><summary>How much does it cost?</summary><div class="a">AED {{ base_price_aed }} per notice, with no subscription. You can add extras like a certified e-signature or a legal review only if you need them.</div></details>
-      <details class="q"><summary>How long is the notice period in Dubai?</summary><div class="a">It depends on the reason. Sale, personal use, demolition, or major renovation need 12 months. Non-payment or illegal subletting need 30 days. We pick the right one for you.</div></details>
-      <details class="q"><summary>Does the notice need to be notarised?</summary><div class="a">To serve it, the law accepts three ways: a Notary Public, registered mail with proof of receipt, or a court bailiff. An email or text message does not count. Our add-ons can handle the official part for you.</div></details>
-      <details class="q"><summary>Is RentShield RERA compliant?</summary><div class="a">Yes. Every notice cites UAE Law No. 33 of 2008 and the exact article it uses, the same law RERA and the Rental Dispute Settlement Centre apply.</div></details>
-      <details class="q"><summary>Can a tenant dispute a notice?</summary><div class="a">Yes. A tenant can challenge it at the RDSC. A notice that is correct and from a verified sender is far harder to dispute. None of this is legal advice.</div></details>
+  <!-- LOGOS (placeholder) -->
+  <section class="logos">
+    <div class="wrap">
+      <div class="cap">Trusted by owners &amp; agencies across Dubai <span class="sample">· sample placeholders — swap in real partners</span></div>
+      <div class="logorow" aria-hidden="true">
+        <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="4"/></svg> Emaar Line</span>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg> Marina Estates</span>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 22h20L12 2Z"/></svg> JBR Realty</span>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="9"/></svg> Palm Lettings</span>
+        <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg> Downtown PM</span>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section>
-  <div class="wrap">
-    <div class="cta reveal">
-      <h2>Serve your next notice with confidence</h2>
-      <p>Prove who you are once, then make notices that hold up. From AED {{ base_price_aed }}, no subscription.</p>
-      <a class="btn btn-primary btn-lg" href="{% url 'rentshield-signup-start' %}">Get started <span class="arr">&rarr;</span></a>
-    </div>
-  </div>
-</section>
+  <!-- PRODUCT (screenshots) -->
+  <section class="section" id="product">
+    <div class="wrap">
+      <div class="shead">
+        <span class="eyebrow">The platform</span>
+        <h2>Everything a notice needs, in one workflow</h2>
+        <p>From identity check to served, statute-cited notice — tracked end to end.</p>
+      </div>
 
-<footer class="footer">
+      <div class="split">
+        <div class="copy">
+          <span class="eyebrow">Notice workspace</span>
+          <h3>Draft, track and serve every notice in one place</h3>
+          <p>A single dashboard for every tenancy notice, with its status, its deadline and its service method — so nothing lapses.</p>
+          <ul>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Live status: draft, verified, served</li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Deadlines and reminders tracked for you</li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Built for single owners and agencies alike</li>
+          </ul>
+        </div>
+        <div class="shot" aria-label="Product screenshot: notices dashboard">
+          <div class="bar"><i></i><i></i><i></i><span class="url">app.rentshield.ae/notices</span></div>
+          <div class="app">
+            <div class="side">
+              <div class="lg"><svg width="18" height="18" viewBox="0 0 26 30" fill="none"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#fff"/></svg> RentShield</div>
+              <a class="on" href="#product" onclick="return false">Notices</a>
+              <a href="#product" onclick="return false">Tenancies</a>
+              <a href="#product" onclick="return false">Documents</a>
+              <a href="#product" onclick="return false">Billing</a>
+            </div>
+            <div class="main">
+              <h4>Notices</h4>
+              <table>
+                <thead><tr><th>Reference</th><th>Ground</th><th>Period</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>RS-2026-0001</td><td>Owner's use</td><td>12 mo</td><td><span class="pill served">Served</span></td></tr>
+                  <tr><td>RS-2026-0002</td><td>Sale</td><td>12 mo</td><td><span class="pill verif">Verified</span></td></tr>
+                  <tr><td>RS-2026-0003</td><td>Non-payment</td><td>30 days</td><td><span class="pill draft">Draft</span></td></tr>
+                  <tr><td>RS-2026-0004</td><td>Renovation</td><td>12 mo</td><td><span class="pill draft">Draft</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="split rev">
+        <div class="copy">
+          <span class="eyebrow">Bilingual &amp; cited</span>
+          <h3>A notice in English and Arabic, cited to the Article</h3>
+          <p>Choose the ground; RentShield sets the correct statutory period and cites the exact Article of Law 33/2008 — in both languages, RTL-accurate.</p>
+          <ul>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Correct period, set automatically</li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Lawful service routing (Art. 25(3))</li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> ID-verified e-signature on the owner</li>
+          </ul>
+        </div>
+        <div class="shot" aria-label="Product screenshot: the live notice">
+          <div class="bar"><i></i><i></i><i></i><span class="url">app.rentshield.ae/notices/new</span></div>
+          <div class="ncard" style="border:none;border-radius:0;box-shadow:none">
+            <div class="nhead"><span class="t">Eviction Notice</span><span class="ar">إشعار بالإخلاء</span></div>
+            <div class="nbody">
+              <div class="frow"><span class="k">Ground</span><span class="v">Owner's own use</span></div>
+              <div class="period"><div class="pl">Statutory notice period<br>مدة الإشعار القانونية</div><div class="pn">12 months</div></div>
+              <p class="clause"><b>Article 25(2)(c)</b> — eviction at expiry for the owner's personal use of the property.</p>
+            </div>
+            <div class="nfoot"><span>Served via Notary Public or registered mail · Art. 25(3)</span><span class="draft">DRAFT</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="statband">
+    <div class="wrap">
+      <div><div class="n">12 months</div><div class="l">correct statutory period, auto-set</div></div>
+      <div><div class="n">EN / AR</div><div class="l">bilingual &amp; RTL-accurate</div></div>
+      <div><div class="n">~10 min</div><div class="l">from sign-in to served notice</div></div>
+      <div><div class="n">Art. 25</div><div class="l">every clause cited to the law</div></div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section class="section alt" id="how">
+    <div class="wrap">
+      <div class="shead"><span class="eyebrow">How it works</span><h2>Four steps to a notice that holds</h2><p>No guesswork on the period, the method of service, or the law.</p></div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h3>Verify &amp; link</h3><p>Confirm identity and link the registered Ejari contract.</p></div>
+        <div class="step"><div class="num">2</div><h3>Choose the ground</h3><p>Pick the ground — the statutory period is set automatically.</p></div>
+        <div class="step"><div class="num">3</div><h3>Generate bilingual</h3><p>A statute-cited notice in English and Arabic, cited to the Article.</p></div>
+        <div class="step"><div class="num">4</div><h3>Serve correctly</h3><p>Routed to Notary Public or registered mail — lawful under Art. 25(3).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS (placeholder) -->
+  <section class="section">
+    <div class="wrap">
+      <div class="shead"><span class="eyebrow">Proof</span><h2>What owners and agencies say</h2><p class="sample">Sample testimonials for layout — replace with real, attributed quotes before launch.</p></div>
+      <div class="tgrid">
+        <div class="tcard"><span class="stars" aria-hidden="true">★★★★★</span><blockquote>“We stopped losing cases to defective notices. The period and the service method are just correct now.”</blockquote><div class="who"><span class="av">AR</span><div><b>A. R. <span class="sample">(sample)</span></b><span>Property owner · Dubai Marina</span></div></div></div>
+        <div class="tcard"><span class="stars" aria-hidden="true">★★★★★</span><blockquote>“Bilingual notices in minutes instead of a lawyer's day. It paid for itself on the first eviction.”</blockquote><div class="who"><span class="av">SM</span><div><b>S. M. <span class="sample">(sample)</span></b><span>Lettings manager · JBR</span></div></div></div>
+        <div class="tcard"><span class="stars" aria-hidden="true">★★★★★</span><blockquote>“The dashboard means no deadline ever slips across our managed portfolio. Essential for an agency.”</blockquote><div class="who"><span class="av">KH</span><div><b>K. H. <span class="sample">(sample)</span></b><span>Agency director · Downtown</span></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="section alt">
+    <div class="wrap">
+      <div class="shead"><span class="eyebrow">Trust &amp; security</span><h2>Credible by design</h2></div>
+      <div class="secrow">
+        <div class="secitem"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg><div><b>ID-verified owners</b><span>Identity checked before any signing link is issued.</span></div></div>
+        <div class="secitem"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div><b>Encrypted &amp; auditable</b><span>Every notice carries a tamper-evident audit trail.</span></div></div>
+        <div class="secitem"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg><div><b>Cited to the law</b><span>Each clause references the exact Article of Law 33/2008.</span></div></div>
+        <div class="secitem"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><b>Lawful service</b><span>Routed to notary or registered mail, per Art. 25(3).</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="wrap">
+      <div class="shead"><span class="eyebrow">Pricing</span><h2>One notice, one fee</h2><p>No subscription — pay when you generate. Volume plans for agencies.</p></div>
+      <div class="pricebox">
+        <div class="top"><div class="amt">AED {{ base_price_aed }} <small>per notice</small></div><div class="note">Agency &amp; portfolio pricing available.</div></div>
+        <ul>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Bilingual, statute-cited notice (PDF)</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Correct period and lawful service routing</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Identity-verified e-signature &amp; audit trail</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Dashboard tracking for every notice</li>
+        </ul>
+        <div style="padding:0 2rem 1.3rem">
+          <div style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem">Optional add-ons</div>
+          <ul style="list-style:none;margin:0;padding:0;display:grid;gap:0">
+          {% for a in add_ons.values %}
+            <li style="display:flex;justify-content:space-between;gap:1rem;font-size:.98rem;color:var(--body);border-top:1px solid var(--line);padding:.6rem 0"><span>{{ a.label }}</span><span style="font-weight:700;color:var(--ink);white-space:nowrap">AED {{ a.price_aed }}</span></li>
+          {% endfor %}
+          </ul>
+        </div>
+        <div class="act"><a class="btn btn-primary" href="/login/">Book a demo</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section alt" id="faq">
+    <div class="wrap">
+      <div class="shead"><span class="eyebrow">FAQ</span><h2>Questions owners ask</h2></div>
+      <div class="faq">
+        <details open><summary>Is this legal advice?</summary><p>No. RentShield prepares a correctly-formatted, statute-cited notice and routes you to lawful service. For a contested matter, instruct a licensed advocate.</p></details>
+        <details><summary>Does the e-signature serve the tenant?</summary><p>No — the signature certifies the owner. Legal service under Article 25(3) requires a Notary Public, registered mail, or a court bailiff. RentShield routes you to those.</p></details>
+        <details><summary>Why is the period 12 months?</summary><p>For eviction at the end of a tenancy on grounds such as owner's use, sale, demolition or major renovation, Law 33/2008 requires 12 months' notice via notary or registered mail. Non-payment during the term is different — 30 days.</p></details>
+        <details><summary>Do you support agencies and portfolios?</summary><p>Yes. The dashboard tracks every notice, deadline and service method across a managed portfolio, with volume pricing.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ctaband">
+    <div class="wrap">
+      <h2>Get your Dubai tenancy notices right the first time.</h2>
+      <div class="btns">
+        <a class="btn btn-primary" href="/login/">Book a demo</a>
+        <a class="btn btn-outline" href="#how">See how it works</a>
+      </div>
+      <p>ID-verified owners · English &amp; Arabic · cited to UAE Law No. 33 of 2008</p>
+    </div>
+  </section>
+</main>
+
+<footer>
   <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <a class="brand" href="#top">{% include "paperless-ngx/snippets/svg_leaf.html" %} RentShield</a>
-        <p style="margin-top:1rem;max-width:22rem;font-size:.95rem;">Correct, bilingual Dubai tenancy notices from verified owners. Built on open-source paperless-ngx.</p>
-      </div>
-      <div>
-        <h6>Product</h6>
-        <a href="#why">Why</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a>
-      </div>
-      <div>
-        <h6>Get started</h6>
-        <a href="{% url 'rentshield-signup-start' %}">Sign in</a>
-        <a href="{% url 'rentshield-signup-start' %}">Create an account</a>
-      </div>
+    <div>
+      <div class="brand"><svg viewBox="0 0 26 30" width="24" height="28" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#fff"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#0a1f3c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> RentShield</div>
+      <p style="max-width:34ch">Bilingual Dubai tenancy notices, generated correctly and served lawfully under UAE Law No. 33 of 2008.</p>
     </div>
-    <div class="footer-bottom">
-      <span>&copy; {% now "Y" %} RentShield. Built on paperless-ngx, GPL-3.0.</span>
-      <span>Not a substitute for advice from a licensed UAE lawyer.</span>
-    </div>
+    <div><h4>Product</h4><ul><li><a href="#product">Platform</a></li><li><a href="#how">How it works</a></li><li><a href="#pricing">Pricing</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Agencies</a></li><li><a href="#">Contact</a></li></ul></div>
+    <div><h4>Legal</h4><ul><li><a href="/welcome/terms">Terms of Use</a></li><li><a href="/welcome/disclaimer">Disclaimer</a></li><li><a href="/welcome/cookies">Cookie Policy</a></li><li><a href="/welcome/privacy">Privacy Policy</a></li><li><a href="/welcome/editorial">Editorial Policy</a></li></ul></div>
+    <div class="legal">Your use of this site is subject to our <a href="/welcome/terms">Terms of Use</a>, <a href="/welcome/disclaimer">Disclaimer</a>, <a href="/welcome/cookies">Cookie Policy</a>, <a href="/welcome/privacy">Privacy Policy</a> and <a href="/welcome/editorial">Editorial Policy</a>. RentShield is not a law firm and cannot provide legal advice. We provide information and software, and you are responsible for using this material appropriately. © 2026 RentShield. All rights reserved. This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply.<br><br>Logos, testimonials and ratings on this page are illustrative placeholders for this design proof.</div>
   </div>
 </footer>
 
 <script>
-  var nav=document.getElementById('nav');
-  var onScroll=function(){nav.classList.toggle('scrolled',window.scrollY>6);};
-  onScroll();window.addEventListener('scroll',onScroll,{passive:true});
-  document.getElementById('navToggle').addEventListener('click',function(){
-    document.querySelector('.nav-in').classList.toggle('nav-menu-open');
-  });
-  if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)&&'IntersectionObserver'in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
-    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+(function(){
+  var card=document.getElementById('start');
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function apply(d){
+    document.getElementById('d-ground').textContent=d.label;
+    document.getElementById('d-art').textContent=d.article;
+    document.getElementById('d-arttext').textContent=d.clause;
+    document.getElementById('d-num').textContent=d.period;
   }
-</script>
-<div id="rs-cookie" style="position:fixed;bottom:0;left:0;right:0;z-index:50;background:#0b2e12;color:#eafaef;padding:.9rem 1.25rem;display:none;align-items:center;gap:1rem;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.2);">
-  <span style="flex:1;min-width:220px;font-size:.9rem;">We use only essential cookies to keep you signed in. See our <a href="/welcome/privacy" style="color:#fff;text-decoration:underline;">privacy notice</a>.</span>
-  <button type="button" id="rs-cookie-ok" style="background:#fff;color:#0b2e12;border:none;border-radius:999px;font-weight:700;font-size:.85rem;padding:.5rem 1.1rem;cursor:pointer;">Got it</button>
-</div>
-<script>
-  (function(){
-    try{
-      var el=document.getElementById('rs-cookie');
-      if(!localStorage.getItem('rs-cookie-ok')){ el.style.display='flex'; }
-      document.getElementById('rs-cookie-ok').addEventListener('click',function(){
-        try{ localStorage.setItem('rs-cookie-ok','1'); }catch(e){}
-        el.style.display='none';
-      });
-    }catch(e){}
-  })();
+  document.querySelectorAll('#start .chip').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#start .chip').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      var d=b.dataset;
+      if(reduce){apply(d);return;}
+      card.classList.add('swapping');
+      setTimeout(function(){apply(d);card.classList.remove('swapping');},150);
+    });
+  });
+})();
 </script>
 </body>
 </html>
