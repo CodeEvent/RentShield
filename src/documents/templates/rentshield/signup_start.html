@@ -1,54 +1,133 @@
-{% extends "rentshield/signup_base.html" %}
+<!doctype html>
 {% load static %}
-{% block title %}Log in to RentShield{% endblock %}
-{% block content %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Log in to RentShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    /* Salesforce-style login card (login.salesforce.com structure):
-       logo on top, a single field, a full-width primary button, helper
-       links, a footer note -- in RentShield's brand, keeping the real
-       passwordless email-code flow (the form posts straight to the
-       existing single email entry point). */
-    .sf-login{text-align:center;}
-    .sf-logo{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;margin:.2rem auto 1.5rem;font-weight:800;font-size:1.4rem;color:var(--ink);letter-spacing:-.02em;}
-    .sf-logo svg{width:36px;height:42px;}
-    .sf-login h1{font-size:1.65rem;margin:0 0 .45rem;}
-    .sf-login .sf-sub{color:var(--muted);font-size:1.0625rem;line-height:1.5;margin:0 auto 1.7rem;max-width:34ch;}
-    .sf-login form{text-align:left;}
-    .sf-login .rs-field{margin-bottom:1.1rem;}
-    .sf-login .rs-input{max-width:100%;}
-    .sf-login label[for="id_email"]{font-size:.95rem;margin-bottom:.4rem;}
-    .sf-btn-block{width:100%;justify-content:center;font-size:1.0625rem;}
-    .sf-check{margin-bottom:1.3rem;}
-    .sf-check label{font-size:.92rem;color:var(--body);}
-    .sf-links{margin-top:1.3rem;text-align:center;font-size:.95rem;}
-    .sf-links a{font-weight:600;}
-    .sf-note{margin-top:1.6rem;padding-top:1.3rem;border-top:1px solid var(--line);font-size:.9rem;color:var(--muted);line-height:1.55;text-align:center;}
+/* Split-screen identity layout (Law Society / SaaS auth style): Dubai
+   skyline on the left half, the login form on the right half. */
+:root{
+  --navy:#0a1f3c; --ink:#0d2140; --body:#45546e; --muted:#6a788f; --line:#e4eaf2;
+  --blue:#1657b0; --blue-strong:#104591; --blue-tint:#e9f1fc; --blue-ring:#b9d2f0;
+  --white:#fff; --error:#b4231c; --error-bg:#fdf2f1;
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:var(--ui);color:var(--body);-webkit-font-smoothing:antialiased;background:var(--white);}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;text-underline-offset:2px;}
+h1{color:var(--ink);margin:0;letter-spacing:-.025em;line-height:1.15;}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:4px;}
+
+.split{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
+
+/* ── left half: Dubai skyline ── */
+.brand-panel{position:relative;overflow:hidden;color:#fff;}
+.bp-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;}
+.brand-panel::after{content:"";position:absolute;inset:0;z-index:1;background:
+  linear-gradient(197deg, rgba(10,31,60,.72) 0%, rgba(10,31,60,.48) 45%, rgba(6,18,40,.92) 100%),
+  linear-gradient(90deg, rgba(10,31,60,.42), rgba(10,31,60,.08));}
+.bp-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;padding:clamp(2.2rem,3.4vw,3.5rem);}
+.mark{display:inline-flex;align-items:center;gap:.6rem;font-weight:800;font-size:1.35rem;letter-spacing:-.02em;color:#fff;}
+.mark svg{width:28px;height:33px;}
+.bp-why{color:#fff;font-size:clamp(1.65rem,1.1rem+1.7vw,2.5rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;max-width:22ch;text-shadow:0 2px 28px rgba(0,0,0,.45);margin:0;}
+.bp-mid{max-width:32ch;}
+.bp-eyebrow{font-size:.76rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#bcd6f7;}
+.bp-head{color:#fff;font-size:clamp(1.7rem,1.1rem+1.7vw,2.5rem);font-weight:800;letter-spacing:-.025em;line-height:1.16;margin-top:.7rem;text-shadow:0 2px 26px rgba(0,0,0,.4);}
+.bp-lede{color:#d7e3f4;font-size:1.05rem;line-height:1.5;margin-top:1.05rem;max-width:36ch;text-shadow:0 1px 14px rgba(0,0,0,.3);}
+.bp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;}
+.bp-chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:10px;padding:.85rem .8rem;}
+.bp-chip .n{font-size:1.2rem;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1;}
+.bp-chip .l{font-size:.7rem;color:#dbe6f5;margin-top:.35rem;line-height:1.3;}
+.bp-foot{color:#c3d2e8;font-size:.85rem;margin-top:1.1rem;}
+
+/* ── right half: login form ── */
+.form-panel{display:flex;align-items:center;justify-content:center;padding:clamp(2rem,4vw,3rem);background:var(--white);}
+.module{width:100%;max-width:400px;}
+.module h1{font-size:1.75rem;font-weight:800;margin-bottom:.5rem;}
+.module .sub{color:var(--muted);font-size:1.0625rem;line-height:1.5;margin-bottom:2rem;}
+.field{margin-bottom:1.2rem;}
+.field label{display:block;font-weight:600;color:var(--ink);font-size:.95rem;margin-bottom:.45rem;}
+.field input[type=email]{width:100%;font-family:inherit;font-size:1.0625rem;padding:.8rem .9rem;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);transition:border-color .14s,box-shadow .14s;}
+.field input[type=email]:hover{border-color:var(--blue-ring);}
+.field input[type=email]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);}
+.agree{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:1.5rem;}
+.agree input{width:1.3rem;height:1.3rem;margin-top:.1rem;accent-color:var(--blue);flex:none;}
+.agree label{font-size:.92rem;color:var(--body);}
+.btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;background:var(--blue);color:#fff;
+  border:none;border-radius:8px;font-family:inherit;font-weight:700;font-size:1.0625rem;padding:.95rem 1.4rem;min-height:52px;
+  cursor:pointer;box-shadow:0 1px 2px rgba(10,31,60,.2),0 8px 18px -8px rgba(22,87,176,.5);transition:background .16s,transform .1s;}
+.btn:hover{background:var(--blue-strong);}
+.btn:active{transform:translateY(1px);}
+.btn .arr{transition:transform .16s var(--ease);}
+.btn:hover .arr{transform:translateX(3px);}
+.helper{margin-top:1.3rem;text-align:center;font-size:.95rem;}
+.helper a{font-weight:600;}
+.note{margin-top:1.8rem;padding-top:1.4rem;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted);line-height:1.55;}
+.legal{margin-top:1rem;font-size:.82rem;color:var(--muted);}
+.errbox{border:1.5px solid var(--error);background:var(--error-bg);color:var(--error);border-radius:8px;padding:.9rem 1rem;margin-bottom:1.4rem;font-weight:600;font-size:.95rem;}
+
+/* ── responsive: stack ── */
+@media (max-width:860px){
+  .split{grid-template-columns:1fr;}
+  .brand-panel{min-height:40vh;}
+  .bp-content{justify-content:flex-end;gap:.8rem;padding:1.6rem 1.5rem;}
+  .bp-why{font-size:1.4rem;}
+  .form-panel{padding:2rem 1.5rem 3rem;}
+}
 </style>
-<div class="sf-login">
-    <span class="sf-logo">
-        <svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</head>
+<body>
+<div class="split">
+
+  <!-- LEFT HALF: Dubai skyline -->
+  <aside class="brand-panel">
+    <img class="bp-bg" src="{% static 'rentshield/login-bg.jpg' %}" alt="" aria-hidden="true">
+    <div class="bp-content">
+      <a class="mark" href="/welcome/">
+        <svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#fff"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#0a1f3c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         RentShield
-    </span>
-    <h1>Log in to RentShield</h1>
-    <p class="sf-sub">Enter your email and we'll send a 6-digit code. There's no password &mdash; a passkey signs you in from then on.</p>
+      </a>
 
-    <form method="post" action="{% url 'rentshield-signup-email' %}">
-        {% csrf_token %}
-        <div class="rs-field">
-            <label for="id_email">Email</label>
-            <input type="email" name="email" id="id_email" class="rs-input" autocomplete="email" spellcheck="false" inputmode="email" required autofocus placeholder="you@example.com">
-        </div>
-        <div class="rs-check sf-check">
-            <input type="checkbox" name="agree" id="id_agree" required>
-            <label for="id_agree">I agree to RentShield's <a href="/welcome/terms">Terms</a> and <a href="/welcome/privacy">Privacy Policy</a>.</label>
-        </div>
-        <button type="submit" class="rs-btn sf-btn-block"><span class="rs-btn-label">Log In</span> <span class="arr">&rarr;</span></button>
-    </form>
-
-    <div class="sf-links">
-        <a href="{% url 'rentshield-backup-code-login' %}">Trouble signing in? Use a backup code</a>
+      <p class="bp-why">Because a wrongly-served notice costs owners months, we make every Dubai tenancy notice hold up the first time.</p>
     </div>
+  </aside>
 
-    <div class="sf-note">New to RentShield? The same email creates your account &mdash; one entry point for sign in and sign up. You'll also need a photo ID and the RentShield app for a one-time identity check.</div>
+  <!-- RIGHT HALF: login form -->
+  <main class="form-panel">
+    <div class="module">
+      <h1>Log in to RentShield</h1>
+      <p class="sub">Enter your email and we'll send a 6-digit code. No password, a passkey signs you in from then on.</p>
+
+      {% if error %}<div class="errbox" role="alert">{{ error }}</div>{% endif %}
+
+      <form method="post" action="{% url 'rentshield-signup-email' %}">
+        {% csrf_token %}
+        <div class="field">
+          <label for="id_email">Email</label>
+          <input type="email" name="email" id="id_email" autocomplete="email" spellcheck="false" inputmode="email" required autofocus placeholder="you@example.com">
+        </div>
+        <div class="agree">
+          <input type="checkbox" name="agree" id="id_agree" required>
+          <label for="id_agree">I agree to RentShield's <a href="/welcome/terms">Terms</a> and <a href="/welcome/privacy">Privacy Policy</a>.</label>
+        </div>
+        <button type="submit" class="btn">Log In <span class="arr">&rarr;</span></button>
+      </form>
+
+      <div class="helper"><a href="{% url 'rentshield-backup-code-login' %}">Trouble signing in? Use a backup code</a></div>
+      <div class="note">New to RentShield? The same email creates your account, one entry point for sign in and sign up. You'll also need a photo ID and the RentShield app for a one-time identity check.</div>
+      <div class="legal">&copy; RentShield &middot; <a href="/welcome/terms">Terms</a> &middot; <a href="/welcome/privacy">Privacy</a></div>
+    </div>
+  </main>
+
 </div>
-{% endblock %}
+</body>
+</html>

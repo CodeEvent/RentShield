@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RentShield Landing</title>
-<meta name="description" content="RentShield: verified Dubai property owners and agencies generate bilingual, statute-cited eviction and tenancy notices under UAE Law No. 33 of 2008 — the correct notice period, served correctly, the first time.">
+<meta name="description" content="RentShield: verified Dubai property owners and agencies generate bilingual, statute-cited eviction and tenancy notices under UAE Law No. 33 of 2008, the correct notice period, served correctly, the first time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ──────────────────────────────────────────────────────────────
-   RentShield — enterprise legal-tech (Clio / DocuSign bar).
+   RentShield, enterprise legal-tech (Clio / DocuSign bar).
    Trust blue + navy + white, Inter, product screenshots, proof,
    dense structure, polished depth.
    ────────────────────────────────────────────────────────────── */
@@ -277,14 +277,14 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
       <div>
         <span class="badge">⚖︎ Built on UAE Law No. 33 of 2008</span>
         <h1>Dubai eviction notices, done right the first time.</h1>
-        <p class="sub">The platform for verified owners and agencies to generate bilingual, statute-cited tenancy notices — with the correct period, the correct Article, and lawful service.</p>
+        <p class="sub">The platform for verified owners and agencies to generate bilingual, statute-cited tenancy notices, with the correct period, the correct Article, and lawful service.</p>
         <div class="actions">
           <a class="btn btn-primary" href="/login/">Book a demo</a>
           <a class="btn btn-outline" href="#how">See how it works</a>
         </div>
         <div class="rating">
           <span class="stars" aria-hidden="true">★★★★★</span>
-          <span><b>Sample</b> — add your real G2 / client rating here</span>
+          <span><b>Sample</b>, add your real G2 / client rating here</span>
         </div>
       </div>
 
@@ -294,7 +294,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
           <span class="ar">إشعار بالإخلاء</span>
         </div>
         <div class="picker">
-          <div class="lbl">Ground for eviction — updates the notice live</div>
+          <div class="lbl">Ground for eviction, updates the notice live</div>
           <div class="chips" role="group" aria-label="Ground for eviction">
             {% for r in statutory_reasons %}
             <button class="chip" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}" data-label="{{ r.label }}" data-period="12 months" data-article="Article 25(2)" data-clause="{{ r.clause_en|truncatechars:170 }}">{{ r.label }}</button>
@@ -312,7 +312,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
             <div class="pl fade" id="d-pl">Statutory notice period<br>مدة الإشعار القانونية</div>
             <div class="pn fade" id="d-num">12 months</div>
           </div>
-          <p class="clause fade"><b id="d-art">Article 25(2)</b> — <span id="d-arttext">{{ statutory_reasons.0.clause_en|truncatechars:170 }}</span></p>
+          <p class="clause fade"><b id="d-art">Article 25(2)</b>, <span id="d-arttext">{{ statutory_reasons.0.clause_en|truncatechars:170 }}</span></p>
         </div>
         <div class="nfoot"><span id="d-serve">Served via Notary Public or registered mail · Art. 25(3)</span><span class="draft">DRAFT</span></div>
       </div>
@@ -322,7 +322,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
   <!-- LOGOS (placeholder) -->
   <section class="logos">
     <div class="wrap">
-      <div class="cap">Trusted by owners &amp; agencies across Dubai <span class="sample">· sample placeholders — swap in real partners</span></div>
+      <div class="cap">Trusted by owners &amp; agencies across Dubai <span class="sample">· sample placeholders, swap in real partners</span></div>
       <div class="logorow" aria-hidden="true">
         <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="4"/></svg> Emaar Line</span>
         <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg> Marina Estates</span>
@@ -339,14 +339,14 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
       <div class="shead">
         <span class="eyebrow">The platform</span>
         <h2>Everything a notice needs, in one workflow</h2>
-        <p>From identity check to served, statute-cited notice — tracked end to end.</p>
+        <p>From identity check to served, statute-cited notice, tracked end to end.</p>
       </div>
 
       <div class="split">
         <div class="copy">
           <span class="eyebrow">Notice workspace</span>
           <h3>Draft, track and serve every notice in one place</h3>
-          <p>A single dashboard for every tenancy notice, with its status, its deadline and its service method — so nothing lapses.</p>
+          <p>A single dashboard for every tenancy notice, with its status, its deadline and its service method, so nothing lapses.</p>
           <ul>
             <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Live status: draft, verified, served</li>
             <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Deadlines and reminders tracked for you</li>
@@ -383,7 +383,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
         <div class="copy">
           <span class="eyebrow">Bilingual &amp; cited</span>
           <h3>A notice in English and Arabic, cited to the Article</h3>
-          <p>Choose the ground; RentShield sets the correct statutory period and cites the exact Article of Law 33/2008 — in both languages, RTL-accurate.</p>
+          <p>Choose the ground; RentShield sets the correct statutory period and cites the exact Article of Law 33/2008, in both languages, RTL-accurate.</p>
           <ul>
             <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Correct period, set automatically</li>
             <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Lawful service routing (Art. 25(3))</li>
@@ -397,7 +397,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
             <div class="nbody">
               <div class="frow"><span class="k">Ground</span><span class="v">Owner's own use</span></div>
               <div class="period"><div class="pl">Statutory notice period<br>مدة الإشعار القانونية</div><div class="pn">12 months</div></div>
-              <p class="clause"><b>Article 25(2)(c)</b> — eviction at expiry for the owner's personal use of the property.</p>
+              <p class="clause"><b>Article 25(2)(c)</b>, eviction at expiry for the owner's personal use of the property.</p>
             </div>
             <div class="nfoot"><span>Served via Notary Public or registered mail · Art. 25(3)</span><span class="draft">DRAFT</span></div>
           </div>
@@ -422,9 +422,9 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
       <div class="shead"><span class="eyebrow">How it works</span><h2>Four steps to a notice that holds</h2><p>No guesswork on the period, the method of service, or the law.</p></div>
       <div class="steps">
         <div class="step"><div class="num">1</div><h3>Verify &amp; link</h3><p>Confirm identity and link the registered Ejari contract.</p></div>
-        <div class="step"><div class="num">2</div><h3>Choose the ground</h3><p>Pick the ground — the statutory period is set automatically.</p></div>
+        <div class="step"><div class="num">2</div><h3>Choose the ground</h3><p>Pick the ground, the statutory period is set automatically.</p></div>
         <div class="step"><div class="num">3</div><h3>Generate bilingual</h3><p>A statute-cited notice in English and Arabic, cited to the Article.</p></div>
-        <div class="step"><div class="num">4</div><h3>Serve correctly</h3><p>Routed to Notary Public or registered mail — lawful under Art. 25(3).</p></div>
+        <div class="step"><div class="num">4</div><h3>Serve correctly</h3><p>Routed to Notary Public or registered mail, lawful under Art. 25(3).</p></div>
       </div>
     </div>
   </section>
@@ -432,7 +432,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
   <!-- TESTIMONIALS (placeholder) -->
   <section class="section">
     <div class="wrap">
-      <div class="shead"><span class="eyebrow">Proof</span><h2>What owners and agencies say</h2><p class="sample">Sample testimonials for layout — replace with real, attributed quotes before launch.</p></div>
+      <div class="shead"><span class="eyebrow">Proof</span><h2>What owners and agencies say</h2><p class="sample">Sample testimonials for layout, replace with real, attributed quotes before launch.</p></div>
       <div class="tgrid">
         <div class="tcard"><span class="stars" aria-hidden="true">★★★★★</span><blockquote>“We stopped losing cases to defective notices. The period and the service method are just correct now.”</blockquote><div class="who"><span class="av">AR</span><div><b>A. R. <span class="sample">(sample)</span></b><span>Property owner · Dubai Marina</span></div></div></div>
         <div class="tcard"><span class="stars" aria-hidden="true">★★★★★</span><blockquote>“Bilingual notices in minutes instead of a lawyer's day. It paid for itself on the first eviction.”</blockquote><div class="who"><span class="av">SM</span><div><b>S. M. <span class="sample">(sample)</span></b><span>Lettings manager · JBR</span></div></div></div>
@@ -457,7 +457,7 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
   <!-- PRICING -->
   <section class="section" id="pricing">
     <div class="wrap">
-      <div class="shead"><span class="eyebrow">Pricing</span><h2>One notice, one fee</h2><p>No subscription — pay when you generate. Volume plans for agencies.</p></div>
+      <div class="shead"><span class="eyebrow">Pricing</span><h2>One notice, one fee</h2><p>No subscription, pay when you generate. Volume plans for agencies.</p></div>
       <div class="pricebox">
         <div class="top"><div class="amt">AED {{ base_price_aed }} <small>per notice</small></div><div class="note">Agency &amp; portfolio pricing available.</div></div>
         <ul>
@@ -485,8 +485,8 @@ footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.1);margin-
       <div class="shead"><span class="eyebrow">FAQ</span><h2>Questions owners ask</h2></div>
       <div class="faq">
         <details open><summary>Is this legal advice?</summary><p>No. RentShield prepares a correctly-formatted, statute-cited notice and routes you to lawful service. For a contested matter, instruct a licensed advocate.</p></details>
-        <details><summary>Does the e-signature serve the tenant?</summary><p>No — the signature certifies the owner. Legal service under Article 25(3) requires a Notary Public, registered mail, or a court bailiff. RentShield routes you to those.</p></details>
-        <details><summary>Why is the period 12 months?</summary><p>For eviction at the end of a tenancy on grounds such as owner's use, sale, demolition or major renovation, Law 33/2008 requires 12 months' notice via notary or registered mail. Non-payment during the term is different — 30 days.</p></details>
+        <details><summary>Does the e-signature serve the tenant?</summary><p>No, the signature certifies the owner. Legal service under Article 25(3) requires a Notary Public, registered mail, or a court bailiff. RentShield routes you to those.</p></details>
+        <details><summary>Why is the period 12 months?</summary><p>For eviction at the end of a tenancy on grounds such as owner's use, sale, demolition or major renovation, Law 33/2008 requires 12 months' notice via notary or registered mail. Non-payment during the term is different, 30 days.</p></details>
         <details><summary>Do you support agencies and portfolios?</summary><p>Yes. The dashboard tracks every notice, deadline and service method across a managed portfolio, with volume pricing.</p></details>
       </div>
     </div>
