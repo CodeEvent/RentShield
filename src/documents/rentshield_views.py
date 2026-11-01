@@ -407,6 +407,27 @@ def signup_verify_view(request):
                 user.set_unusable_password()
                 user.save(update_fields=["password"])
                 grant_property_owner(user)
+                # ZITADEL passkey provisioning needs the provisioner PAT and a
+                # running ZITADEL. In local dev (DEBUG) where that isn't set up,
+                # skip it and log the new user straight into Django so the flow
+                # still completes. Production (PAT present) is unchanged; a
+                # misconfigured production (DEBUG off, PAT missing) still errors
+                # loudly rather than silently bypassing the passkey step.
+                from django.conf import settings as _settings
+                from documents.rentshield.zitadel_provisioning import (
+                    PROVISIONER_PAT_PATH,
+                )
+
+                if _settings.DEBUG and not PROVISIONER_PAT_PATH.exists():
+                    from django.contrib.auth import login as django_login
+
+                    request.session.pop(SIGNUP_SESSION_KEY, None)
+                    django_login(
+                        request, user,
+                        backend="django.contrib.auth.backends.ModelBackend",
+                    )
+                    return redirect("/")
+
                 zitadel_user_id = provision_zitadel_user(username, email, groups=["Property Owner"])
                 request.session.pop(SIGNUP_SESSION_KEY, None)
                 request.session["signup_zitadel_user_id"] = zitadel_user_id

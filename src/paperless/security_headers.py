@@ -34,6 +34,18 @@ class SecurityHeadersMiddleware:
         response.setdefault("X-Content-Type-Options", "nosniff")
         response.setdefault("X-XSS-Protection", "1; mode=block")
         response.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        # Permissions-Policy: allow only the features RentShield actually uses
+        # (camera/microphone/display-capture for identity verification and the
+        # Jitsi video calls; payment for Stripe), and disable the rest.
+        response.setdefault(
+            "Permissions-Policy",
+            "camera=(self), microphone=(self), display-capture=(self), "
+            "payment=(self), geolocation=(), usb=(), magnetometer=(), "
+            "gyroscope=(), accelerometer=(), browsing-topics=()",
+        )
+        # Cross-Origin-Resource-Policy: the app serves its own resources
+        # same-origin, so block cross-origin reads (defence-in-depth).
+        response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
 
         if self._csp and "Content-Security-Policy" not in response:
             response.setdefault(self._csp_header, self._csp)
