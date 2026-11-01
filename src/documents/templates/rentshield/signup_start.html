@@ -1,18 +1,54 @@
 {% extends "rentshield/signup_base.html" %}
-{% block title %}Sign in or register{% endblock %}
+{% load static %}
+{% block title %}Log in to RentShield{% endblock %}
 {% block content %}
-    <h1>Sign in or register as a verified owner</h1>
-    <p class="rs-lede">A notice only holds up if the person sending it is who they say they are. RentShield proves that once, then builds every tenancy notice on it: the right law, both languages, a verified sender.</p>
-    <p class="rs-wizard-hint">Already have an account? Enter your email on the next page and we'll take you straight to signing in with your passkey.</p>
+<style>
+    /* Salesforce-style login card (login.salesforce.com structure):
+       logo on top, a single field, a full-width primary button, helper
+       links, a footer note -- in RentShield's brand, keeping the real
+       passwordless email-code flow (the form posts straight to the
+       existing single email entry point). */
+    .sf-login{text-align:center;}
+    .sf-logo{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;margin:.2rem auto 1.5rem;font-weight:800;font-size:1.4rem;color:var(--ink);letter-spacing:-.02em;}
+    .sf-logo svg{width:36px;height:42px;}
+    .sf-login h1{font-size:1.65rem;margin:0 0 .45rem;}
+    .sf-login .sf-sub{color:var(--muted);font-size:1.0625rem;line-height:1.5;margin:0 auto 1.7rem;max-width:34ch;}
+    .sf-login form{text-align:left;}
+    .sf-login .rs-field{margin-bottom:1.1rem;}
+    .sf-login .rs-input{max-width:100%;}
+    .sf-login label[for="id_email"]{font-size:.95rem;margin-bottom:.4rem;}
+    .sf-btn-block{width:100%;justify-content:center;font-size:1.0625rem;}
+    .sf-check{margin-bottom:1.3rem;}
+    .sf-check label{font-size:.92rem;color:var(--body);}
+    .sf-links{margin-top:1.3rem;text-align:center;font-size:.95rem;}
+    .sf-links a{font-weight:600;}
+    .sf-note{margin-top:1.6rem;padding-top:1.3rem;border-top:1px solid var(--line);font-size:.9rem;color:var(--muted);line-height:1.55;text-align:center;}
+</style>
+<div class="sf-login">
+    <span class="sf-logo">
+        <svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        RentShield
+    </span>
+    <h1>Log in to RentShield</h1>
+    <p class="sf-sub">Enter your email and we'll send a 6-digit code. There's no password &mdash; a passkey signs you in from then on.</p>
 
-    <h2>Before you start</h2>
-    <p>If you're new, you'll need:</p>
-    <ul class="rs-list">
-        <li>an email address you can check now</li>
-        <li>a valid photo ID (passport, national ID, driving licence, or residence visa)</li>
-        <li>your phone with the RentShield app, for the identity check at the end</li>
-    </ul>
-    <div class="rs-inset violet">There's no password to create. A passkey (your face, fingerprint, or device screen lock) is what signs you in from now on, and your biometric data never leaves the server.</div>
+    <form method="post" action="{% url 'rentshield-signup-email' %}">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label for="id_email">Email</label>
+            <input type="email" name="email" id="id_email" class="rs-input" autocomplete="email" spellcheck="false" inputmode="email" required autofocus placeholder="you@example.com">
+        </div>
+        <div class="rs-check sf-check">
+            <input type="checkbox" name="agree" id="id_agree" required>
+            <label for="id_agree">I agree to RentShield's <a href="/welcome/terms">Terms</a> and <a href="/welcome/privacy">Privacy Policy</a>.</label>
+        </div>
+        <button type="submit" class="rs-btn sf-btn-block"><span class="rs-btn-label">Log In</span> <span class="arr">&rarr;</span></button>
+    </form>
 
-    <p><a class="rs-btn rs-btn-start" href="{% url 'rentshield-signup-email' %}">Start now <span class="arr">&rarr;</span></a></p>
+    <div class="sf-links">
+        <a href="{% url 'rentshield-backup-code-login' %}">Trouble signing in? Use a backup code</a>
+    </div>
+
+    <div class="sf-note">New to RentShield? The same email creates your account &mdash; one entry point for sign in and sign up. You'll also need a photo ID and the RentShield app for a one-time identity check.</div>
+</div>
 {% endblock %}
