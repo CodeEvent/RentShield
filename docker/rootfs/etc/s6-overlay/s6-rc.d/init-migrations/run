@@ -8,13 +8,37 @@ echo "${log_prefix} Apply database migrations..."
 
 cd "${PAPERLESS_SRC_DIR}"
 
+# After migrations, (re)seed RentShield's role groups and notice workflows.
+# Both management commands are idempotent (create_rentshield_roles .set()s
+# the group permissions; create_rentshield_workflows get_or_creates), so
+# running them on every start is safe and self-healing.
+#   - create_rentshield_roles is REQUIRED for the app to function: without
+#     it the "Property Owner" group has no permissions and every signed-in
+#     owner 403s on the very first API call (/api/ui_settings/), so its
+#     failure is fatal here.
+#   - the workflow seed only creates DISABLED placeholder workflows, so its
+#     failure is non-fatal (warn and continue).
+# $1 is the privilege-drop prefix ("" when already non-root); left unquoted
+# so it word-splits into "s6-setuidgid paperless" when set.
+seed_rentshield() {
+	# shellcheck disable=SC2086
+	$1 python3 manage.py create_rentshield_roles || return 1
+	# shellcheck disable=SC2086
+	$1 python3 manage.py create_rentshield_workflows ||
+		echo "${log_prefix} WARNING: create_rentshield_workflows failed (non-fatal)"
+}
+
 # The whole migrate, with flock, needs to run as the right user
 if [[ -n "${USER_IS_NON_ROOT}" ]]; then
 	python3 manage.py check --tag compatibility paperless || exit 1
-	exec s6-setlock -n "${data_dir}/migration_lock" python3 manage.py migrate --skip-checks --no-input
+	s6-setlock -n "${data_dir}/migration_lock" python3 manage.py migrate --skip-checks --no-input || exit 1
+	echo "${log_prefix} Seed RentShield roles and workflows..."
+	seed_rentshield "" || exit 1
 else
 	s6-setuidgid paperless python3 manage.py check --tag compatibility paperless  || exit 1
-	exec s6-setuidgid paperless \
+	s6-setuidgid paperless \
 		s6-setlock -n "${data_dir}/migration_lock" \
-		python3 manage.py migrate --skip-checks --no-input
+		python3 manage.py migrate --skip-checks --no-input || exit 1
+	echo "${log_prefix} Seed RentShield roles and workflows..."
+	seed_rentshield "s6-setuidgid paperless" || exit 1
 fi
