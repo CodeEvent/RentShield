@@ -615,6 +615,7 @@ class TotpDevice(models.Model):
         return str(truncated % (10**digits)).zfill(digits)
 
     def verify(self, code: str, window: int = 1) -> bool:
+        import hmac
         import time
 
         candidate = (code or "").strip().replace(" ", "")
@@ -622,6 +623,11 @@ class TotpDevice(models.Model):
             return False
         now = time.time()
         for drift in range(-window, window + 1):
-            if self._code_at(self.secret, now + drift * 30) == candidate:
+            # Constant-time compare so a timing side-channel can't be used to
+            # recover the expected code digit by digit (CWE-208).
+            if hmac.compare_digest(
+                self._code_at(self.secret, now + drift * 30),
+                candidate,
+            ):
                 return True
         return False

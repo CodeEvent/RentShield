@@ -1254,10 +1254,27 @@ def idswyft_webhook_view(request):
     than guessing a signature check that might not match the real one.
     verification_status_view's polling is the authoritative path this
     feature actually relies on; this is a latency optimization on top of
-    it, not the only way status gets updated."""
+    it, not the only way status gets updated.
+
+    Because this endpoint is unauthenticated (AllowAny -- Idswyft's
+    signature scheme is unpublished) it may only move a record to the
+    states Idswyft's *automated* pipeline legitimately produces. VERIFIED
+    and NEEDS_MORE_INFO are human-only outcomes set exclusively by a
+    Notary (admin_views.notary_confirm_view / notary_request_more_info_
+    view); allowing an unauthenticated POST to set them would let anyone
+    who learns a verification_id promote an identity straight past the
+    mandatory Notary review the whole trust model rests on. So those two
+    are rejected here even though they are otherwise valid Status values."""
+    # Automated-pipeline states only -- never the Notary-only outcomes.
+    _WEBHOOK_SETTABLE = {
+        IdentityVerification.Status.PENDING,
+        IdentityVerification.Status.AWAITING_NOTARY_REVIEW,
+        IdentityVerification.Status.MANUAL_REVIEW,
+        IdentityVerification.Status.FAILED,
+    }
     verification_id = request.data.get("verification_id") or request.data.get("id")
     status = request.data.get("status") or request.data.get("event")
-    if not verification_id or status not in dict(IdentityVerification.Status.choices):
+    if not verification_id or status not in _WEBHOOK_SETTABLE:
         logger.warning("Idswyft webhook: ignoring unrecognized payload %r", request.data)
         return Response({"ok": False}, status=400)
 
