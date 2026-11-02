@@ -494,6 +494,25 @@ HTTP_REMOTE_USER_HEADER_NAME = _parse_remote_user_settings()
 # X-Frame options for embedded PDF display:
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
+# Transport hardening in production (served behind the HTTPS reverse proxy).
+# Enabled automatically when not DEBUG; each value is env-overridable. The
+# HTTP->HTTPS redirect is left to the reverse proxy to avoid redirect loops
+# when no forwarded-proto header is configured.
+if not DEBUG:
+    SESSION_COOKIE_SECURE = get_bool_from_env(
+        "PAPERLESS_SESSION_COOKIE_SECURE", "true",
+    )
+    CSRF_COOKIE_SECURE = get_bool_from_env("PAPERLESS_CSRF_COOKIE_SECURE", "true")
+    SECURE_HSTS_SECONDS = int(
+        os.getenv("PAPERLESS_SECURE_HSTS_SECONDS", str(60 * 60 * 24 * 365)),
+    )
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = get_bool_from_env(
+        "PAPERLESS_SECURE_HSTS_INCLUDE_SUBDOMAINS", "true",
+    )
+    SECURE_HSTS_PRELOAD = get_bool_from_env(
+        "PAPERLESS_SECURE_HSTS_PRELOAD", "true",
+    )
+
 # The next 3 settings can also be set using just PAPERLESS_URL
 CSRF_TRUSTED_ORIGINS = get_list_from_env("PAPERLESS_CSRF_TRUSTED_ORIGINS")
 
