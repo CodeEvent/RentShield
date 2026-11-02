@@ -201,6 +201,11 @@ def notice_to_builder_input(fields: dict) -> dict:
         "plot_number": fields.get("plot_number"),
         "ejari_number": fields.get("ejari_number"),
         "notice_date": fields.get("notice_date"),
+        # The statutory 12-month / 30-day clock runs from the date the
+        # notice is SERVED, not drafted; the builder uses this when set
+        # (recorded after notary / registered mail) and falls back to
+        # notice_date for a pre-service draft.
+        "served_date": fields.get("served_date"),
         "reason": fields.get("reason"),
     }
 

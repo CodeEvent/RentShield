@@ -32,8 +32,15 @@ def _build_statutory_notice(input_data: dict) -> dict:
     r = STATUTORY_REASONS.get(input_data.get("reason"))
     notice_date_en = format_date_en(input_data.get("notice_date"))
     notice_date_ar = format_date_ar(input_data.get("notice_date"))
-    expiry_en = format_expiry_en(input_data.get("notice_date"), 365)
-    expiry_ar = format_expiry_ar(input_data.get("notice_date"), 365)
+    # The 12-month period runs from the date the notice is SERVED (Law
+    # 26/2007 as amended, Art. 25), not the drafting date. Use the recorded
+    # served_date once it exists (set after notary / registered mail);
+    # before service, fall back to notice_date so a draft still renders and
+    # the shown Expiry Date is provisional until the notice is served.
+    service_date = input_data.get("served_date") or input_data.get("notice_date")
+    served_date_en = format_date_en(service_date)
+    expiry_en = format_expiry_en(service_date, 365)
+    expiry_ar = format_expiry_ar(service_date, 365)
     reason_en = r["label"] if r else "[Reason for Eviction]"
     reason_ar = r["label_ar"] if r else "[سبب الإخلاء]"
     clause_en = r["clause_en"] if r else (
@@ -75,7 +82,7 @@ def _build_statutory_notice(input_data: dict) -> dict:
                     f'{p["ejari"]}.'
                 ),
                 (
-                    f'This Notice is served on {notice_date_en} and shall take legal effect after a '
+                    f'This Notice is served on {served_date_en} and shall take legal effect after a '
                     f'period of not less than twelve (12) calendar months / three hundred and '
                     f'sixty-five (365) days from the date of service, expiring on {expiry_en} (the '
                     f'"Expiry Date"), upon which date the Tenant shall vacate and hand over vacant '
@@ -151,8 +158,11 @@ def _build_breach_notice(input_data: dict) -> dict:
     r = BREACH_REASONS.get(input_data.get("reason"))
     notice_date_en = format_date_en(input_data.get("notice_date"))
     notice_date_ar = format_date_ar(input_data.get("notice_date"))
-    deadline_en = format_expiry_en(input_data.get("notice_date"), 30)
-    deadline_ar = format_expiry_ar(input_data.get("notice_date"), 30)
+    # 30-day breach clock runs from the date of service, not drafting --
+    # same rule as the statutory notice; falls back to notice_date pre-service.
+    service_date = input_data.get("served_date") or input_data.get("notice_date")
+    deadline_en = format_expiry_en(service_date, 30)
+    deadline_ar = format_expiry_ar(service_date, 30)
     reason_en = r["label"] if r else "[Grounds for Breach]"
     reason_ar = r["label_ar"] if r else "[سبب المخالفة]"
     clause_en = r["clause_en"] if r else (
@@ -199,8 +209,8 @@ def _build_breach_notice(input_data: dict) -> dict:
             "reason_text": clause_en,
             "closing": (
                 f'You are hereby required to remedy the above breach and/or vacate the Property '
-                f'within thirty (30) days from the date of this Notice, being no later than '
-                f'{deadline_en} (the "Compliance Date"). Failure to comply may result in the Landlord '
+                f'within thirty (30) days from the date of service of this Notice, being no later '
+                f'than {deadline_en} (the "Compliance Date"). Failure to comply may result in the Landlord '
                 f'initiating proceedings before the Rental Dispute Settlement Centre (RDSC) for '
                 f'termination of the tenancy contract and eviction, together with recovery of all '
                 f'amounts lawfully due.'
@@ -242,7 +252,7 @@ def _build_breach_notice(input_data: dict) -> dict:
             "reason_text": clause_ar,
             "closing": (
                 f'يتوجب عليكم تدارك المخالفة المذكورة أعلاه و/أو إخلاء العقار خلال ثلاثين (30) يوماً '
-                f'من تاريخ هذا الإنذار، وذلك في موعد أقصاه {deadline_ar} ("تاريخ الامتثال"). وفي حال '
+                f'من تاريخ تبليغ هذا الإنذار، وذلك في موعد أقصاه {deadline_ar} ("تاريخ الامتثال"). وفي حال '
                 f'عدم الامتثال، يجوز للمؤجر اللجوء إلى مركز فض المنازعات الإيجارية لطلب فسخ عقد الإيجار '
                 f'والإخلاء، إضافة إلى استرداد جميع المبالغ المستحقة قانوناً.'
             ),
