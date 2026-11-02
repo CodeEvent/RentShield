@@ -235,6 +235,9 @@ export class PropertyRecordComponent implements OnInit {
   readonly rdscLoading = signal(false)
   readonly rdscCompiling = signal(false)
   readonly rdscMessage = signal('')
+  // Remote-notarization handoff (pre-service; no compliance gate).
+  readonly remoteNotarizing = signal(false)
+  readonly remoteNotarizeMessage = signal('')
 
   readonly checklist = [
     { ok: true, text: 'Reason matched to the correct period (12-month)' },
@@ -363,6 +366,29 @@ export class PropertyRecordComponent implements OnInit {
       error: () => {
         this.rdscCompiling.set(false)
         this.rdscMessage.set('The packet could not be compiled. Check the checkpoints above.')
+      },
+    })
+  }
+
+  /** Generate the remote-notarization how-to handoff for this notice.
+   *  No gate -- notarizing (Dubai Courts e-notary) happens before service. */
+  generateRemoteNotarizationHandoff(): void {
+    const notice = this.rdscNotice()
+    if (!notice || this.remoteNotarizing()) {
+      return
+    }
+    this.remoteNotarizing.set(true)
+    this.remoteNotarizeMessage.set('')
+    this.api.generateRemoteNotarizationHandoff(notice.id).subscribe({
+      next: () => {
+        this.remoteNotarizing.set(false)
+        this.remoteNotarizeMessage.set(
+          'Remote notarization guide is being prepared. It will appear in Documents shortly.'
+        )
+      },
+      error: () => {
+        this.remoteNotarizing.set(false)
+        this.remoteNotarizeMessage.set('Could not prepare the guide. Please try again.')
       },
     })
   }

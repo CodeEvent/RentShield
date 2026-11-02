@@ -38,6 +38,9 @@ describe('PropertyRecordComponent — RDSC compliance gate', () => {
       listNotices: jest.fn().mockReturnValue(of([])),
       getRdscReadiness: jest.fn().mockReturnValue(of(readiness(false))),
       generateRdscPacket: jest.fn().mockReturnValue(of({ task_id: 't1' })),
+      generateRemoteNotarizationHandoff: jest
+        .fn()
+        .mockReturnValue(of({ task_id: 't2' })),
     }
     const workspace: Partial<PropertyWorkspaceService> = {
       getInspections: jest.fn().mockReturnValue(of([])),

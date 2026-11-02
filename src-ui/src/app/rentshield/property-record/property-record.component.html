@@ -278,6 +278,28 @@
           @if (rdscMessage()) {
             <p class="pr-rdsc-msg">{{ rdscMessage() }}</p>
           }
+
+          @if (rdscNotice()) {
+            <div class="pr-rdsc-remote">
+              <h4>Remote notarization</h4>
+              <p>
+                Notarize this notice remotely via Dubai Courts' approved e-notary
+                (video call) before serving it. Generates a step-by-step handoff.
+              </p>
+              <button
+                type="button"
+                class="pr-btn pr-btn-secondary"
+                [disabled]="remoteNotarizing()"
+                (click)="generateRemoteNotarizationHandoff()"
+              >
+                <i-bs name="camera-video"></i-bs>
+                {{ remoteNotarizing() ? 'Preparing…' : 'Remote notarization guide' }}
+              </button>
+              @if (remoteNotarizeMessage()) {
+                <p class="pr-rdsc-msg">{{ remoteNotarizeMessage() }}</p>
+              }
+            </div>
+          }
         </div>
       } @else {
         <div class="pr-empty">

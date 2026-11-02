@@ -554,6 +554,20 @@ export class RentshieldApiService {
     )
   }
 
+  // Remote-notarization how-to handoff (2026-11) -- see
+  // documents/rentshield/remote_notarization.py. Guidance for notarizing
+  // the notice via Dubai Courts' approved e-notary (video call); unlike the
+  // RDSC packet it has no served_date/compliance precondition, since
+  // notarization happens before service. Returns a Celery task id.
+  generateRemoteNotarizationHandoff(
+    documentId: number
+  ): Observable<{ task_id: string }> {
+    return this.http.post<{ task_id: string }>(
+      `${this.base}documents/notice/${documentId}/remote-notarization/`,
+      {}
+    )
+  }
+
   // documents/rentshield_workflow/ (viewflow prototype) -- "open": a
   // filing is pending (possibly half-filled already); "done": one was
   // already recorded. 404s only when no packet has been generated yet.
