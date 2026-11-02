@@ -64,6 +64,7 @@ from documents.rentshield_views import notarize_view
 from documents.rentshield_views import rdsc_filing_complete_view
 from documents.rentshield_views import rdsc_filing_task_view
 from documents.rentshield_views import rdsc_packet_view
+from documents.rentshield_views import remote_notarization_handoff_view
 from documents.rentshield_views import rdsc_readiness_view
 from documents.rentshield_views import organization_dashboard_view
 from documents.rentshield_views import organization_members_view
@@ -313,6 +314,11 @@ urlpatterns = [
                                 r"^notice/(?P<document_id>\d+)/rdsc-packet/$",
                                 rdsc_packet_view,
                                 name="rentshield-rdsc-packet",
+                            ),
+                            re_path(
+                                r"^notice/(?P<document_id>\d+)/remote-notarization/$",
+                                remote_notarization_handoff_view,
+                                name="rentshield-remote-notarization",
                             ),
                             re_path(
                                 r"^notice/(?P<document_id>\d+)/rdsc-readiness/$",

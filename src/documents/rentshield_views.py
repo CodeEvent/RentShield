@@ -93,6 +93,7 @@ from documents.rentshield.roles import grant_property_owner
 from documents.rentshield.service import check_notarization_status
 from documents.rentshield.service import generate_and_consume
 from documents.rentshield.service import generate_rdsc_filing_packet
+from documents.rentshield.service import generate_remote_notarization_handoff
 from documents.rentshield.service import read_notice_fields
 from documents.rentshield.service import request_notarization
 from documents.rentshield.service import write_and_consume
@@ -781,6 +782,21 @@ def rdsc_packet_view(request, document_id: int):
     if _open_rdsc_filing_process(document.id) is None:
         RDSCFilingFlow.start.run(document_id=document.id)
 
+    return Response({"task_id": task_id})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, CanActOnDocument])
+def remote_notarization_handoff_view(request, document_id: int):
+    """POST /api/documents/notice/<document_id>/remote-notarization/ --
+    generates the remote-notarization how-to handoff (documents.rentshield.
+    remote_notarization) for this notice as its own new Document: how to
+    notarize it remotely via Dubai Courts' approved e-notary (video call)
+    and which RentShield fields capture the result. No served_date
+    precondition -- notarization precedes service. Same visibility rules as
+    rdsc_packet_view."""
+    document = _get_visible_document_or_404(request, document_id)
+    task_id = generate_remote_notarization_handoff(document)
     return Response({"task_id": task_id})
 
 

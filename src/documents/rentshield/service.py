@@ -534,6 +534,34 @@ def generate_rdsc_filing_packet(document: Document, *, synchronous: bool = False
     )
 
 
+def generate_remote_notarization_handoff(document: Document, *, synchronous: bool = False) -> str | Document:
+    """Builds the remote-notarization how-to handoff (documents.rentshield.
+    remote_notarization) for `document` and consumes it as its own new
+    Document, tagged REMOTE_NOTARIZATION_TAG_NAME -- the pre-service
+    counterpart to generate_rdsc_filing_packet(). Unlike the RDSC packet it
+    has no served_date / compliance precondition: this is guidance for
+    getting the notice notarized remotely via Dubai Courts' approved
+    e-notary, which happens *before* service, so there is nothing to gate
+    on yet."""
+    from documents.rentshield.remote_notarization import REMOTE_NOTARIZATION_TAG_NAME
+    from documents.rentshield.remote_notarization import build_remote_notarization_handoff
+
+    fields = read_notice_fields(document)
+    pdf_bytes = build_remote_notarization_handoff(fields)
+    tag, _created = Tag.objects.get_or_create(
+        name=REMOTE_NOTARIZATION_TAG_NAME,
+        defaults={"color": "#0ea5e9"},
+    )
+    return write_and_consume(
+        pdf_bytes,
+        f"Remote Notarization Handoff - {fields.get('tenant_name')}.pdf",
+        title=f"Remote Notarization Handoff - {fields.get('tenant_name')}",
+        owner_id=document.owner_id,
+        tag_ids=[tag.id],
+        synchronous=synchronous,
+    )
+
+
 SIGNER_TOKEN_SALT = "rentshield-signer-verify"
 SIGNER_TOKEN_MAX_AGE_SECONDS = int(timedelta(days=14).total_seconds())
 
