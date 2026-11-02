@@ -6,6 +6,9 @@ from datetime import timedelta
 from django.conf import settings
 from django.db import models
 
+from documents.rentshield.encrypted_fields import EncryptedCharField
+from documents.rentshield.encrypted_fields import EncryptedTextField
+
 
 class IdentityVerification(models.Model):
     """One property owner's passport/ID verification via a self-hosted
@@ -75,10 +78,15 @@ class IdentityVerification(models.Model):
     # is echoed back by the chip, so neither has anything to cross-check
     # against.
     declared_document_type = models.CharField(max_length=16, blank=True, default="")
-    declared_document_number = models.CharField(max_length=64, blank=True, default="")
-    declared_date_of_birth = models.CharField(max_length=32, blank=True, default="")
-    declared_expiry_date = models.CharField(max_length=32, blank=True, default="")
-    declared_can = models.CharField(max_length=16, blank=True, default="")
+    # Encrypted at rest (documents/rentshield/encrypted_fields.py): a
+    # passport/ID number, the holder's date of birth and the chip's CAN are
+    # regulated personal data, so the column stores a Fernet token, never the
+    # cleartext. None of these is ever queried by value (verified), so losing
+    # column-level searchability costs nothing here.
+    declared_document_number = EncryptedCharField(blank=True, default="")
+    declared_date_of_birth = EncryptedCharField(blank=True, default="")
+    declared_expiry_date = EncryptedCharField(blank=True, default="")
+    declared_can = EncryptedCharField(blank=True, default="")
 
     passport_photo = models.FileField(upload_to="rentshield_identity/passports/", blank=True, null=True)
     selfie_photo = models.FileField(upload_to="rentshield_identity/selfies/", blank=True, null=True)
@@ -98,22 +106,24 @@ class IdentityVerification(models.Model):
     # Stored as text, not a DateField: OCR dates arrive in whatever
     # format the source document/MRZ used, and a failed strict parse
     # would silently lose real evidence a reviewer could still read.
-    card_ocr_full_name = models.CharField(max_length=255, blank=True, default="")
-    card_ocr_date_of_birth = models.CharField(max_length=32, blank=True, default="")
-    card_ocr_document_number = models.CharField(max_length=64, blank=True, default="")
+    # Encrypted at rest -- OCR name/DOB/number read off the photographed ID.
+    card_ocr_full_name = EncryptedCharField(blank=True, default="")
+    card_ocr_date_of_birth = EncryptedCharField(blank=True, default="")
+    card_ocr_document_number = EncryptedCharField(blank=True, default="")
 
     # The same fields as read directly off the NFC chip (DG1/MRZ) by the
     # native Android/iOS apps -- independent of Idswyft's OCR, so
     # disagreement between the two is real signal, not noise.
-    chip_full_name = models.CharField(max_length=255, blank=True, default="")
-    chip_date_of_birth = models.CharField(max_length=32, blank=True, default="")
+    # Encrypted at rest -- name/DOB read off the NFC chip.
+    chip_full_name = EncryptedCharField(blank=True, default="")
+    chip_date_of_birth = EncryptedCharField(blank=True, default="")
     # The chip's OWN copy of the card's printed ID/serial number -- the
     # real "does the card number match the chip" check some users
     # expect, done *after* unlocking the chip with its actual PACE key
     # (the CAN), never by using the serial number as that key itself
     # (the chip's firmware doesn't accept it as one -- see
     # MainActivity.kt's onScanClicked() comment on the Android side).
-    chip_document_number = models.CharField(max_length=64, blank=True, default="")
+    chip_document_number = EncryptedCharField(blank=True, default="")
 
     # The chip's own DG2 photo (read straight off the passport/CIE chip,
     # cryptographically signed) -- kept separately from passport_photo
@@ -131,7 +141,8 @@ class IdentityVerification(models.Model):
     # Set once the two sources above are both present -- never a hard
     # gate (OCR misreads happen), just something the Notary reviewer
     # below needs to see and weigh.
-    identity_mismatch_notes = models.TextField(blank=True, default="")
+    # Encrypted at rest -- free text that quotes the names/numbers above.
+    identity_mismatch_notes = EncryptedTextField(blank=True, default="")
 
     class AdditionalIdType(models.TextChoices):
         DRIVING_LICENCE = "driving_licence", "Driving Licence"
@@ -174,7 +185,8 @@ class IdentityVerification(models.Model):
         related_name="rentshield_notary_reviews",
     )
     notary_reviewed_at = models.DateTimeField(null=True, blank=True)
-    notary_notes = models.TextField(blank=True, default="")
+    # Encrypted at rest -- a reviewer's free notes about this person's ID.
+    notary_notes = EncryptedTextField(blank=True, default="")
 
     # Claude-generated summary of the automated evidence, produced once
     # a verification reaches AWAITING_NOTARY_REVIEW (ai_prescreen.py) --
@@ -182,7 +194,9 @@ class IdentityVerification(models.Model):
     # remains the only one who can set VERIFIED. Blank until the
     # background task runs, and stays blank (not an error) if
     # ANTHROPIC_API_KEY isn't configured -- see ai_prescreen.py.
-    ai_prescreen_summary = models.TextField(blank=True, default="")
+    # Encrypted at rest -- the AI summary restates the ID evidence (name,
+    # DOB, document number), so it is as sensitive as the fields it quotes.
+    ai_prescreen_summary = EncryptedTextField(blank=True, default="")
 
     # Advisory lock (2026-09-14, explicitly requested): once there's
     # more than one Notary account, two Notaries could otherwise act on
@@ -425,7 +439,10 @@ class NoticeSignerVerification(models.Model):
     # emailed link mid-capture shouldn't have the name they're being
     # matched against silently change under them if someone edits the
     # notice afterward.
-    signer_name = models.CharField(max_length=255, blank=True, default="")
+    # Encrypted at rest -- the signer's real name. signer_email stays a
+    # plain EmailField: it is the key the signing flow looks the row up by
+    # and is already carried in the notice itself.
+    signer_name = EncryptedCharField(blank=True, default="")
     signer_email = models.EmailField()
 
     provider = models.CharField(max_length=32, default="idswyft")
@@ -440,7 +457,7 @@ class NoticeSignerVerification(models.Model):
     # second, independent check on top of Idswyft's own automated
     # face-match: Idswyft confirms "the selfie matches the document photo",
     # not "the document belongs to the person this notice names".
-    ocr_full_name = models.CharField(max_length=255, blank=True, default="")
+    ocr_full_name = EncryptedCharField(blank=True, default="")  # encrypted at rest
     name_mismatch = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -555,7 +572,12 @@ class TotpDevice(models.Model):
         on_delete=models.CASCADE,
         related_name="rs_totp",
     )
-    secret = models.CharField(max_length=64)
+    # Encrypted at rest (documents/rentshield/encrypted_fields.py): this is
+    # the shared secret an authenticator derives every 2FA code from, so a
+    # leaked database row would otherwise let an attacker mint valid codes
+    # for the account indefinitely. Only ever read via the user OneToOne,
+    # never queried by value, so encryption costs nothing here.
+    secret = EncryptedCharField()
     confirmed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

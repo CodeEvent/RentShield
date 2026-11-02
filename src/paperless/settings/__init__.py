@@ -625,6 +625,38 @@ if not (SECRET_KEY or "").strip() or SECRET_KEY == "change-me":  # pragma: no co
         'Generate one with: python3 -c "import secrets; print(secrets.token_urlsafe(64))"',
     )
 
+# Field-level encryption key(s) for the RentShield model fields that hold a
+# secret or regulated personal data (TOTP secrets, passport/ID numbers, dates
+# of birth, names read off ID documents) -- see
+# documents/rentshield/encrypted_fields.py. PAPERLESS_FIELD_ENCRYPTION_KEY
+# takes one or more comma-separated Fernet keys (first encrypts, all decrypt,
+# so "new,old" rotates the key without a data migration). With none set we
+# derive a key from SECRET_KEY so local dev and the test suite need no extra
+# config -- but that couples the key to SECRET_KEY, so in production (DEBUG
+# off) we warn that an explicit, independently-rotatable key is preferable.
+RS_FIELD_ENCRYPTION_KEYS = [
+    k.strip()
+    for k in os.getenv("PAPERLESS_FIELD_ENCRYPTION_KEY", "").split(",")
+    if k.strip()
+]
+if not RS_FIELD_ENCRYPTION_KEYS:
+    import base64 as _b64
+    import hashlib as _hashlib
+
+    RS_FIELD_ENCRYPTION_KEYS = [
+        _b64.urlsafe_b64encode(
+            _hashlib.sha256(
+                b"rs-field-enc:v1:" + SECRET_KEY.encode("utf-8"),
+            ).digest(),
+        ).decode("ascii"),
+    ]
+    if not DEBUG:  # pragma: no cover
+        logger.warning(
+            "PAPERLESS_FIELD_ENCRYPTION_KEY is not set; deriving the "
+            "field-encryption key from SECRET_KEY. Set an explicit key so it "
+            "can be rotated independently of SECRET_KEY.",
+        )
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
