@@ -69,7 +69,17 @@ ROLE_DOCUMENT_PERMISSIONS: dict[str, list[str]] = {
 #     (tag *creation* on notice generation happens server-side via the
 #     ORM directly in documents/rentshield/service.py, not through this
 #     API, so add_tag isn't needed here).
-BASELINE_PERMISSIONS: list[str] = ["view_uisettings", "change_uisettings", "view_tag"]
+#   - view_customfield: the Notices list and property-record pages read
+#     each notice's RentShield fields (landlord/tenant/reason/dates...) via
+#     GET /api/custom_fields/ -- without it that call 403s and every notice
+#     renders blank (the page loads but shows nothing), found the same way:
+#     a real Property Owner testing a fresh account in a real browser.
+BASELINE_PERMISSIONS: list[str] = [
+    "view_uisettings",
+    "change_uisettings",
+    "view_tag",
+    "view_customfield",
+]
 
 
 def user_in_group(user: User | None, group_name: str) -> bool:
