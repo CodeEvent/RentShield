@@ -1,0 +1,19 @@
+{
+  "name": "RentShield Demo",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "RentShield",
+      "visibility": "public",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/start.sh",
+  "remoteUser": "vscode"
+}
