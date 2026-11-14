@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 user, created = User.objects.get_or_create(
                     username=DEMO_USERNAME,
                     defaults={
-                        "email": "demo@rentshield.example",
+                        "email": "demo@evicta.example",
                         "first_name": "Fatima",
                         "last_name": "Al Zaabi",
                         "is_active": True,
@@ -97,7 +97,7 @@ class Command(BaseCommand):
 
         base = dict(
             landlord_name=display_name,
-            landlord_email=user.email or "demo@rentshield.example",
+            landlord_email=user.email or "demo@evicta.example",
             property_type="Apartment",
         )
         notices = [
