@@ -423,8 +423,8 @@ def signup_email_view(request):
                 "email_verified": False,
             }
             send_mail(
-                subject="Your RentShield security code",
-                message=f"Your RentShield security code is {otp}. It expires in 15 minutes.",
+                subject="Your Evicta security code",
+                message=f"Your Evicta security code is {otp}. It expires in 15 minutes.",
                 from_email=None,
                 recipient_list=[email],
                 fail_silently=False,
@@ -644,7 +644,7 @@ def signup_phone_view(request):
         code=code,
         defaults={"expected_phone": draft["phone"], "verified_at": None, "sender_phone": ""},
     )
-    wa_text = f"RentShield verify {code}"
+    wa_text = f"Evicta verify {code}"
     wa_number = _wa_number()
     wa_link = f"https://wa.me/{wa_number.lstrip('+')}?text={quote(wa_text)}" if wa_number else ""
     return render(request, "rentshield/signup_whatsapp.html", {
@@ -1757,9 +1757,9 @@ def _send_invite_email(request, user, organization) -> None:
     )
     inviter_label = request.user.email or request.user.username
     send_mail(
-        subject=f"You've been invited to {organization.name} on RentShield",
+        subject=f"You've been invited to {organization.name} on Evicta",
         message=(
-            f"{inviter_label} has invited you to join {organization.name} on RentShield.\n\n"
+            f"{inviter_label} has invited you to join {organization.name} on Evicta.\n\n"
             f"Accept your invite: {accept_url}\n\n"
             "This link expires in 7 days."
         ),

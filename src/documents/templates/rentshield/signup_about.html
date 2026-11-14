@@ -12,7 +12,7 @@
     <p class="rs-progress-label">Step 2 of 3</p>
 
     <label class="rs-label-h1" for="id_company_name">Tell us about yourself</label>
-    <span class="rs-hint">This helps us set up RentShield the right way for how you work.</span>
+    <span class="rs-hint">This helps us set up Evicta the right way for how you work.</span>
 
     <form method="post" class="rs-submit-form" id="rs-about-form" novalidate>
         {% csrf_token %}
@@ -37,7 +37,7 @@
         </div>
 
         <div class="rs-field">
-            <label for="id_priorities">Priorities for using RentShield <span class="req">*</span></label>
+            <label for="id_priorities">Priorities for using Evicta <span class="req">*</span></label>
             <select name="priorities" id="id_priorities" class="rs-select{% if not priorities %} placeholder{% endif %}" required>
                 <option value="" {% if not priorities %}selected{% endif %} disabled hidden>Select&hellip;</option>
                 {% for opt in priority_options %}

@@ -1,5 +1,5 @@
 {% extends "rentshield/app_base.html" %}
-{% block title %}RentShield · E-signature{% endblock %}
+{% block title %}Evicta · E-signature{% endblock %}
 {% block head_extra %}
   .es-wrap{max-width:780px;display:flex;flex-direction:column;gap:1.1rem;}
   .es-body{padding:1.3rem;}
@@ -30,7 +30,7 @@
   <div>
     <a class="back" href="/account/security/" style="display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:600;font-size:.85rem;margin-bottom:.3rem;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Settings</a>
     <h1>E-signature</h1>
-    <div class="sub">How RentShield signs and serves notices.</div>
+    <div class="sub">How Evicta signs and serves notices.</div>
   </div>
   <div class="rs-spacer"></div>
   <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
@@ -43,7 +43,7 @@
         {% if any_configured %}<span class="badge b-ok">Configured</span>{% else %}<span class="badge b-warn">Not configured</span>{% endif %}
       </div>
       <div class="es-body">
-        <p class="lead">RentShield delegates certified e-signatures to an external signing service — it does not hold its own signing key. The PKCS#7 certificate is managed inside the provider. Configure providers with environment variables on the server.</p>
+        <p class="lead">Evicta delegates certified e-signatures to an external signing service — it does not hold its own signing key. The PKCS#7 certificate is managed inside the provider. Configure providers with environment variables on the server.</p>
 
         {% for p in providers %}
         <div class="prov">
@@ -80,7 +80,7 @@
           </div>
           <div class="c">
             <h4>Real notarisation / service</h4>
-            <p>Service via Notary Public, registered mail, or court bailiff is what the statute requires. RentShield keeps these distinct and never presents an e-signature as legal service.</p>
+            <p>Service via Notary Public, registered mail, or court bailiff is what the statute requires. Evicta keeps these distinct and never presents an e-signature as legal service.</p>
           </div>
         </div>
       </div>
