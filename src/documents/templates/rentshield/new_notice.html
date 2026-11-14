@@ -1,0 +1,69 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · New notice{% endblock %}
+{% block head_extra %}
+  .nform{max-width:640px;}
+  .nform .card-h h2{font-size:1.05rem;}
+  .fbody{padding:1.3rem;display:grid;gap:1.1rem;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  @media(max-width:560px){.frow{grid-template-columns:1fr;}}
+  .field label{display:block;font-weight:600;color:var(--ink);margin-bottom:.35rem;font-size:.9rem;}
+  .field label .req{color:var(--red);}
+  .field input,.field select{width:100%;font:inherit;font-size:.95rem;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);}
+  .field input:focus,.field select:focus{outline:3px solid var(--blue);outline-offset:1px;border-color:var(--blue);}
+  .field .hint{color:var(--muted);font-size:.8rem;margin-top:.3rem;}
+  .ferr{border:1.5px solid var(--red);background:var(--red-tint);color:var(--red);border-radius:9px;padding:.8rem 1rem;font-weight:600;font-size:.9rem;}
+  .factions{display:flex;gap:.7rem;align-items:center;padding-top:.3rem;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <a class="back" href="/records/" style="display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:600;font-size:.85rem;">&lsaquo; Notices</a>
+    <h1>New notice</h1>
+    <div class="sub">Create a draft tenancy notice.</div>
+  </div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <form class="card nform" method="post" action="/records/new/">
+    {% csrf_token %}
+    <div class="card-h"><h2>Notice details</h2></div>
+    <div class="fbody">
+      {% if error %}<div class="ferr">{{ error }}</div>{% endif %}
+      <div class="field">
+        <label for="reason">Ground for the notice <span class="req">*</span></label>
+        <select name="reason" id="reason" required>
+          <option value="" {% if not form.reason %}selected{% endif %} disabled hidden>Select a ground…</option>
+          {% for code, label in reasons.items %}
+          <option value="{{ code }}" {% if form.reason == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="hint">The statutory notice period is set automatically from the ground (365 days, or 30 for non-payment).</div>
+      </div>
+      <div class="field">
+        <label for="tenant_name">Tenant name <span class="req">*</span></label>
+        <input type="text" name="tenant_name" id="tenant_name" value="{{ form.tenant_name }}" required>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="building_name">Building / community <span class="req">*</span></label><input type="text" name="building_name" id="building_name" value="{{ form.building_name }}" required></div>
+        <div class="field"><label for="unit_no">Unit no.</label><input type="text" name="unit_no" id="unit_no" value="{{ form.unit_no }}"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="ejari_number">Ejari no.</label><input type="text" name="ejari_number" id="ejari_number" value="{{ form.ejari_number }}" placeholder="DXB-2026-…"></div>
+        <div class="field"><label for="property_type">Property type</label>
+          <select name="property_type" id="property_type">
+            {% for t in "Apartment,Villa,Townhouse,Office,Retail,Warehouse"|cut:" " %}{% endfor %}
+            <option {% if form.property_type == "Apartment" or not form.property_type %}selected{% endif %}>Apartment</option>
+            <option {% if form.property_type == "Villa" %}selected{% endif %}>Villa</option>
+            <option {% if form.property_type == "Townhouse" %}selected{% endif %}>Townhouse</option>
+            <option {% if form.property_type == "Office" %}selected{% endif %}>Office</option>
+            <option {% if form.property_type == "Retail" %}selected{% endif %}>Retail</option>
+          </select>
+        </div>
+      </div>
+      <div class="factions">
+        <button type="submit" class="rs-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create draft notice</button>
+        <a href="/records/" style="color:var(--muted);font-weight:600;">Cancel</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}

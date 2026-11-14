@@ -1,0 +1,43 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Verification{% endblock %}
+{% block head_extra %}
+  .vhead{display:flex;align-items:center;gap:1.1rem;padding:1.4rem;}
+  .vbadge{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;flex:none;}
+  .vbadge.ok{background:var(--green-tint);color:var(--green);} .vbadge.no{background:#eef1f6;color:var(--muted);}
+  .vbadge svg{width:32px;height:32px;}
+  .vhead h2{font-size:1.25rem;} .vhead .sub{color:var(--muted);margin-top:.15rem;}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:.7rem 1.2rem;margin:0;padding:1.15rem;border-top:1px solid var(--line-2);}
+  dl.kv dt{color:var(--muted);font-size:.88rem;} dl.kv dd{margin:0;color:var(--ink);font-weight:500;text-align:right;}
+  .chip-ok{display:inline-flex;align-items:center;gap:.35rem;color:var(--green);font-weight:700;font-size:.8rem;background:var(--green-tint);padding:.2rem .6rem;border-radius:var(--pill);}
+{% endblock %}
+{% block topbar %}
+  <div><h1>Verification</h1><div class="sub">Your identity verification for notarized service.</div></div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  {% if iv %}
+  <div class="card" style="max-width:620px;">
+    <div class="vhead">
+      <div class="vbadge {% if iv.verified %}ok{% else %}no{% endif %}">
+        {% if iv.verified %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        {% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>{% endif %}
+      </div>
+      <div>
+        <h2>{% if iv.verified %}Identity verified{% else %}{{ iv.status }}{% endif %}</h2>
+        <div class="sub">{% if iv.verified %}You can request notarized service on your notices.{% else %}Verification is not complete yet.{% endif %}</div>
+      </div>
+    </div>
+    <dl class="kv">
+      <dt>Status</dt><dd>{% if iv.verified %}<span class="chip-ok">Verified</span>{% else %}{{ iv.status }}{% endif %}</dd>
+      <dt>Full name</dt><dd>{{ iv.full_name }}</dd>
+      <dt>Document number</dt><dd>{{ iv.doc_number }}</dd>
+      <dt>Selfie match</dt><dd>{{ iv.selfie }}</dd>
+      <dt>Provider</dt><dd>{{ iv.provider }}</dd>
+      <dt>Result</dt><dd>{{ iv.result }}</dd>
+    </dl>
+  </div>
+  {% else %}
+  <div class="card" style="max-width:620px;"><div class="empty">No verification on file yet. You'll complete identity verification before serving a notice.</div></div>
+  {% endif %}
+{% endblock %}

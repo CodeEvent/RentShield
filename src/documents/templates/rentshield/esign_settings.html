@@ -1,0 +1,89 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · E-signature{% endblock %}
+{% block head_extra %}
+  .es-wrap{max-width:780px;display:flex;flex-direction:column;gap:1.1rem;}
+  .es-body{padding:1.3rem;}
+  .es-body p.lead{color:var(--muted);font-size:.9rem;margin:.1rem 0 1.1rem;max-width:62ch;}
+  .prov{display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 1.25rem;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;}
+  .prov + .prov{margin-top:.9rem;}
+  .prov .pic{width:40px;height:40px;border-radius:10px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;flex:none;}
+  .prov .pmeta{flex:1;min-width:0;}
+  .prov .ptop{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+  .prov h3{font-size:1rem;margin:0;}
+  .role{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  .prov .pnote{color:var(--muted);font-size:.86rem;margin:.4rem 0 .5rem;line-height:1.5;}
+  .prov .penv{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;color:var(--body);background:var(--line-2);border-radius:6px;padding:.15rem .45rem;}
+  .badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.76rem;font-weight:600;padding:.2rem .6rem;border-radius:999px;}
+  .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .b-ok{background:var(--green-tint);color:var(--green);}
+  .b-warn{background:var(--amber-tint);color:var(--amber);}
+  .b-off{background:#eef1f6;color:var(--muted);}
+  .note{display:flex;gap:.6rem;align-items:flex-start;color:var(--muted);font-size:.84rem;background:var(--blue-tint);border-radius:var(--radius-sm);padding:.85rem 1rem;line-height:1.55;}
+  .note svg{flex:none;color:var(--blue);margin-top:1px;}
+  .legal{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+  @media(max-width:600px){.legal{grid-template-columns:1fr;}}
+  .legal .c{border:1px solid var(--line);border-radius:var(--radius-sm);padding:1rem;}
+  .legal .c h4{margin:0 0 .35rem;font-size:.92rem;color:var(--ink);}
+  .legal .c p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.5;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <a class="back" href="/account/security/" style="display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:600;font-size:.85rem;margin-bottom:.3rem;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Settings</a>
+    <h1>E-signature</h1>
+    <div class="sub">How RentShield signs and serves notices.</div>
+  </div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <div class="es-wrap">
+    <div class="card">
+      <div class="card-h">
+        <h2>Signing providers</h2>
+        {% if any_configured %}<span class="badge b-ok">Configured</span>{% else %}<span class="badge b-warn">Not configured</span>{% endif %}
+      </div>
+      <div class="es-body">
+        <p class="lead">RentShield delegates certified e-signatures to an external signing service — it does not hold its own signing key. The PKCS#7 certificate is managed inside the provider. Configure providers with environment variables on the server.</p>
+
+        {% for p in providers %}
+        <div class="prov">
+          <span class="pic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+          <div class="pmeta">
+            <div class="ptop">
+              <span class="role">{{ p.role }}</span>
+              <h3>{{ p.name }}</h3>
+              {% if p.configured %}
+                {% if p.reachable %}<span class="badge b-ok">Configured · reachable</span>
+                {% else %}<span class="badge b-warn">Configured · unreachable</span>{% endif %}
+              {% else %}<span class="badge b-off">Not configured</span>{% endif %}
+            </div>
+            <p class="pnote">{{ p.note }}</p>
+            <span class="penv">{{ p.env }}</span>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="note" style="margin-top:1.1rem;">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span>Order of use: <strong>{{ primary|title }}</strong> first, then <strong>{{ fallback|title }}</strong> as an automatic fallback. Set the environment variables shown above and restart the server for changes to take effect.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h2>What counts as lawful service</h2></div>
+      <div class="es-body">
+        <div class="legal">
+          <div class="c">
+            <h4>Certified e-signature</h4>
+            <p>A cryptographically signed PDF (PKCS#7). Proves who signed and that the document is unaltered — but is <strong>not</strong>, on its own, lawful service of an eviction notice under Dubai Law No. 33 of 2008.</p>
+          </div>
+          <div class="c">
+            <h4>Real notarisation / service</h4>
+            <p>Service via Notary Public, registered mail, or court bailiff is what the statute requires. RentShield keeps these distinct and never presents an e-signature as legal service.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

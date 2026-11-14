@@ -79,6 +79,22 @@ from documents.rentshield_views import signup_done_view
 from documents.rentshield_views import signup_email_view
 from documents.rentshield_views import signup_start_view
 from documents.rentshield_views import signup_verify_view
+from documents.rentshield_views import rs_dashboard_view
+from documents.rentshield_views import rs_records_view
+from documents.rentshield_views import rs_record_detail_view
+from documents.rentshield_views import rs_document_redirect_view
+from documents.rentshield_views import rs_upload_view
+from documents.rentshield_views import rs_esign_settings_view
+from documents.rentshield_views import rs_properties_view
+from documents.rentshield_views import rs_verification_view
+from documents.rentshield_views import rs_compliance_view
+from documents.rentshield_views import rs_disputes_view
+from documents.rentshield_views import rs_new_notice_view
+from documents.rentshield_views import signup_about_view
+from documents.rentshield_views import signup_phone_view
+from documents.rentshield_views import signup_phone_verify_view
+from documents.rentshield_views import signup_phone_status_view
+from documents.rentshield_views import whatsapp_inbound_webhook
 from documents.rentshield_views import rentshield_logout_view
 from documents.rentshield_views import backup_codes_view
 from documents.rentshield_views import backup_code_login_view
@@ -887,15 +903,55 @@ urlpatterns = [
     re_path(r"^welcome/disclaimer/?$", disclaimer_view, name="rentshield-disclaimer"),
     re_path(r"^welcome/editorial/?$", editorial_view, name="rentshield-editorial"),
     path("sitemap.xml", sitemap_xml_view, name="sitemap-xml"),
+    re_path(r"^overview/?$", rs_dashboard_view, name="rentshield-dashboard"),
+    re_path(r"^records/new/?$", rs_new_notice_view, name="rentshield-record-new"),
+    re_path(r"^records/upload/?$", rs_upload_view, name="rentshield-record-upload"),
+    re_path(r"^records/(?P<pk>\d+)/?$", rs_record_detail_view, name="rentshield-record-detail"),
+    re_path(r"^records/?$", rs_records_view, name="rentshield-records"),
+    # Intercept the stock paperless-ngx Angular document routes so notices
+    # open in the styled RentShield views instead of the raw SPA. Must sit
+    # before the catch-all "Root of the Frontend" pattern.
+    #   /documents/<id>/*  -> styled /records/<id>/ (or Angular if not a notice)
+    #   /documents/create  -> styled upload page
+    #   /documents, /documents/ -> styled notices list
+    re_path(r"^documents/create/?$", RedirectView.as_view(url="/records/upload/", permanent=False), name="rentshield-documents-create-redirect"),
+    re_path(r"^documents/?$", RedirectView.as_view(url="/records/", permanent=False), name="rentshield-documents-list-redirect"),
+    re_path(r"^documents/(?P<pk>\d+)(?:/.*)?$", rs_document_redirect_view, name="rentshield-document-redirect"),
+    # The old Angular e-sign settings route -> the styled RentShield page.
+    # Must sit before the broad Paperless-internal redirect below, which
+    # would otherwise send /settings/* straight to /overview/.
+    re_path(r"^settings/esign/?$", RedirectView.as_view(url="/account/esign/", permanent=False), name="rentshield-esign-redirect"),
+    # The remaining stock paperless-ngx Angular routes are internal admin
+    # screens (tags, correspondents, workflows, mail rules, saved views,
+    # custom fields, trash, the Paperless settings/dashboard) that are not
+    # part of the RentShield product and are not linked anywhere in the
+    # app. Redirect them into the RentShield workspace so a user never
+    # lands on the raw Angular UI. Backend management stays available at
+    # Django /admin/. (Kept before the catch-all "Root of the Frontend".)
+    re_path(
+        r"^(?:dashboard|settings|tags|correspondents|documenttypes|storagepaths|customfields|savedviews|logs|tasks|file-tasks|trash|workflows|mail|notifications|users-groups)(?:/.*)?$",
+        RedirectView.as_view(url="/overview/", permanent=False),
+        name="rentshield-spa-internal-redirect",
+    ),
+    re_path(r"^properties/?$", rs_properties_view, name="rentshield-properties"),
+    re_path(r"^verification/?$", rs_verification_view, name="rentshield-verification"),
+    re_path(r"^compliance/?$", rs_compliance_view, name="rentshield-compliance"),
+    re_path(r"^disputes/?$", rs_disputes_view, name="rentshield-disputes"),
     re_path(r"^login/?$", signup_start_view, name="rentshield-signup-start"),
     re_path(r"^login/email/?$", signup_email_view, name="rentshield-signup-email"),
     re_path(r"^login/verify/?$", signup_verify_view, name="rentshield-signup-verify"),
+    re_path(r"^login/about/?$", signup_about_view, name="rentshield-signup-about"),
+    re_path(r"^login/phone/?$", signup_phone_view, name="rentshield-signup-phone"),
+    re_path(r"^login/phone/verify/?$", signup_phone_verify_view, name="rentshield-signup-phone-verify"),
+    re_path(r"^login/phone/status/?$", signup_phone_status_view, name="rentshield-signup-phone-status"),
+    re_path(r"^api/whatsapp/inbound/?$", whatsapp_inbound_webhook, name="rentshield-whatsapp-inbound"),
     re_path(r"^login/done/?$", signup_done_view, name="rentshield-signup-done"),
     re_path(r"^login/backup-codes/?$", backup_codes_view, name="rentshield-backup-codes"),
     re_path(r"^login/backup-code/?$", backup_code_login_view, name="rentshield-backup-code-login"),
     re_path(r"^login/authenticator/setup/?$", totp_setup_view, name="rentshield-totp-setup"),
     re_path(r"^login/authenticator/?$", totp_challenge_view, name="rentshield-totp-challenge"),
     re_path(r"^account/security/?$", account_security_view, name="rentshield-account-security"),
+    re_path(r"^account/esign/?$", rs_esign_settings_view, name="rentshield-account-esign"),
     # B2B teammate invites (2026-09-22) -- public, no login required,
     # same as the /login/* signup steps above: an invited user has no
     # session yet either. See rentshield_invite_accept_view's own

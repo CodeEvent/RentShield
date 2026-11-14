@@ -1,0 +1,42 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Properties{% endblock %}
+{% block head_extra %}
+  .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  @media(max-width:1100px){.pgrid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:700px){.pgrid{grid-template-columns:1fr;}}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:1.2rem;}
+  .pcard .ic{width:40px;height:40px;border-radius:11px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;margin-bottom:.8rem;}
+  .pcard h3{font-size:1.05rem;}
+  .pcard .meta{color:var(--muted);font-size:.86rem;margin-top:.15rem;}
+  .pcard dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem .8rem;margin:.9rem 0 0;font-size:.86rem;}
+  .pcard dt{color:var(--muted);} .pcard dd{margin:0;color:var(--ink);text-align:right;font-weight:500;}
+  .pcard .foot{margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--line-2);display:flex;gap:.5rem;font-size:.8rem;color:var(--muted);}
+  .pcard .foot b{color:var(--ink);}
+{% endblock %}
+{% block topbar %}
+  <div><h1>Properties</h1><div class="sub">Every property you're serving notices on.</div></div>
+  <div class="rs-spacer"></div>
+  <form class="rs-search" action="/records/" method="get"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input name="q" placeholder="Search…"></form>
+  <a class="rs-btn" href="/records/new/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New notice</a>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  {% if props %}
+  <div class="pgrid">
+    {% for p in props %}
+    <div class="pcard">
+      <div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>
+      <h3>{{ p.building }}</h3>
+      <div class="meta">Unit {{ p.unit }} · {{ p.property_type }}</div>
+      <dl>
+        <dt>Current tenant</dt><dd>{{ p.tenant }}</dd>
+        <dt>Ejari no.</dt><dd>{{ p.ejari }}</dd>
+      </dl>
+      <div class="foot"><span><b>{{ p.notices }}</b> notice{{ p.notices|pluralize }}</span><span>·</span><span><b>{{ p.open }}</b> active</span></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><div class="empty">No properties yet — they'll appear here once you create a notice.</div></div>
+  {% endif %}
+{% endblock %}

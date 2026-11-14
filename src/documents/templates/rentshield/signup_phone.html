@@ -1,0 +1,17 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Verify your phone number{% endblock %}
+{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-email' %}">Back</a>{% endblock %}
+{% block content %}
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label class="rs-label-h1">Verify your phone number</label>
+            <span class="rs-hint">We'll send a 6-digit code by SMS to <strong>{{ phone }}</strong> to confirm it's yours. Standard message rates may apply. Wrong number? <a href="{% url 'rentshield-signup-email' %}">Go back and change it</a>.</span>
+        </div>
+        <button type="submit" class="rs-btn">
+            <span class="rs-btn-label">Send code</span>
+        </button>
+    </form>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

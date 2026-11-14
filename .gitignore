@@ -26,3 +26,8 @@ data/
 *.jks
 *.p12
 *.pfx
+
+# e-signature private keys — never commit
+secrets/
+.sms.env
+.registration.env

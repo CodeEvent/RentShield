@@ -1,0 +1,31 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Enter the SMS code{% endblock %}
+{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-phone' %}">Back</a>{% endblock %}
+{% block content %}
+    {% if dev_code %}
+    <div class="rs-error-summary" role="status" style="border-color:#8a6d00;background:#fffbe6;">
+        <h2 style="color:#8a6d00;">Developer mode</h2>
+        <ul style="color:#8a6d00;"><li>No SMS was sent (console backend). Your code is <strong>{{ dev_code }}</strong>.</li></ul>
+    </div>
+    {% endif %}
+    <form method="post" class="rs-submit-form">
+        {% csrf_token %}
+        <div class="rs-field">
+            <label class="rs-label-h1" for="id_code">Enter the SMS code</label>
+            <span class="rs-hint">We've sent a 6-digit code to <strong>{{ phone }}</strong>. It expires in 15 minutes.</span>
+            <input type="text" name="code" id="id_code" class="rs-input rs-input-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+        </div>
+        <button type="submit" class="rs-btn">
+            <span class="rs-btn-label">Continue</span>
+        </button>
+    </form>
+    <form method="post" class="rs-submit-form" style="margin-top: 1rem;">
+        {% csrf_token %}
+        <input type="hidden" name="resend" value="1">
+        <button type="submit" class="rs-btn rs-btn-link">
+            <span class="rs-btn-label">Not received it? Send a new code</span>
+        </button>
+    </form>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+{% endblock %}

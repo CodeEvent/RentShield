@@ -1,22 +1,27 @@
 {% extends "rentshield/signup_base.html" %}
 {% load static %}
-{% block title %}What is your email address?{% endblock %}
-{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-start' %}">Back</a>{% endblock %}
+{% block title %}Create your account{% endblock %}
+{% block head_extra %}<style>.req{color:var(--error);}</style>{% endblock %}
 {% block content %}
-    <form method="post" class="rs-submit-form">
+    <div class="rs-progress"><div class="rs-progress-bar" style="width:33%"></div></div>
+    <p class="rs-progress-label">Step 1 of 3</p>
+
+    <label class="rs-label-h1" for="id_email">What's your work email?</label>
+    <span class="rs-hint">For verified owners and agencies generating lawful Dubai tenancy notices. We'll send a 6-digit code to confirm it &mdash; next we'll grab a few details.</span>
+
+    <form method="post" class="rs-submit-form" id="rs-email-form" novalidate>
         {% csrf_token %}
         <div class="rs-field">
-            <label class="rs-label-h1" for="id_email">What is your email address?</label>
-            <span class="rs-hint">We'll send a 6-digit code to confirm it, and use it to tell you when your verification is approved.</span>
-            <input type="email" name="email" id="id_email" class="rs-input" autocomplete="email" spellcheck="false" inputmode="email" required autofocus>
+            <label for="id_email">Business Email Address <span class="req">*</span></label>
+            <input type="email" name="email" id="id_email" class="rs-input" autocomplete="email" spellcheck="false" inputmode="email" value="{{ form.email }}" required autofocus>
         </div>
-        <div class="rs-check">
-            <input type="checkbox" name="agree" id="id_agree" required>
-            <label for="id_agree">I agree to RentShield's terms and conditions and privacy notice</label>
-        </div>
+
         <button type="submit" class="rs-btn">
             <span class="rs-btn-label">Continue</span>
+            <span class="arr" aria-hidden="true">&rarr;</span>
         </button>
     </form>
+
+    <p class="rs-signin-note">Already have an account? <a href="{% url 'rentshield-signup-email' %}">Log in</a></p>
     <script src="{% static 'rentshield/signup-submit.js' %}"></script>
 {% endblock %}

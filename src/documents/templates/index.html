@@ -15,6 +15,105 @@
 	<link rel="manifest" href="{% static webmanifest %}">
 	<link rel="stylesheet" href="{% static styles_css %}">
 	<link rel="apple-touch-icon" href="{% static apple_touch_icon %}">
+	<style type="text/css">
+		/* RentShield brand: blue (#1657b0, the login/website blue) instead of
+		   Paperless green. Everything in the app derives from --pngx-primary
+		   (hue, saturation) + --pngx-primary-lightness, so overriding those two
+		   re-themes buttons, links, highlights, badges and charts in one place.
+		   !important beats the app's own runtime theme-color injection. */
+		:root,
+		[data-bs-theme],
+		[data-bs-theme="light"],
+		[data-bs-theme="dark"],
+		[data-bs-theme="auto"] {
+			--pngx-primary: 215, 78% !important;
+			--pngx-primary-lightness: 39% !important;
+		}
+	</style>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<style type="text/css">
+		/* ============================================================
+		   RentShield — modern SaaS reskin over Paperless-ngx (Bootstrap 5).
+		   Injected override only (no app rebuild): brand blue #1657b0 / navy
+		   #0a1f3c ink / Inter, clean white cards, 1px hairlines, soft depth,
+		   generous radius. Calm + professional for legal-document custody.
+		   ============================================================ */
+		:root, [data-bs-theme], [data-bs-theme="light"], [data-bs-theme="dark"], [data-bs-theme="auto"] {
+			--bs-body-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+			--bs-font-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+			--bs-body-color: #45546e !important;
+			--bs-body-bg: #f6f9fd !important;
+			--bs-emphasis-color: #0d2140 !important;
+			--bs-emphasis-color-rgb: 13,33,64 !important;
+			--bs-secondary-color: #6a788f !important;
+			--bs-tertiary-bg: #f6f9fd !important;
+			--bs-border-color: #e4eaf2 !important;
+			--bs-border-color-translucent: #e4eaf2 !important;
+			--bs-border-radius: 10px !important;
+			--bs-border-radius-sm: 8px !important;
+			--bs-border-radius-lg: 14px !important;
+			--bs-link-color: #1657b0 !important;
+			--bs-link-color-rgb: 22,87,176 !important;
+			--bs-link-hover-color: #104591 !important;
+			--bs-focus-ring-color: rgba(22,87,176,.2) !important;
+			/* THE platform accent: RentShield custom views read var(--rs-light-primary).
+			   This (not --pngx-primary) is what colours the buttons, active tabs and
+			   sidebar. Green #17541f -> RentShield blue. */
+			--rs-light-primary: #1657b0 !important;
+			--rs-light-primary-strong: #104591 !important;
+			--rs-light-primary-tint: #e9f1fc !important;
+			--rs-light-primary-deep: #0a2f66 !important;
+		}
+		body { font-family: var(--bs-body-font-family); color: #45546e; background: #f6f9fd; -webkit-font-smoothing: antialiased; }
+		h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 { color:#0d2140; letter-spacing:-.012em; font-weight:700; }
+		a { color:#1657b0; text-underline-offset:2px; } a:hover { color:#104591; }
+
+		/* Buttons */
+		.btn { border-radius:9px !important; font-weight:600 !important; transition:background-color .14s cubic-bezier(.2,.7,.2,1),border-color .14s,box-shadow .14s,transform .1s; }
+		.btn:active { transform:translateY(.5px); }
+		.btn-primary { --bs-btn-bg:#1657b0; --bs-btn-border-color:#1657b0; --bs-btn-hover-bg:#104591; --bs-btn-hover-border-color:#104591; --bs-btn-active-bg:#0e3c7f; --bs-btn-active-border-color:#0e3c7f; box-shadow:0 1px 2px rgba(10,31,60,.18),0 8px 16px -10px rgba(22,87,176,.5); }
+		.btn-outline-primary { --bs-btn-color:#1657b0; --bs-btn-border-color:#cddcf1; --bs-btn-hover-bg:#1657b0; --bs-btn-hover-border-color:#1657b0; --bs-btn-hover-color:#fff; }
+		.btn-secondary { --bs-btn-bg:#eef3f9; --bs-btn-border-color:#e4eaf2; --bs-btn-color:#0d2140; --bs-btn-hover-bg:#e4eaf2; --bs-btn-hover-color:#0d2140; }
+
+		/* Cards / panels */
+		.card { border:1px solid #e4eaf2 !important; border-radius:14px !important; box-shadow:0 1px 2px rgba(10,31,60,.04),0 6px 20px -12px rgba(10,31,60,.18) !important; }
+		.card-header { background:transparent !important; border-bottom:1px solid #eef3f9 !important; font-weight:600; color:#0d2140; padding:1rem 1.15rem; }
+		.card-body { padding:1.15rem; }
+
+		/* Inputs / selects / checks */
+		.form-control, .form-select { border:1.5px solid #e4eaf2 !important; border-radius:9px !important; color:#0d2140; }
+		.form-control:focus, .form-select:focus { border-color:#1657b0 !important; box-shadow:0 0 0 3px rgba(22,87,176,.15) !important; }
+		.form-check-input:checked { background-color:#1657b0 !important; border-color:#1657b0 !important; }
+		.input-group-text { border:1.5px solid #e4eaf2; border-radius:9px; background:#f6f9fd; color:#6a788f; }
+
+		/* Sidebar */
+		.sidebar { background:#ffffff !important; border-right:1px solid #e4eaf2 !important; }
+		.sidebar .nav-link { color:#45546e !important; border-radius:8px; margin:2px .5rem; padding:.5rem .7rem; font-weight:500; }
+		.sidebar .nav-link:hover { background:#f0f5fc !important; color:#0d2140 !important; }
+		.sidebar .nav-link.active { background:#e9f1fc !important; color:#104591 !important; font-weight:600; }
+
+		/* Top navbar */
+		.navbar { background:#ffffff !important; border-bottom:1px solid #e4eaf2 !important; box-shadow:0 1px 2px rgba(10,31,60,.04); }
+		.navbar .navbar-brand, .navbar-brand-container { color:#0d2140 !important; font-weight:800; }
+
+		/* Tables */
+		.table { --bs-table-border-color:#eef3f9; color:#45546e; }
+		.table > :not(caption) > * > * { padding:.72rem .8rem; }
+		.table > thead th, .table thead th { color:#6a788f !important; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid #e4eaf2 !important; }
+		.table-hover > tbody > tr:hover > * { background:#f6f9fd !important; }
+
+		/* Badges / dropdowns / lists / misc */
+		.badge { border-radius:999px; font-weight:600; letter-spacing:.01em; }
+		.dropdown-menu, .popover, .toast { border:1px solid #e4eaf2 !important; border-radius:12px !important; box-shadow:0 12px 34px -14px rgba(10,31,60,.28) !important; }
+		.dropdown-item.active, .dropdown-item:active { background:#1657b0 !important; }
+		.list-group-item { border-color:#eef3f9 !important; }
+		.page-item.active .page-link { background:#1657b0; border-color:#1657b0; }
+		.page-link { color:#1657b0; }
+		.bg-light { background:#ffffff !important; }
+		::selection { background:rgba(22,87,176,.16); }
+	</style>
 </head>
 <body>
 	<pngx-root>

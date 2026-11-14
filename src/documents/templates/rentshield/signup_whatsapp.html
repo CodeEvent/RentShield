@@ -1,0 +1,127 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Verify your phone on WhatsApp{% endblock %}
+{% block back_link %}<a class="rs-wizard-back" href="{% url 'rentshield-signup-email' %}">Back</a>{% endblock %}
+{% block head_extra %}
+<style>
+  .wa-lead{display:flex;align-items:center;gap:.6rem;margin:-.2rem 0 1.2rem;color:var(--green);font-weight:700;font-size:.95rem;}
+  .wa-lead svg{width:20px;height:20px;flex:none;}
+  .wa-free{display:inline-block;background:var(--green-tint);color:var(--green);font-weight:700;font-size:.8rem;letter-spacing:.02em;padding:.15rem .55rem;border-radius:var(--radius-pill);}
+
+  /* QR card */
+  .wa-qr-card{display:flex;flex-direction:column;align-items:center;gap:1rem;border:1.5px solid var(--line);background:var(--bg-soft);border-radius:var(--radius);padding:1.6rem 1.4rem;margin:1.4rem 0;}
+  #rs-qr{width:208px;height:208px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);display:grid;place-items:center;}
+  #rs-qr img,#rs-qr canvas{display:block;width:100%;height:100%;}
+  .wa-msg{font-size:.9rem;color:var(--muted);text-align:center;}
+  .wa-chip{display:inline-block;font-family:var(--mono);font-size:.86rem;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:6px;padding:.12rem .5rem;}
+
+  /* WhatsApp action button — same shape as .rs-btn, brand green */
+  .rs-btn-wa{background:#1fab54;box-shadow:0 1px 2px rgba(10,31,60,.2),0 8px 18px -8px rgba(31,171,84,.5);width:100%;max-width:26rem;}
+  .rs-btn-wa:hover:not(:disabled){background:#178f45;color:#fff;}
+  .rs-btn-wa svg{width:20px;height:20px;}
+
+  /* 3-step guide */
+  .wa-steps{list-style:none;counter-reset:w;padding:0;margin:1.5rem 0 0;}
+  .wa-steps li{position:relative;padding:0 0 .9rem 2.4rem;color:var(--body);font-size:1rem;}
+  .wa-steps li:last-child{padding-bottom:0;}
+  .wa-steps li::before{counter-increment:w;content:counter(w);position:absolute;left:0;top:-1px;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--blue-tint);color:var(--blue-strong);font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+  .wa-steps b{color:var(--ink);font-weight:700;}
+
+  /* waiting / verified status strip */
+  .wa-status{display:flex;align-items:center;gap:.7rem;margin-top:1.5rem;padding:.85rem 1.1rem;border:1px solid var(--line);background:#fff;border-radius:var(--radius-sm);font-size:.98rem;color:var(--body);}
+  .wa-status.ok{border-color:var(--green);background:var(--green-tint);color:var(--green);font-weight:700;}
+  .wa-status .rs-spinner{color:var(--blue);}
+  .wa-check{width:1.2rem;height:1.2rem;flex:none;}
+  .wa-help{margin-top:1.4rem;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--bg-soft);}
+  .wa-help>summary{cursor:pointer;list-style:none;padding:.85rem 1.1rem;font-weight:700;color:var(--ink);font-size:.98rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+  .wa-help>summary::-webkit-details-marker{display:none;}
+  .wa-help>summary::after{content:"\203A";transform:rotate(90deg);color:var(--muted);transition:transform .2s var(--ease);}
+  .wa-help[open]>summary::after{transform:rotate(-90deg);}
+  .wa-help-body{padding:0 1.1rem 1.1rem;font-size:.95rem;color:var(--body);}
+  .wa-help-body p{margin:.1rem 0 .7rem;}
+  .wa-help-body ol{margin:.5rem 0;padding-left:1.3rem;}
+  .wa-help-body li{margin-bottom:.5rem;}
+  .wa-help-body b{color:var(--ink);}
+  .wa-kbd{display:inline-grid;place-items:center;min-width:1.25rem;height:1.25rem;padding:0 .25rem;border:1px solid var(--line);border-radius:5px;background:#fff;font-weight:700;vertical-align:middle;line-height:1;}
+</style>
+{% endblock %}
+{% block content %}
+    <label class="rs-label-h1">Verify your phone on WhatsApp</label>
+    <div class="wa-lead">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm5.5 14.2c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2.1.2-.2.5-.3.6-.3h.5c.2 0 .4 0 .5.4l.7 1.7c.1.2.1.3 0 .5l-.3.4-.3.3c-.1.1-.2.3-.1.5.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.3.1.5-.1l.6-.7c.2-.2.3-.2.5-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6-.1 1.2Z"/></svg>
+      It's free &mdash; no SMS, no cost <span class="wa-free">free</span>
+    </div>
+    <span class="rs-hint">Send a pre-filled WhatsApp message from <strong>{{ phone }}</strong> and this page continues on its own. Nothing to type.</span>
+
+    {% if misconfigured %}
+      <div class="rs-error-summary" role="alert">
+        <h2>WhatsApp verification isn't set up</h2>
+        <ul><li>No destination number is configured. An admin needs to set <code>PAPERLESS_WHATSAPP_NUMBER</code>.</li></ul>
+      </div>
+    {% else %}
+      <div class="wa-qr-card">
+        <div id="rs-qr" data-link="{{ wa_link }}" role="img" aria-label="WhatsApp verification QR code"></div>
+        <p class="wa-msg">The message will already read<br><span class="wa-chip">{{ wa_text }}</span></p>
+      </div>
+
+      <a class="rs-btn rs-btn-wa" href="{{ wa_link }}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm5.5 14.2c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2.1.2-.2.5-.3.6-.3h.5c.2 0 .4 0 .5.4l.7 1.7c.1.2.1.3 0 .5l-.3.4-.3.3c-.1.1-.2.3-.1.5.1.2.6 1 1.3 1.6.9.8 1.6 1 1.8 1.1.2.1.3.1.5-.1l.6-.7c.2-.2.3-.2.5-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6-.1 1.2Z"/></svg>
+        <span class="rs-btn-label">Open WhatsApp &amp; send</span>
+      </a>
+
+      <ol class="wa-steps">
+        <li>On a computer? <b>Scan the code</b> with your phone's camera. On a phone, tap the green button above.</li>
+        <li>WhatsApp opens with the message ready &mdash; just press <b>send</b>.</li>
+        <li>This page <b>confirms automatically</b> and moves you to the next step.</li>
+      </ol>
+
+      <details class="wa-help">
+        <summary>How do I scan the code?</summary>
+        <div class="wa-help-body">
+          <p><b>On this phone</b> you don't need to scan &mdash; just tap <b>Open WhatsApp &amp; send</b> above.</p>
+          <p><b>Scanning from a computer with your phone &mdash; two ways:</b></p>
+          <ol>
+            <li><b>Camera (easiest):</b> open your phone's <b>Camera</b> app, point it at the code above, then tap the WhatsApp link that pops up.</li>
+            <li><b>Inside WhatsApp:</b> open WhatsApp, tap <b>New chat</b>, tap the <b><span class="wa-kbd">+</span> New contact</b> at the top-right, scroll to the bottom and choose <b>Add via QR code</b>, then point it at the code above.</li>
+          </ol>
+          <p>WhatsApp opens with the message <b>already written</b> &mdash; just press <b>send</b>. If it ever opens with an empty chat, type <span class="wa-chip">{{ wa_text }}</span> and send.</p>
+          <p>More help: <a href="https://faq.whatsapp.com/" target="_blank" rel="noopener">WhatsApp Help Centre</a>.</p>
+        </div>
+      </details>
+
+      <div class="wa-status" id="rs-wait" role="status" aria-live="polite">
+        <span class="rs-spinner" aria-hidden="true"></span>
+        <span id="rs-wait-text">Waiting for your WhatsApp message&hellip;</span>
+      </div>
+
+      <form method="post" action="{% url 'rentshield-signup-phone-verify' %}" id="rs-wa-complete" hidden>{% csrf_token %}</form>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+      <script>
+        (function(){
+          var el = document.getElementById("rs-qr");
+          var link = el ? el.getAttribute("data-link") : "";
+          if (el && link && window.QRCode) {
+            try { new QRCode(el, { text: link, width: 208, height: 208, colorDark: "#0a1f3c", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M }); } catch (e) {}
+          }
+          var done = false;
+          var statusUrl = "{% url 'rentshield-signup-phone-status' %}";
+          function poll(){
+            if (done) return;
+            fetch(statusUrl, { headers: { "X-Requested-With": "fetch" }, credentials: "same-origin" })
+              .then(function(r){ return r.json(); })
+              .then(function(d){
+                if (d && d.verified){
+                  done = true;
+                  var box = document.getElementById("rs-wait");
+                  if (box) { box.classList.add("ok"); box.innerHTML = '<svg class="wa-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Verified &mdash; continuing&hellip;'; }
+                  document.getElementById("rs-wa-complete").submit();
+                } else { setTimeout(poll, 3000); }
+              })
+              .catch(function(){ setTimeout(poll, 4000); });
+          }
+          setTimeout(poll, 2500);
+        })();
+      </script>
+    {% endif %}
+{% endblock %}

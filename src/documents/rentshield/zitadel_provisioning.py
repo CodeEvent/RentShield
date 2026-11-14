@@ -184,6 +184,9 @@ def provision_zitadel_user(
     groups: list[str],
     displayname: str = "",
     organization=None,
+    given_name: str = "",
+    family_name: str = "",
+    phone: str = "",
 ) -> str:
     """Creates a passwordless ZITADEL human user (email pre-verified --
     RentShield's own OTP step already proved it, so ZITADEL is never
@@ -208,19 +211,24 @@ def provision_zitadel_user(
     that membership survives PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS's
     clear-and-resync on every future login, not just this one."""
     org_id = organization.zitadel_org_id if organization else ZITADEL_ORG_ID
+    human = {
+        "profile": {
+            "givenName": given_name or displayname or username,
+            "familyName": family_name or "RentShield User",
+        },
+        "email": {"email": email, "isVerified": True},
+    }
+    if phone:
+        # RentShield's own SMS-OTP step already proved this number, so it's
+        # handed to ZITADEL pre-verified and ZITADEL never sends its own SMS.
+        human["phone"] = {"phone": phone, "isVerified": True}
     response = requests.post(
         f"{ZITADEL_BASE_URL}/v2/users/new",
         headers=_headers(org_id),
         json={
             "organizationId": org_id,
             "username": username,
-            "human": {
-                "profile": {
-                    "givenName": displayname or username,
-                    "familyName": "RentShield User",
-                },
-                "email": {"email": email, "isVerified": True},
-            },
+            "human": human,
         },
         timeout=10,
     )

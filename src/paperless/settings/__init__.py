@@ -332,7 +332,11 @@ EMAIL_USE_SSL: Final[bool] = get_bool_from_env("PAPERLESS_EMAIL_USE_SSL")
 EMAIL_SUBJECT_PREFIX: Final[str] = "[Paperless-ngx] "
 EMAIL_TIMEOUT = 30.0
 EMAIL_ENABLED = EMAIL_HOST != "localhost" or EMAIL_HOST_USER != ""
-if DEBUG:  # pragma: no cover
+if DEBUG and not EMAIL_ENABLED:  # pragma: no cover
+    # In DEBUG, write emails to files by default so none go out by accident --
+    # UNLESS email is explicitly configured (PAPERLESS_EMAIL_HOST set to
+    # something other than "localhost", e.g. Mailpit on 127.0.0.1, or a real
+    # relay), in which case send for real so SMTP can be exercised in dev too.
     EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
     EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
@@ -1578,3 +1582,36 @@ LLM_ALLOW_INTERNAL_ENDPOINTS = get_bool_from_env(
     "PAPERLESS_AI_LLM_ALLOW_INTERNAL_ENDPOINTS",
     "true",
 )
+
+
+###############################################################################
+# RentShield phone-OTP SMS sender (documents/rentshield/otp_sms.py)
+###############################################################################
+# "console" (default) is offline dev delivery: the 6-digit code is shown on
+# the verify page in DEBUG and nothing is sent off the machine. Set
+# PAPERLESS_SMS_BACKEND=smsgate together with the gateway credentials below to
+# send real SMS via sms-gate.app (github.com/capcom6/android-sms-gateway) --
+# an Android phone + SIM you control acting as a REST SMS gateway. Every
+# outbound stays opt-in and off until these env vars are set, matching the
+# rest of this deployment's posture.
+RENTSHIELD_SMS_BACKEND = os.getenv("PAPERLESS_SMS_BACKEND", "console")
+RENTSHIELD_SMS_GATE_URL = os.getenv("PAPERLESS_SMS_GATE_URL", "")
+RENTSHIELD_SMS_GATE_USER = os.getenv("PAPERLESS_SMS_GATE_USER", "")
+RENTSHIELD_SMS_GATE_PASS = os.getenv("PAPERLESS_SMS_GATE_PASS", "")
+
+
+###############################################################################
+# RentShield phone verification method (documents/rentshield_views.py)
+###############################################################################
+# "whatsapp_qr" (default): the user scans a QR that opens WhatsApp with a
+# pre-filled code and sends it TO us -- we confirm by receiving it (free, no
+# outbound cost, works where WhatsApp messaging is allowed, e.g. the UAE).
+# "sms": the SMS-OTP path via otp_sms.py instead. RENTSHIELD_WHATSAPP_NUMBER
+# is the destination (our WhatsApp, linked in WAHA); the webhook secret
+# authenticates WAHA's inbound callback.
+RENTSHIELD_PHONE_VERIFY = os.getenv("PAPERLESS_PHONE_VERIFY", "whatsapp_qr")
+RENTSHIELD_WHATSAPP_NUMBER = os.getenv("PAPERLESS_WHATSAPP_NUMBER", "")
+RENTSHIELD_WA_WEBHOOK_SECRET = os.getenv("PAPERLESS_WA_WEBHOOK_SECRET", "")
+
+# Land on the RentShield dashboard after login, not the raw Paperless app.
+LOGIN_REDIRECT_URL = "/overview/"

@@ -1,0 +1,113 @@
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}RentShield{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0a1f3c; --ink:#0d2140; --body:#45546e; --muted:#6a788f;
+    --line:#e4eaf2; --line-2:#eef3f9; --bg:#f6f9fd; --card:#fff;
+    --blue:#1657b0; --blue-strong:#104591; --blue-tint:#e9f1fc; --blue-ring:#b9d2f0;
+    --green:#157347; --green-tint:#e4f2ea; --amber:#b45309; --amber-tint:#fef3c7; --amber-bd:#fde68a;
+    --red:#b4231c; --red-tint:#fdecea;
+    --radius:14px; --radius-sm:10px; --pill:999px;
+    --shadow-sm:0 1px 2px rgba(10,31,60,.05),0 1px 3px rgba(10,31,60,.06);
+    --shadow:0 1px 2px rgba(10,31,60,.04),0 10px 26px -14px rgba(10,31,60,.22);
+    --ease:cubic-bezier(.2,.7,.2,1);
+    --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{font-family:var(--font);color:var(--body);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5;}
+  a{color:inherit;text-decoration:none;}
+  h1,h2,h3{color:var(--ink);letter-spacing:-.015em;margin:0;}
+  .rs-app{display:grid;grid-template-columns:248px 1fr;min-height:100%;}
+
+  .rs-side{background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:1.1rem .85rem;position:sticky;top:0;height:100vh;}
+  .rs-brand{display:flex;align-items:center;gap:.6rem;padding:.3rem .5rem 1.1rem;font-weight:800;font-size:1.2rem;color:var(--ink);letter-spacing:-.02em;}
+  .rs-brand svg{width:26px;height:30px;flex:none;}
+  .rs-nav{display:flex;flex-direction:column;gap:2px;}
+  .rs-navlabel{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:.9rem .7rem .35rem;}
+  .rs-navitem{display:flex;align-items:center;gap:.65rem;padding:.55rem .7rem;border-radius:10px;color:var(--body);font-weight:500;}
+  .rs-navitem svg{width:18px;height:18px;opacity:.8;flex:none;}
+  .rs-navitem:hover{background:#f2f6fc;color:var(--ink);}
+  .rs-navitem.active{background:var(--blue-tint);color:var(--blue-strong);font-weight:600;}
+  .rs-navitem.active svg{opacity:1;}
+  .rs-side-foot{margin-top:auto;display:flex;align-items:center;gap:.5rem;padding:.7rem;color:var(--blue-strong);font-size:.82rem;font-weight:600;border-top:1px solid var(--line-2);}
+
+  .rs-main{min-width:0;display:flex;flex-direction:column;}
+  .rs-top{display:flex;align-items:center;gap:1rem;padding:1.2rem 1.6rem;border-bottom:1px solid var(--line);background:rgba(255,255,255,.75);backdrop-filter:saturate(1.4) blur(8px);position:sticky;top:0;z-index:5;}
+  .rs-top h1{font-size:1.4rem;font-weight:800;}
+  .rs-top .sub{color:var(--muted);font-size:.9rem;margin-top:.1rem;}
+  .rs-spacer{flex:1;}
+  .rs-search{display:flex;align-items:center;gap:.5rem;background:var(--bg);border:1px solid var(--line);border-radius:var(--pill);padding:.45rem .9rem;color:var(--muted);min-width:200px;}
+  .rs-search svg{width:16px;height:16px;flex:none;}
+  .rs-search input{border:none;background:transparent;outline:none;color:var(--ink);width:100%;font:inherit;}
+  .rs-search input::placeholder{color:var(--muted);}
+  .rs-btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue);color:#fff;font-weight:600;font-size:.92rem;border:none;border-radius:10px;padding:.6rem 1.05rem;cursor:pointer;box-shadow:0 1px 2px rgba(10,31,60,.2),0 8px 18px -8px rgba(22,87,176,.5);transition:background-color .15s var(--ease),transform .1s;}
+  .rs-btn:hover{background:var(--blue-strong);} .rs-btn:active{transform:translateY(1px);}
+  .rs-btn svg{width:16px;height:16px;}
+  .rs-btn-ghost{background:#fff;color:var(--blue);border:1px solid var(--line);box-shadow:none;}
+  .rs-btn-ghost:hover{background:var(--blue-tint);}
+  .rs-user{display:flex;align-items:center;gap:.55rem;}
+  .rs-avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85rem;}
+  .rs-content{padding:1.5rem 1.6rem 2.5rem;display:flex;flex-direction:column;gap:1.3rem;}
+
+  /* cards + tables (shared) */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .card-h{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line-2);}
+  .card-h h2{font-size:1.02rem;font-weight:700;}
+  .card-h a{color:var(--blue);font-weight:600;font-size:.85rem;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:.7rem 1.2rem;border-bottom:1px solid var(--line);}
+  td{padding:.8rem 1.2rem;border-bottom:1px solid var(--line-2);font-size:.9rem;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr.clickable{cursor:pointer;}
+  tbody tr:hover{background:#f8fbff;}
+  .t-main{color:var(--ink);font-weight:600;} .t-sub{color:var(--muted);font-size:.82rem;margin-top:.1rem;}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.76rem;font-weight:600;padding:.2rem .6rem;border-radius:var(--pill);}
+  .pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .pill.served{background:var(--blue-tint);color:var(--blue-strong);}
+  .pill.matured{background:var(--amber-tint);color:var(--amber);}
+  .pill.draft{background:#eef1f6;color:var(--muted);}
+  .empty{padding:3rem 1.2rem;text-align:center;color:var(--muted);}
+  @media(max-width:1000px){.rs-app{grid-template-columns:1fr;} .rs-side{display:none;}}
+  {% block head_extra %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="rs-app">
+  <aside class="rs-side">
+    <div class="rs-brand">
+      <svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#1657b0"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      RentShield
+    </div>
+    <div class="rs-navlabel">Workspace</div>
+    <nav class="rs-nav">
+      <a class="rs-navitem {% if active == 'dashboard' %}active{% endif %}" href="/overview/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+      <a class="rs-navitem {% if active == 'properties' %}active{% endif %}" href="/properties/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>Properties</a>
+      <a class="rs-navitem {% if active == 'notices' %}active{% endif %}" href="/records/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>Notices</a>
+      <a class="rs-navitem {% if active == 'verification' %}active{% endif %}" href="/verification/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3a9 9 0 1 0 9 9"/></svg>Verification</a>
+      <a class="rs-navitem {% if active == 'disputes' %}active{% endif %}" href="/disputes/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7l7-4 7 4"/><path d="M5 7v6a7 7 0 0 0 14 0V7"/></svg>Disputes</a>
+      <a class="rs-navitem {% if active == 'compliance' %}active{% endif %}" href="/compliance/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Compliance</a>
+    </nav>
+    <div class="rs-navlabel">Account</div>
+    <nav class="rs-nav">
+      <a class="rs-navitem {% if active == 'settings' %}active{% endif %}" href="/account/security/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
+    </nav>
+    <div class="rs-side-foot">&#128737; Secured by passkey</div>
+  </aside>
+  <main class="rs-main">
+    <header class="rs-top">{% block topbar %}{% endblock %}</header>
+    <div class="rs-content">{% block content %}{% endblock %}</div>
+  </main>
+</div>
+</body>
+</html>

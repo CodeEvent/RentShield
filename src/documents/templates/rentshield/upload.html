@@ -1,0 +1,203 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Upload a document{% endblock %}
+{% block head_extra %}
+  .up-wrap{max-width:720px;display:flex;flex-direction:column;gap:1.1rem;}
+  .up-body{padding:1.4rem;display:flex;flex-direction:column;gap:1.2rem;}
+  .drop{border:2px dashed var(--line);border-radius:var(--radius);background:var(--bg);padding:2.6rem 1.5rem;text-align:center;cursor:pointer;transition:border-color .15s var(--ease),background .15s var(--ease);}
+  .drop:hover{border-color:var(--blue-ring);background:var(--blue-tint);}
+  .drop.drag{border-color:var(--blue);background:var(--blue-tint);}
+  .drop .ic{width:54px;height:54px;border-radius:14px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;margin:0 auto .9rem;}
+  .drop h3{font-size:1.02rem;margin:0 0 .3rem;}
+  .drop p{margin:0;color:var(--muted);font-size:.88rem;}
+  .drop .browse{color:var(--blue);font-weight:600;}
+  .picked{display:none;align-items:center;gap:.8rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;}
+  .picked.show{display:flex;}
+  .picked .fic{width:38px;height:38px;border-radius:9px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;flex:none;}
+  .picked .fmeta{min-width:0;flex:1;}
+  .picked .fname{color:var(--ink);font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .picked .fsize{color:var(--muted);font-size:.8rem;margin-top:.1rem;}
+  .picked .frm{color:var(--muted);cursor:pointer;background:none;border:none;padding:.3rem;border-radius:7px;display:grid;place-items:center;}
+  .picked .frm:hover{color:var(--red);background:var(--red-tint);}
+  .field label{display:block;font-weight:600;color:var(--ink);margin-bottom:.35rem;font-size:.9rem;}
+  .field input[type=text]{width:100%;font:inherit;font-size:.95rem;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);}
+  .field input[type=text]:focus{outline:3px solid var(--blue-ring);outline-offset:1px;border-color:var(--blue);}
+  .field .hint{color:var(--muted);font-size:.8rem;margin-top:.3rem;}
+  .factions{display:flex;gap:.7rem;align-items:center;}
+  .rs-btn[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none;}
+  .note{display:flex;gap:.6rem;align-items:flex-start;color:var(--muted);font-size:.84rem;background:var(--blue-tint);border-radius:var(--radius-sm);padding:.8rem 1rem;}
+  .note svg{flex:none;color:var(--blue);margin-top:1px;}
+  .status{display:none;align-items:center;gap:.7rem;font-weight:600;font-size:.92rem;}
+  .status.show{display:flex;}
+  .status.err{color:var(--red);}
+  .status.ok{color:var(--green);}
+  .spin{width:18px;height:18px;border:2.5px solid var(--blue-ring);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;flex:none;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .ferr{display:none;border:1.5px solid var(--red);background:var(--red-tint);color:var(--red);border-radius:9px;padding:.7rem 1rem;font-weight:600;font-size:.88rem;}
+  .ferr.show{display:block;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <a class="back" href="/records/" style="display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:600;font-size:.85rem;margin-bottom:.3rem;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Notices</a>
+    <h1>Upload a document</h1>
+    <div class="sub">Add an existing notice or supporting document.</div>
+  </div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <div class="up-wrap">
+    <div class="card">
+      <div class="card-h"><h2>Upload</h2></div>
+      <div class="up-body">
+        <div class="ferr" id="ferr"></div>
+
+        <div class="drop" id="drop" role="button" tabindex="0" aria-label="Choose a file to upload">
+          <div class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
+          <h3>Drop a file here</h3>
+          <p>or <span class="browse">browse your device</span> · PDF, PNG, JPG, TIFF (max 50&nbsp;MB)</p>
+        </div>
+        <input type="file" id="file" accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,application/pdf,image/*" hidden>
+
+        <div class="picked" id="picked">
+          <div class="fic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div class="fmeta">
+            <div class="fname" id="fname">—</div>
+            <div class="fsize" id="fsize"></div>
+          </div>
+          <button class="frm" id="frm" type="button" aria-label="Remove file"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+
+        <div class="field">
+          <label for="title">Title <span style="color:var(--muted);font-weight:500;">(optional)</span></label>
+          <input type="text" id="title" placeholder="e.g. Notice of Sale — Marina Heights 1203">
+          <div class="hint">Leave blank to use the file name.</div>
+        </div>
+
+        <div class="note">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          <span>The document is processed and added to your <strong>Notices</strong>. Text is extracted automatically — this takes a few seconds.</span>
+        </div>
+
+        <div class="factions">
+          <button class="rs-btn" id="submit" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Upload document</button>
+          <a href="/records/" style="color:var(--muted);font-weight:600;">Cancel</a>
+          <div class="status" id="status"><span class="spin"></span><span id="statustext">Uploading…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var TAG_ID = {{ notice_tag_id }};
+    var CSRF = "{{ csrf_token }}";
+    var MAX = 50 * 1024 * 1024;
+    var drop = document.getElementById('drop');
+    var input = document.getElementById('file');
+    var picked = document.getElementById('picked');
+    var fname = document.getElementById('fname');
+    var fsize = document.getElementById('fsize');
+    var frm = document.getElementById('frm');
+    var submit = document.getElementById('submit');
+    var statusEl = document.getElementById('status');
+    var statustext = document.getElementById('statustext');
+    var ferr = document.getElementById('ferr');
+    var current = null;
+
+    function human(n){
+      if(n < 1024) return n + ' B';
+      if(n < 1048576) return (n/1024).toFixed(0) + ' KB';
+      return (n/1048576).toFixed(1) + ' MB';
+    }
+    function showErr(m){ ferr.textContent = m; ferr.classList.add('show'); }
+    function clearErr(){ ferr.classList.remove('show'); }
+
+    function setFile(f){
+      clearErr();
+      if(!f) return;
+      if(f.size > MAX){ showErr('That file is larger than 50 MB.'); return; }
+      current = f;
+      fname.textContent = f.name;
+      fsize.textContent = human(f.size);
+      picked.classList.add('show');
+      submit.disabled = false;
+    }
+    function clearFile(){
+      current = null; input.value = '';
+      picked.classList.remove('show');
+      submit.disabled = true;
+    }
+
+    drop.addEventListener('click', function(){ input.click(); });
+    drop.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); input.click(); } });
+    input.addEventListener('change', function(){ setFile(input.files[0]); });
+    frm.addEventListener('click', clearFile);
+    ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('drag'); }); });
+    ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('drag'); }); });
+    drop.addEventListener('drop', function(e){ if(e.dataTransfer.files && e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+    function working(on, text){
+      submit.disabled = on || !current;
+      if(on){ statusEl.className = 'status show'; statustext.textContent = text || 'Uploading…'; }
+      else { statusEl.className = 'status'; }
+    }
+
+    function pollTask(taskId, tries){
+      tries = tries || 0;
+      if(tries > 40){ // ~60s fallback
+        window.location.href = '/records/';
+        return;
+      }
+      fetch('/api/tasks/?ordering=-date_created', {headers:{'Accept':'application/json'}})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var list = Array.isArray(data) ? data : (data.results || data);
+          var t = (list || []).find(function(x){ return x.task_id === taskId; });
+          if(t){
+            var st = (t.status || '').toUpperCase();
+            if(st === 'SUCCESS'){
+              var docId = (t.related_document_ids && t.related_document_ids[0]) || t.related_document;
+              window.location.href = docId ? ('/records/' + docId + '/') : '/records/';
+              return;
+            }
+            if(st === 'FAILURE'){
+              working(false);
+              showErr('The document could not be processed: ' + (t.result || 'unknown error') + '. It may be an unsupported or corrupted file.');
+              return;
+            }
+          }
+          setTimeout(function(){ pollTask(taskId, tries+1); }, 1500);
+        })
+        .catch(function(){ setTimeout(function(){ pollTask(taskId, tries+1); }, 1500); });
+    }
+
+    submit.addEventListener('click', function(){
+      if(!current) return;
+      clearErr();
+      working(true, 'Uploading…');
+      var fd = new FormData();
+      fd.append('document', current);
+      var title = document.getElementById('title').value.trim();
+      if(title) fd.append('title', title);
+      fd.append('tags', TAG_ID);
+      fd.append('from_webui', 'true');
+      fetch('/api/documents/post_document/', {
+        method:'POST',
+        headers:{'X-CSRFToken': CSRF},
+        body: fd,
+        credentials:'same-origin'
+      }).then(function(r){
+        if(!r.ok){ return r.text().then(function(t){ throw new Error(t || ('HTTP ' + r.status)); }); }
+        return r.json();
+      }).then(function(taskId){
+        taskId = (typeof taskId === 'string') ? taskId.replace(/^"|"$/g,'') : taskId;
+        working(true, 'Processing document…');
+        pollTask(taskId, 0);
+      }).catch(function(e){
+        working(false);
+        showErr('Upload failed: ' + (e.message || e));
+      });
+    });
+  })();
+  </script>
+{% endblock %}

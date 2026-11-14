@@ -1,0 +1,76 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Dashboard{% endblock %}
+{% block head_extra %}
+  .rs-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;}
+  @media(max-width:1100px){.rs-tiles{grid-template-columns:repeat(2,1fr);}}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1.1rem 1.15rem;box-shadow:var(--shadow-sm);}
+  .tile .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:.7rem;}
+  .tile .ic svg{width:18px;height:18px;}
+  .tile .n{font-size:1.9rem;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;}
+  .tile .l{color:var(--muted);font-size:.84rem;margin-top:.3rem;font-weight:500;}
+  .ic-blue{background:var(--blue-tint);color:var(--blue);} .ic-green{background:var(--green-tint);color:var(--green);}
+  .ic-amber{background:var(--amber-tint);color:var(--amber);} .ic-grey{background:#eef1f6;color:var(--muted);} .ic-navy{background:#e7ebf2;color:var(--navy);}
+  .rs-grid{display:grid;grid-template-columns:2fr 1fr;gap:1.3rem;align-items:start;}
+  @media(max-width:1000px){.rs-grid{grid-template-columns:1fr;}}
+  .att-row{display:flex;align-items:center;gap:.8rem;padding:.75rem 1.2rem;border-bottom:1px solid var(--line-2);}
+  .att-row:last-child{border-bottom:none;}
+  .att-days{width:46px;height:46px;border-radius:12px;background:var(--amber-tint);color:var(--amber);display:grid;place-items:center;font-weight:800;flex:none;line-height:1;text-align:center;}
+  .att-days small{display:block;font-size:.58rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+  .att-empty{padding:2rem 1.2rem;text-align:center;color:var(--muted);}
+  .att-empty svg{width:34px;height:34px;color:var(--green);margin-bottom:.5rem;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <h1>Dashboard</h1>
+    <div class="sub">Welcome back, {{ first_name }} — here's where your notices stand.</div>
+  </div>
+  <div class="rs-spacer"></div>
+  <form class="rs-search" action="/records/" method="get"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input name="q" placeholder="Search notices…"></form>
+  <a class="rs-btn" href="/records/new/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New notice</a>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <section class="rs-tiles">
+    <div class="tile"><div class="ic ic-navy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div><div class="n">{{ metrics.total }}</div><div class="l">Total notices</div></div>
+    <div class="tile"><div class="ic ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></div><div class="n">{{ metrics.served }}</div><div class="l">Served</div></div>
+    <div class="tile"><div class="ic ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="n">{{ metrics.matured }}</div><div class="l">Matured · can file</div></div>
+    <div class="tile"><div class="ic ic-grey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div><div class="n">{{ metrics.drafts }}</div><div class="l">Drafts</div></div>
+    <div class="tile"><div class="ic ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div class="n">{{ metrics.upcoming }}</div><div class="l">Deadlines ≤ 90 days</div></div>
+  </section>
+  <section class="rs-grid">
+    <div class="card">
+      <div class="card-h"><h2>Recent notices</h2><a href="/records/">View all →</a></div>
+      <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Tenant &amp; property</th><th>Ground</th><th>Status</th><th class="num">Notice date</th><th class="num">Deadline</th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+          <tr class="clickable" onclick="location.href='/records/{{ r.id }}/'">
+            <td><div class="t-main">{{ r.tenant }}</div><div class="t-sub">{{ r.property }}</div></td>
+            <td>{{ r.reason }}</td>
+            <td><span class="pill {{ r.status|lower }}">{{ r.status }}</span></td>
+            <td class="num">{% if r.notice_date %}{{ r.notice_date|date:"d M Y" }}{% else %}—{% endif %}</td>
+            <td class="num">{% if r.deadline %}{{ r.deadline|date:"d M Y" }}{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="empty">No notices yet. Click <strong>New notice</strong> to create your first.</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Needs attention</h2></div>
+      <div>
+        {% for r in upcoming %}
+        <div class="att-row" onclick="location.href='/records/{{ r.id }}/'" style="cursor:pointer;">
+          <div class="att-days">{{ r.days_left }}<small>days</small></div>
+          <div style="min-width:0;"><div class="t-main">{{ r.tenant }}</div><div class="t-sub">{{ r.property }} · {{ r.reason }}</div></div>
+        </div>
+        {% empty %}
+        <div class="att-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><div>Nothing due in the next 90 days.</div></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

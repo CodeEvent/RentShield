@@ -68,6 +68,8 @@ from documents.rentshield.zitadel_provisioning import ZitadelProvisioningError
 from documents.rentshield.zitadel_provisioning import build_end_session_url
 from documents.rentshield.zitadel_provisioning import delete_zitadel_user
 from documents.rentshield.zitadel_provisioning import find_zitadel_user_id_by_username
+from documents.rentshield.otp_sms import SmsOtpError
+from documents.rentshield.otp_sms import send_sms_otp
 from documents.rentshield.zitadel_provisioning import issue_passkey_nonce
 from documents.rentshield.zitadel_provisioning import list_passkeys
 from documents.rentshield.zitadel_provisioning import provision_zitadel_user
@@ -246,10 +248,112 @@ def landing_view(request):
 
 SIGNUP_SESSION_KEY = "signup_draft"
 SIGNUP_OTP_TTL = timedelta(minutes=15)
+# Max wrong OTP entries before the code is burned and a fresh one must be
+# requested. Combined with the per-email send rate-limit (rs_otp_rl /
+# rs_sms_rl), this caps brute-force to a few guesses per delivered code --
+# otherwise a 6-digit code (1e6 space) is guessable inside the 15-min TTL.
+SIGNUP_OTP_MAX_ATTEMPTS = 5
+
+# "Tell us about yourself" -> the main reasons a property manager signs up.
+PRIORITY_OPTIONS = [
+    "Serve eviction notices correctly the first time",
+    "Stay compliant with Dubai Law No. 33 of 2008",
+    "Manage notices across multiple properties",
+    "Avoid losing a case at the Rental Dispute Centre",
+    "Replace expensive lawyer fees for routine notices",
+    "Get notices notarised and lawfully served",
+    "Something else",
+]
+
+# Country dropdown for the final step. UAE and the Gulf first (the platform's
+# home market), then the most common expat-landlord home countries, then a
+# short tail. "Other" catches anything not listed.
+COUNTRIES = [
+    "United Arab Emirates", "Saudi Arabia", "Qatar", "Kuwait", "Bahrain", "Oman",
+    "United Kingdom", "India", "Pakistan", "Egypt", "Jordan", "Lebanon",
+    "United States", "Canada", "Australia", "Germany", "France", "Netherlands",
+    "South Africa", "Nigeria", "Kenya", "Philippines", "Bangladesh", "Sri Lanka",
+    "Singapore", "China", "Russia", "Turkey", "Italy", "Spain", "Other",
+]
 
 
 def _signup_draft(request) -> dict:
     return request.session.get(SIGNUP_SESSION_KEY, {})
+
+
+def _normalise_phone(raw: str) -> str:
+    """The country-code picker (intl-tel-input) posts a full E.164 number;
+    strip spaces/dashes a user might paste so the shape check below sees
+    just '+' and digits."""
+    return (raw or "").strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+
+
+def _valid_e164(phone: str) -> bool:
+    """Minimal, dependency-free E.164 check: a leading '+', 7-15 digits,
+    and a country code that can't start with 0. The client-side picker
+    does the friendly per-country validation; this is the server backstop
+    so a hand-crafted POST can't slip a junk number through."""
+    if not phone.startswith("+"):
+        return False
+    digits = phone[1:]
+    return digits.isdigit() and 7 <= len(digits) <= 15 and digits[0] != "0"
+
+
+def _complete_new_signup(request, draft):
+    """Create the account once BOTH email and phone are verified. This is
+    the single place a new self-serve account comes into existence now:
+    the Django user (with the collected first/last name), the encrypted
+    verified-phone row, the Property Owner role, and -- outside the DEBUG
+    dev shortcut -- a matching ZITADEL human user carrying the real
+    given/family name and phone. Clears the draft either way, so an
+    abandoned wizard still leaves no half-finished row behind (the same
+    guarantee signup_verify_view gave before the phone step existed)."""
+    from django.conf import settings as _settings
+    from django.utils import timezone as _tz
+
+    from documents.rentshield.zitadel_provisioning import PROVISIONER_PAT_PATH
+    from documents.rentshield_identity.models import AccountProfile, VerifiedPhone
+
+    email = draft["email"]
+    first_name = draft.get("first_name", "")
+    surname = draft.get("surname", "")
+    phone = draft.get("phone", "")
+
+    username = _unique_username_from_email(email)
+    user = get_user_model().objects.create(
+        username=username, email=email, first_name=first_name, last_name=surname,
+    )
+    user.set_unusable_password()
+    user.save(update_fields=["password"])
+    grant_property_owner(user)
+    VerifiedPhone.objects.update_or_create(
+        user=user, defaults={"phone": phone, "verified_at": _tz.now()},
+    )
+    AccountProfile.objects.update_or_create(
+        user=user,
+        defaults={
+            "company_name": draft.get("company_name", ""),
+            "job_title": draft.get("job_title", ""),
+            "priorities": draft.get("priorities", ""),
+            "country": draft.get("country", ""),
+        },
+    )
+
+    if _settings.DEBUG and not PROVISIONER_PAT_PATH.exists():
+        from django.contrib.auth import login as django_login
+
+        request.session.pop(SIGNUP_SESSION_KEY, None)
+        django_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return redirect("/overview/")
+
+    zitadel_user_id = provision_zitadel_user(
+        username, email, groups=["Property Owner"],
+        given_name=first_name, family_name=surname, phone=phone,
+    )
+    request.session.pop(SIGNUP_SESSION_KEY, None)
+    request.session["signup_zitadel_user_id"] = zitadel_user_id
+    request.session["signup_zitadel_username"] = username
+    return redirect("rentshield-signup-done")
 
 
 def signup_start_view(request):
@@ -283,15 +387,14 @@ def signup_email_view(request):
     migration, and there is no migration story for that; this just
     stops making it worse by redirecting them into a dead link."""
     error = None
+    form = {"email": ""}
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
-        if request.POST.get("agree") != "on":
-            error = "You must agree to the terms and conditions to continue."
-        else:
-            try:
-                validate_email(email)
-            except DjangoValidationError:
-                error = "Enter a valid email address."
+        form = {"email": email}
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            error = "Enter a valid business email address."
         if not error:
             existing_user = get_user_model().objects.filter(email__iexact=email).first()
             if existing_user is not None and not existing_user.is_active:
@@ -327,7 +430,7 @@ def signup_email_view(request):
                 fail_silently=False,
             )
             return redirect("rentshield-signup-verify")
-    return render(request, "rentshield/signup_email.html", {"error": error})
+    return render(request, "rentshield/signup_email.html", {"error": error, "form": form})
 
 
 def signup_verify_view(request):
@@ -369,9 +472,18 @@ def signup_verify_view(request):
         if request.POST.get("resend") == "1":
             return redirect("rentshield-signup-email")
         code = (request.POST.get("code") or "").strip()
+        attempts = draft.get("otp_attempts", 0)
         if timezone.now() > datetime.fromisoformat(draft["otp_expires_at"]):
             error = "That code has expired -- request a new one."
-        elif code != draft["otp"]:
+        elif attempts >= SIGNUP_OTP_MAX_ATTEMPTS:
+            # Burn the code: force a fresh request instead of letting an
+            # attacker keep guessing the same 6-digit value.
+            draft.pop("otp", None)
+            request.session[SIGNUP_SESSION_KEY] = draft
+            error = "Too many incorrect codes. Request a new one to continue."
+        elif not secrets.compare_digest(code, draft["otp"]):
+            draft["otp_attempts"] = attempts + 1
+            request.session[SIGNUP_SESSION_KEY] = draft
             error = "That code doesn't match -- check your email and try again."
         else:
             email = draft["email"]
@@ -403,38 +515,316 @@ def signup_verify_view(request):
                     )
                     return redirect("/")
             else:
-                username = _unique_username_from_email(email)
-                user = get_user_model().objects.create(username=username, email=email)
-                user.set_unusable_password()
-                user.save(update_fields=["password"])
-                grant_property_owner(user)
-                # ZITADEL passkey provisioning needs the provisioner PAT and a
-                # running ZITADEL. In local dev (DEBUG) where that isn't set up,
-                # skip it and log the new user straight into Django so the flow
-                # still completes. Production (PAT present) is unchanged; a
-                # misconfigured production (DEBUG off, PAT missing) still errors
-                # loudly rather than silently bypassing the passkey step.
-                from django.conf import settings as _settings
-                from documents.rentshield.zitadel_provisioning import (
-                    PROVISIONER_PAT_PATH,
-                )
-
-                if _settings.DEBUG and not PROVISIONER_PAT_PATH.exists():
-                    from django.contrib.auth import login as django_login
-
-                    request.session.pop(SIGNUP_SESSION_KEY, None)
-                    django_login(
-                        request, user,
-                        backend="django.contrib.auth.backends.ModelBackend",
-                    )
-                    return redirect("/")
-
-                zitadel_user_id = provision_zitadel_user(username, email, groups=["Property Owner"])
-                request.session.pop(SIGNUP_SESSION_KEY, None)
-                request.session["signup_zitadel_user_id"] = zitadel_user_id
-                request.session["signup_zitadel_username"] = username
-                return redirect("rentshield-signup-done")
+                # Email is proven, but the account is NOT created yet: the
+                # phone must be verified first (phone OTP gates the rest of
+                # signup). Mark email done in the draft and move to the phone
+                # step. Account creation + ZITADEL provisioning now happen in
+                # signup_phone_verify_view (via _complete_new_signup) once the
+                # SMS code checks out, so an abandoned signup writes nothing.
+                draft["email_verified"] = True
+                request.session[SIGNUP_SESSION_KEY] = draft
+                return redirect("rentshield-signup-about")
     return render(request, "rentshield/signup_verify.html", {"error": error, "email": draft.get("email")})
+
+
+def signup_about_view(request):
+    """GET/POST /signup/about/ -- step 2 of 3, "Tell us about yourself":
+    company, job title and the main reason for using RentShield. Stored on
+    the draft and written to the account at the end. Needs a verified email
+    to reach (keeps the linear order)."""
+    draft = _signup_draft(request)
+    if not draft.get("email_verified"):
+        return redirect("rentshield-signup-email")
+
+    first_name = (request.POST.get("first_name") if request.method == "POST" else draft.get("first_name", "")) or ""
+    surname = (request.POST.get("surname") if request.method == "POST" else draft.get("surname", "")) or ""
+    company = (request.POST.get("company_name") if request.method == "POST" else draft.get("company_name", "")) or ""
+    job = (request.POST.get("job_title") if request.method == "POST" else draft.get("job_title", "")) or ""
+    priorities = (request.POST.get("priorities") if request.method == "POST" else draft.get("priorities", "")) or ""
+    error = None
+    if request.method == "POST":
+        first_name, surname, company, job = first_name.strip(), surname.strip(), company.strip(), job.strip()
+        if not first_name:
+            error = "Enter your first name."
+        elif not surname:
+            error = "Enter your last name."
+        elif not company:
+            error = "Enter your company name."
+        elif not job:
+            error = "Enter your job title."
+        elif not priorities:
+            error = "Select your main priority."
+        else:
+            draft.update({
+                "first_name": first_name, "surname": surname,
+                "company_name": company, "job_title": job, "priorities": priorities,
+            })
+            request.session[SIGNUP_SESSION_KEY] = draft
+            return redirect("rentshield-signup-phone")
+    return render(request, "rentshield/signup_about.html", {
+        "error": error, "first_name": first_name, "surname": surname,
+        "company_name": company, "job_title": job,
+        "priorities": priorities, "priority_options": PRIORITY_OPTIONS,
+    })
+
+
+def _phone_verify_method():
+    from django.conf import settings as _settings
+
+    return getattr(_settings, "RENTSHIELD_PHONE_VERIFY", "whatsapp_qr")
+
+
+def _wa_number() -> str:
+    from django.conf import settings as _settings
+
+    return getattr(_settings, "RENTSHIELD_WHATSAPP_NUMBER", "") or ""
+
+
+def _collect_phone_number(request, draft):
+    """Step 3 of 3, the "Final step": mobile number (typed in full with the
+    country code, e.g. +44 7911 123456 -- no big country dropdown on the
+    number itself), the Country select, and agreement to the terms. Stored
+    on the draft, then the number is verified on WhatsApp. Shown after the
+    email is confirmed, so the first screen stays name + email only."""
+    phone_in = (request.POST.get("phone") if request.method == "POST" else draft.get("phone", "")) or ""
+    country = (request.POST.get("country") if request.method == "POST" else draft.get("country", "")) or ""
+    error = None
+    if request.method == "POST":
+        phone = _normalise_phone(phone_in)
+        if not country:
+            error = "Select your country."
+        elif request.POST.get("agree") != "on":
+            error = "You must agree to the terms and conditions to continue."
+        elif not _valid_e164(phone):
+            error = "Enter your mobile number including the country code, for example +44 7911 123456."
+        else:
+            draft["phone"] = phone
+            draft["country"] = country
+            draft.pop("wa_code", None)
+            request.session[SIGNUP_SESSION_KEY] = draft
+            return redirect("rentshield-signup-phone")
+    return render(
+        request,
+        "rentshield/signup_phone_number.html",
+        {"error": error, "phone_in": phone_in, "country": country, "countries": COUNTRIES},
+    )
+
+
+def signup_phone_view(request):
+    """GET/POST /signup/phone/ -- step 3: verify the phone from the contact
+    step. Two methods (settings.RENTSHIELD_PHONE_VERIFY):
+
+      * "whatsapp_qr" (default): show a QR that opens WhatsApp with a
+        pre-filled 'RentShield verify <code>' addressed to OUR number. The
+        user SENDS it; WAHA's inbound webhook confirms receipt. Nothing is
+        sent out -> free, no SMS cost, works where WhatsApp messaging is
+        allowed (e.g. the UAE).
+      * "sms": a one-time SMS code via otp_sms.py.
+
+    The phone number itself is collected here first (it's no longer on the
+    first screen), then verified. Linear-order guard: needs a verified email."""
+    draft = _signup_draft(request)
+    if not draft.get("email_verified"):
+        return redirect("rentshield-signup-email")
+    if not draft.get("phone"):
+        return _collect_phone_number(request, draft)
+    if _phone_verify_method() == "sms":
+        return _signup_phone_send_sms(request, draft)
+
+    # --- WhatsApp-QR method ---
+    from documents.rentshield_identity.models import WhatsAppVerification
+
+    code = draft.get("wa_code")
+    if not code:
+        # Short, unguessable, reads clearly inside a WhatsApp message.
+        code = secrets.token_hex(4).upper()
+        draft["wa_code"] = code
+        request.session[SIGNUP_SESSION_KEY] = draft
+    WhatsAppVerification.objects.update_or_create(
+        code=code,
+        defaults={"expected_phone": draft["phone"], "verified_at": None, "sender_phone": ""},
+    )
+    wa_text = f"RentShield verify {code}"
+    wa_number = _wa_number()
+    wa_link = f"https://wa.me/{wa_number.lstrip('+')}?text={quote(wa_text)}" if wa_number else ""
+    return render(request, "rentshield/signup_whatsapp.html", {
+        "phone": draft.get("phone"),
+        "wa_link": wa_link,
+        "wa_text": wa_text,
+        "wa_number": wa_number,
+        "code": code,
+        "misconfigured": not wa_number,
+    })
+
+
+def signup_phone_status_view(request):
+    """GET /signup/phone/status/ -- polled by the WhatsApp-QR page. Returns
+    {"verified": bool} for THIS session's pending code only (reads the signup
+    draft), so it never leaks another signup's state."""
+    from django.http import JsonResponse
+
+    from documents.rentshield_identity.models import WhatsAppVerification
+
+    draft = _signup_draft(request)
+    code = draft.get("wa_code")
+    verified = False
+    if code:
+        row = WhatsAppVerification.objects.filter(code=code).first()
+        verified = bool(row and row.is_verified)
+    return JsonResponse({"verified": verified})
+
+
+def signup_phone_verify_view(request):
+    """GET/POST /signup/phone/verify/ -- the completion step.
+
+      * sms: the user types the 6-digit SMS code.
+      * whatsapp_qr: no typing -- the QR page auto-POSTs here once its poll
+        sees the inbound WhatsApp message landed; we re-check the row is
+        verified server-side, then create the account.
+
+    Either path's success calls _complete_new_signup."""
+    draft = _signup_draft(request)
+    if _phone_verify_method() == "sms":
+        return _signup_phone_verify_sms(request, draft)
+
+    # --- WhatsApp-QR completion ---
+    from documents.rentshield_identity.models import WhatsAppVerification
+
+    code = draft.get("wa_code")
+    if not code:
+        return redirect("rentshield-signup-phone")
+    row = WhatsAppVerification.objects.filter(code=code).first()
+    if request.method == "POST" and row is not None and row.is_verified:
+        return _complete_new_signup(request, draft)
+    # Not verified yet (or a stray GET): back to the QR page to keep waiting.
+    return redirect("rentshield-signup-phone")
+
+
+def _signup_phone_send_sms(request, draft):
+    """The SMS-OTP send step (settings.RENTSHIELD_PHONE_VERIFY == 'sms')."""
+    error = None
+    if request.method == "POST":
+        from django.core.cache import cache
+
+        phone = draft["phone"]
+        rl_key = f"rs_sms_rl:{phone}"
+        sent_count = cache.get(rl_key, 0)
+        if sent_count >= 5:
+            error = "Too many codes requested. Please wait a few minutes and try again."
+        else:
+            cache.set(rl_key, sent_count + 1, 600)
+            code = f"{secrets.randbelow(1_000_000):06d}"
+            draft["phone_otp"] = code
+            draft["phone_otp_expires_at"] = (timezone.now() + SIGNUP_OTP_TTL).isoformat()
+            draft["phone_verified"] = False
+            request.session[SIGNUP_SESSION_KEY] = draft
+            try:
+                send_sms_otp(phone, code)
+            except SmsOtpError:
+                error = "We couldn't send the code right now. Please try again in a moment."
+            if not error:
+                return redirect("rentshield-signup-phone-verify")
+    return render(request, "rentshield/signup_phone.html", {"error": error, "phone": draft.get("phone")})
+
+
+def _signup_phone_verify_sms(request, draft):
+    """The SMS-OTP code-entry step (settings.RENTSHIELD_PHONE_VERIFY == 'sms')."""
+    from django.conf import settings as _settings
+
+    if "phone_otp" not in draft:
+        return redirect("rentshield-signup-phone")
+
+    error = None
+    if request.method == "POST":
+        if request.POST.get("resend") == "1":
+            return redirect("rentshield-signup-phone")
+        code = (request.POST.get("code") or "").strip()
+        attempts = draft.get("phone_otp_attempts", 0)
+        if timezone.now() > datetime.fromisoformat(draft["phone_otp_expires_at"]):
+            error = "That code has expired -- request a new one."
+        elif attempts >= SIGNUP_OTP_MAX_ATTEMPTS:
+            draft.pop("phone_otp", None)
+            request.session[SIGNUP_SESSION_KEY] = draft
+            error = "Too many incorrect codes. Request a new one to continue."
+        elif not secrets.compare_digest(code, draft["phone_otp"]):
+            draft["phone_otp_attempts"] = attempts + 1
+            request.session[SIGNUP_SESSION_KEY] = draft
+            error = "That code doesn't match -- check your messages and try again."
+        else:
+            return _complete_new_signup(request, draft)
+
+    dev_code = None
+    if getattr(_settings, "DEBUG", False) and getattr(_settings, "RENTSHIELD_SMS_BACKEND", "console") == "console":
+        dev_code = draft.get("phone_otp")
+    return render(
+        request,
+        "rentshield/signup_phone_verify.html",
+        {"error": error, "phone": draft.get("phone"), "dev_code": dev_code},
+    )
+
+
+@csrf_exempt
+def whatsapp_inbound_webhook(request):
+    """POST /api/whatsapp/inbound/ -- WAHA calls this on each inbound
+    WhatsApp message. Finds the pending WhatsAppVerification by the code in
+    the message body, stamps it verified, and records the sender number.
+
+    Auth: an optional shared secret (settings.RENTSHIELD_WA_WEBHOOK_SECRET)
+    via the X-Api-Key / X-Webhook-Hmac header or ?secret=, AND the per-signup
+    code is itself an unguessable token, so this can't flip an arbitrary
+    account to verified. CSRF-exempt because it's a server-to-server callback
+    authenticated by the secret + token, not a browser form (same rationale
+    as the ZITADEL bridge endpoints below)."""
+    from django.conf import settings as _settings
+    from django.http import HttpResponseForbidden, JsonResponse
+
+    from documents.rentshield_identity.models import WhatsAppVerification
+
+    if request.method != "POST":
+        return JsonResponse({"ok": False}, status=405)
+
+    secret = getattr(_settings, "RENTSHIELD_WA_WEBHOOK_SECRET", "")
+    if secret:
+        provided = (
+            request.headers.get("X-Api-Key")
+            or request.headers.get("X-Webhook-Hmac")
+            or request.GET.get("secret")
+            or ""
+        )
+        if not secrets.compare_digest(provided, secret):
+            return HttpResponseForbidden("bad webhook secret")
+    elif not getattr(_settings, "DEBUG", False):
+        # Fail-open is intentional here (the per-signup code is a 32-bit
+        # token), but running unauthenticated in production is a hardening
+        # gap -- surface it loudly so the operator sets the secret.
+        logger.warning(
+            "whatsapp_inbound_webhook: RENTSHIELD_WA_WEBHOOK_SECRET is not set; "
+            "the webhook is accepting unauthenticated callbacks. Set "
+            "PAPERLESS_RENTSHIELD_WA_WEBHOOK_SECRET in production.",
+        )
+
+    try:
+        payload = json.loads(request.body.decode() or "{}")
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False, "error": "bad json"}, status=400)
+
+    # WAHA shape: {"event":"message","payload":{"from":"44..@c.us","body":".."}}
+    body = payload.get("payload") or payload
+    text = str(body.get("body") or body.get("text") or "")
+    sender = str(body.get("from") or body.get("sender") or "")
+    sender_digits = "".join(ch for ch in sender if ch.isdigit())
+
+    m = re.search(r"verify\s+([A-Za-z0-9]{4,32})", text, re.IGNORECASE)
+    if not m:
+        return JsonResponse({"ok": True, "matched": False})
+    code = m.group(1).upper()
+    row = WhatsAppVerification.objects.filter(code=code, verified_at__isnull=True).first()
+    if row is None:
+        return JsonResponse({"ok": True, "matched": False})
+    row.sender_phone = ("+" + sender_digits) if sender_digits else sender
+    row.verified_at = timezone.now()
+    row.save(update_fields=["sender_phone", "verified_at"])
+    return JsonResponse({"ok": True, "matched": True})
 
 
 def signup_done_view(request):
@@ -1632,16 +2022,25 @@ def backup_code_login_view(request):
     email = draft.get("email", "")
     error = None
     if request.method == "POST":
+        from django.core.cache import cache
+
         email = (request.POST.get("email") or email or "").strip().lower()
         code = request.POST.get("code") or ""
-        user = get_user_model().objects.filter(email__iexact=email).first()
-        if user is not None and user.is_active and BackupCode.consume(user, code):
-            from django.contrib.auth import login as django_login
+        # Defense-in-depth rate-limit: backup codes are high-entropy, but
+        # cap guesses per email so this recovery path can't be hammered.
+        rl_key = f"rs_backup_rl:{email}"
+        if cache.get(rl_key, 0) >= 10:
+            error = "Too many attempts. Please wait a few minutes and try again."
+        else:
+            user = get_user_model().objects.filter(email__iexact=email).first()
+            if user is not None and user.is_active and BackupCode.consume(user, code):
+                from django.contrib.auth import login as django_login
 
-            request.session.pop(SIGNUP_SESSION_KEY, None)
-            django_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            return redirect("/")
-        error = "That backup code wasn't recognised. Check it and try again."
+                request.session.pop(SIGNUP_SESSION_KEY, None)
+                django_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+                return redirect("/")
+            cache.set(rl_key, cache.get(rl_key, 0) + 1, 600)
+            error = "That backup code wasn't recognised. Check it and try again."
     return render(
         request,
         "rentshield/backup_code_login.html",
@@ -1740,11 +2139,486 @@ def account_security_view(request):
     has_authenticator = TotpDevice.objects.filter(
         user=request.user, confirmed=True,
     ).exists()
+    from documents.rentshield_identity.models import AccountProfile, VerifiedPhone
+
+    phone_row = VerifiedPhone.objects.filter(user=request.user).first()
+    profile = AccountProfile.objects.filter(user=request.user).first()
+    u = request.user
+    contact = {
+        "first_name": u.first_name,
+        "surname": u.last_name,
+        "full_name": (f"{u.first_name} {u.last_name}".strip() or u.get_username()),
+        "email": u.email,
+        "phone": phone_row.phone if phone_row else "",
+        "phone_verified": bool(phone_row and phone_row.is_verified),
+        "company_name": profile.company_name if profile else "",
+        "job_title": profile.job_title if profile else "",
+        "country": profile.country if profile else "",
+        "priorities": profile.priorities if profile else "",
+    }
     return render(
         request,
         "rentshield/account_security.html",
-        {"remaining_codes": remaining_codes, "has_authenticator": has_authenticator},
+        {
+            "remaining_codes": remaining_codes,
+            "has_authenticator": has_authenticator,
+            "contact": contact,
+            "active": "settings",
+            "first_name": request.user.first_name or "there",
+        },
     )
+
+
+def _probe_url(url, timeout=1.0):
+    """Best-effort reachability check -- never raises, never hangs the page."""
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(url, method="HEAD")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - internal, operator-set URL
+            return 100 <= resp.status < 500
+    except Exception:
+        # A refused connection or 5xx still means "not reachable/healthy",
+        # but a 4xx (handled above) means the host answered.
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=timeout):
+                return True
+        except Exception:
+            return False
+
+
+def rs_esign_settings_view(request):
+    """GET /account/esign/ -- a styled, read-only view of the real
+    e-signature configuration. RentShield has no stored signing cert of
+    its own: signing is delegated to DocuSeal (primary) / OpenSign
+    (fallback), configured entirely via environment variables, and the
+    PKCS#7 certificate lives inside DocuSeal. This page surfaces that
+    state so an operator can see at a glance whether e-sign is wired,
+    instead of the raw Paperless settings screen."""
+    import os
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+
+    docuseal_url = os.environ.get("DOCUSEAL_URL", "http://localhost:3000")
+    docuseal_token = bool(os.environ.get("DOCUSEAL_API_TOKEN", ""))
+    opensign_url = os.environ.get("OPENSIGN_URL", "http://localhost:8080")
+    opensign_keys = bool(os.environ.get("OPENSIGN_APP_ID", "")) and bool(os.environ.get("OPENSIGN_MASTER_KEY", ""))
+    primary = os.environ.get("ESIGN_PRIMARY", "docuseal")
+    fallback = os.environ.get("ESIGN_FALLBACK", "opensign")
+
+    providers = [
+        {
+            "name": "DocuSeal", "role": "Primary", "url": docuseal_url,
+            "configured": docuseal_token,
+            "reachable": _probe_url(docuseal_url) if docuseal_token else None,
+            "note": "Performs the PKCS#7 certified e-signature. The signing certificate (.p12) is held inside DocuSeal.",
+            "env": "DOCUSEAL_URL + DOCUSEAL_API_TOKEN",
+        },
+        {
+            "name": "OpenSign", "role": "Fallback", "url": opensign_url,
+            "configured": opensign_keys,
+            "reachable": _probe_url(opensign_url) if opensign_keys else None,
+            "note": "Used automatically if DocuSeal is unavailable.",
+            "env": "OPENSIGN_URL + OPENSIGN_APP_ID + OPENSIGN_MASTER_KEY",
+        },
+    ]
+    any_configured = docuseal_token or opensign_keys
+    return render(request, "rentshield/esign_settings.html", {
+        "active": "settings",
+        "first_name": request.user.first_name or "there",
+        "providers": providers,
+        "any_configured": any_configured,
+        "primary": primary, "fallback": fallback,
+    })
+
+
+RS_REASON_LABELS = {
+    "sale": "Sale of property",
+    "personal": "Personal use",
+    "nonpayment": "Non-payment of rent",
+    "renovation": "Extensive renovation",
+    "demolition": "Demolition",
+    "breach": "Breach of contract",
+}
+
+
+def rs_dashboard_view(request):
+    """GET /property/ -- a modern SaaS dashboard over the owner's real
+    RentShield notices (Documents tagged RENTSHIELD_TAG_NAME). Server-
+    rendered custom page (full control of the markup) in the RentShield
+    design system."""
+    from datetime import date, timedelta
+
+    from documents.models import Document, Tag
+    from documents.rentshield.custom_fields import RENTSHIELD_TAG_NAME
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+
+    tag = Tag.objects.filter(name=RENTSHIELD_TAG_NAME).first()
+    docs = (
+        Document.objects.filter(owner=request.user, tags=tag).prefetch_related("custom_fields__field")
+        if tag else Document.objects.none()
+    )
+    today = date.today()
+    rows = []
+    for d in docs:
+        f = {cfi.field.name: cfi.value for cfi in d.custom_fields.all()}
+
+        def g(key):
+            return f.get("RentShield: " + key)
+
+        served = None
+        for k, v in f.items():
+            if v and ("Served" in k or "Service Method" in k):
+                served = v
+                break
+        notice_date = g("Notice Date")
+        period = g("Notice Period (Days)") or 0
+        deadline = (notice_date + timedelta(days=int(period))) if (notice_date and period) else None
+        if served:
+            status = "Matured" if (deadline and deadline <= today) else "Served"
+        else:
+            status = "Draft"
+        unit = g("Unit No.")
+        prop = " · ".join(x for x in [g("Building / Community"), (f"Unit {unit}" if unit else "")] if x) or "—"
+        rows.append({
+            "id": d.id,
+            "tenant": g("Tenant Name") or "—",
+            "property": prop,
+            "reason": RS_REASON_LABELS.get((g("Reason") or "").lower(), (g("Reason") or "—").title()),
+            "status": status,
+            "notice_date": notice_date,
+            "deadline": deadline,
+            "days_left": (deadline - today).days if deadline else None,
+        })
+
+    rows.sort(key=lambda r: (r["notice_date"] or today), reverse=True)
+    served_rows = [r for r in rows if r["status"] in ("Served", "Matured")]
+    upcoming = sorted(
+        [r for r in rows if r["days_left"] is not None and 0 <= r["days_left"] <= 90],
+        key=lambda r: r["days_left"],
+    )
+    metrics = {
+        "total": len(rows),
+        "served": len(served_rows),
+        "matured": sum(1 for r in rows if r["status"] == "Matured"),
+        "drafts": sum(1 for r in rows if r["status"] == "Draft"),
+        "upcoming": len(upcoming),
+    }
+    full_name = (f"{request.user.first_name} {request.user.last_name}".strip() or request.user.get_username())
+    return render(request, "rentshield/dashboard.html", {
+        "rows": rows, "metrics": metrics, "upcoming": upcoming[:5], "active": "dashboard",
+        "full_name": full_name, "first_name": request.user.first_name or "there",
+    })
+
+
+def _rs_read_notice(doc, today):
+    """Build a display dict for one RentShield notice Document, incl. a
+    name->value field map for the detail view."""
+    from datetime import timedelta
+
+    f = {cfi.field.name: cfi.value for cfi in doc.custom_fields.all()}
+
+    def g(key):
+        return f.get("RentShield: " + key)
+
+    served = None
+    for k, v in f.items():
+        if v and ("Served" in k or "Service Method" in k):
+            served = v
+            break
+    notice_date = g("Notice Date")
+    period = g("Notice Period (Days)") or 0
+    deadline = (notice_date + timedelta(days=int(period))) if (notice_date and period) else None
+    status = ("Matured" if (deadline and deadline <= today) else "Served") if served else "Draft"
+    unit = g("Unit No.")
+    prop = " · ".join(x for x in [g("Building / Community"), (f"Unit {unit}" if unit else "")] if x) or "—"
+    # A generated notice carries RentShield custom fields; an uploaded
+    # document has none -- render it as a plain document, not a broken
+    # notice full of em-dashes.
+    is_notice = bool(g("Reason") or g("Tenant Name") or g("Notice Date"))
+    return {
+        "id": doc.id, "title": doc.title,
+        "is_notice": is_notice,
+        "heading": (g("Tenant Name") if is_notice else None) or doc.title or "Untitled document",
+        "added": doc.added,
+        "tenant": g("Tenant Name") or "—", "property": prop,
+        "building": g("Building / Community") or "—", "unit": unit or "—",
+        "ejari": g("Ejari No.") or "—", "plot": g("Plot No.") or "—",
+        "property_type": g("Property Type") or "—",
+        "landlord": g("Landlord Name") or "—", "landlord_email": g("Landlord Email") or "—",
+        "reason": RS_REASON_LABELS.get((g("Reason") or "").lower(), (g("Reason") or "—").title()),
+        "status": status, "notice_date": notice_date, "deadline": deadline,
+        "period": period, "served": served,
+        "days_left": (deadline - today).days if deadline else None,
+        "fields": f,
+    }
+
+
+def _rs_notice_qs(user):
+    from documents.models import Document, Tag
+    from documents.rentshield.custom_fields import RENTSHIELD_TAG_NAME
+
+    tag = Tag.objects.filter(name=RENTSHIELD_TAG_NAME).first()
+    if not tag:
+        return Document.objects.none()
+    return Document.objects.filter(owner=user, tags=tag).prefetch_related("custom_fields__field")
+
+
+def rs_records_view(request):
+    """GET /records/ -- Twenty-style list of the owner's notices, filterable
+    by status via ?status=served|draft|matured."""
+    from datetime import date
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    rows = [_rs_read_notice(d, today) for d in _rs_notice_qs(request.user)]
+    rows.sort(key=lambda r: (r["notice_date"] or today), reverse=True)
+    status_filter = (request.GET.get("status") or "").capitalize()
+    counts = {
+        "all": len(rows),
+        "served": sum(1 for r in rows if r["status"] == "Served"),
+        "draft": sum(1 for r in rows if r["status"] == "Draft"),
+        "matured": sum(1 for r in rows if r["status"] == "Matured"),
+    }
+    if status_filter in ("Served", "Draft", "Matured"):
+        rows = [r for r in rows if r["status"] == status_filter]
+    q = (request.GET.get("q") or "").strip().lower()
+    if q:
+        rows = [r for r in rows if q in (f"{r['tenant']} {r['property']} {r['reason']}").lower()]
+    return render(request, "rentshield/records.html", {
+        "rows": rows, "counts": counts, "active": "notices",
+        "status_filter": request.GET.get("status") or "all", "q": request.GET.get("q") or "",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_record_detail_view(request, pk):
+    """GET /records/<id>/ -- a single notice in the clean RentShield layout."""
+    from datetime import date
+
+    from django.http import Http404
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    doc = _rs_notice_qs(request.user).filter(pk=pk).first()
+    if doc is None:
+        raise Http404("Notice not found")
+    import os
+
+    rec = _rs_read_notice(doc, date.today())
+    has_pdf = (
+        doc.mime_type == "application/pdf"
+        and bool(getattr(doc, "source_path", None))
+        and os.path.exists(doc.source_path)
+    )
+    return render(request, "rentshield/record_detail.html", {
+        "rec": rec, "has_pdf": has_pdf, "active": "notices",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_upload_view(request):
+    """GET /records/upload/ -- a RentShield-styled replacement for the
+    stock paperless-ngx Angular upload screen. The actual upload is done
+    client-side (fetch -> POST /api/documents/post_document/) so we get a
+    progress bar and can poll the consume task, then land the user on the
+    styled /records/<id>/ view. Uploaded files are tagged as RentShield
+    notices so they appear in the Notices list like everything else."""
+    from documents.models import Tag
+    from documents.rentshield.custom_fields import RENTSHIELD_TAG_NAME
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    tag, _ = Tag.objects.get_or_create(
+        name=RENTSHIELD_TAG_NAME, defaults={"color": "#1657b0"},
+    )
+    return render(request, "rentshield/upload.html", {
+        "active": "notices",
+        "first_name": request.user.first_name or "there",
+        "notice_tag_id": tag.id,
+    })
+
+
+def rs_document_redirect_view(request, pk):
+    """Intercepts the stock paperless-ngx document route
+    (/documents/<id>/, /documents/<id>/details, /documents/<id>/history,
+    ...) which is served by the compiled Angular SPA and looks nothing
+    like the rest of RentShield. When the document is one of this user's
+    RentShield notices, send them to the styled /records/<id>/ view
+    instead. Any other document (not a notice, or not theirs) falls
+    through to the Angular app unchanged, so nothing paperless relies on
+    is broken."""
+    from documents.views import IndexView
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    if _rs_notice_qs(request.user).filter(pk=pk).exists():
+        return redirect(f"/records/{pk}/")
+    # Not a RentShield notice -> let the Angular SPA handle it as before.
+    return IndexView.as_view()(request)
+
+
+RS_REQUIRED_PERIOD = {"sale": 365, "personal": 365, "renovation": 365, "demolition": 365, "nonpayment": 30, "breach": 30}
+
+
+def rs_properties_view(request):
+    """GET /properties/ -- the owner's properties, grouped from their notices."""
+    from datetime import date
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    props = {}
+    for d in _rs_notice_qs(request.user):
+        r = _rs_read_notice(d, today)
+        key = (r["building"], r["unit"])
+        p = props.setdefault(key, {
+            "building": r["building"], "unit": r["unit"], "ejari": r["ejari"],
+            "property_type": r["property_type"], "tenant": r["tenant"],
+            "notices": 0, "open": 0, "last_id": r["id"],
+        })
+        p["notices"] += 1
+        if r["status"] != "Draft":
+            p["open"] += 1
+    return render(request, "rentshield/properties.html", {
+        "props": list(props.values()), "active": "properties",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_verification_view(request):
+    """GET /verification/ -- the owner's identity-verification status."""
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    from documents.rentshield_identity.models import IdentityVerification as IV
+
+    iv = IV.objects.filter(user=request.user).order_by("-id").first()
+    data = None
+    if iv:
+        data = {
+            "status": iv.get_status_display() if hasattr(iv, "get_status_display") else iv.status,
+            "verified": iv.status == IV.Status.VERIFIED,
+            "provider": iv.provider,
+            "full_name": iv.chip_full_name or "—",
+            "doc_number": iv.chip_document_number or iv.declared_document_number or "—",
+            "selfie": (f"{iv.chip_selfie_match_score:.0%}" if iv.chip_selfie_match_score else "—"),
+            "result": (iv.automated_result or "—").title(),
+        }
+    return render(request, "rentshield/verification.html", {
+        "iv": data, "active": "verification", "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_compliance_view(request):
+    """GET /compliance/ -- per-notice compliance with Dubai Law 33/2008."""
+    from datetime import date
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    rows = []
+    for d in _rs_notice_qs(request.user):
+        r = _rs_read_notice(d, today)
+        reason_raw = (r["fields"].get("RentShield: Reason") or "").lower()
+        required = RS_REQUIRED_PERIOD.get(reason_raw)
+        checks = {
+            "ground": bool(reason_raw),
+            "period": (required is None) or (int(r["period"] or 0) >= required),
+            "bilingual": True,   # every generated notice is EN/AR + Article-cited
+            "service": bool(r["served"]),
+        }
+        passed = sum(1 for v in checks.values() if v)
+        if r["status"] == "Draft":
+            verdict = "Draft"
+        elif all(checks.values()):
+            verdict = "Compliant"
+        else:
+            verdict = "Attention"
+        rows.append({**r, "checks": checks, "passed": passed, "verdict": verdict,
+                     "required_period": required})
+    compliant = sum(1 for r in rows if r["verdict"] == "Compliant")
+    return render(request, "rentshield/compliance.html", {
+        "rows": rows, "compliant": compliant, "total": len(rows), "active": "compliance",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_disputes_view(request):
+    """GET /disputes/ -- matured notices ready to file at the RDC, and served
+    notices still in their period."""
+    from datetime import date
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    rows = [_rs_read_notice(d, today) for d in _rs_notice_qs(request.user)]
+    ready = [r for r in rows if r["status"] == "Matured"]
+    in_period = [r for r in rows if r["status"] == "Served"]
+    return render(request, "rentshield/disputes.html", {
+        "ready": ready, "in_period": in_period, "active": "disputes",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_new_notice_view(request):
+    """GET/POST /records/new/ -- create a draft notice (metadata record; the
+    bilingual PDF is produced by the existing generation pipeline later)."""
+    from documents.models import Document, Tag
+    from documents.rentshield.custom_fields import RENTSHIELD_TAG_NAME
+    from documents.rentshield.service import _set_custom_field_value
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+
+    form = {k: (request.POST.get(k, "") if request.method == "POST" else "") for k in
+            ("tenant_name", "building_name", "unit_no", "reason", "ejari_number", "property_type")}
+    error = None
+    if request.method == "POST":
+        for k in form:
+            form[k] = form[k].strip()
+        if not form["tenant_name"]:
+            error = "Enter the tenant's name."
+        elif not form["building_name"]:
+            error = "Enter the building / community."
+        elif form["reason"] not in RS_REQUIRED_PERIOD:
+            error = "Choose a valid ground for the notice."
+        if not error:
+            import secrets as _s
+            from django.utils import timezone as _tz
+            rs_tag, _ = Tag.objects.get_or_create(name=RENTSHIELD_TAG_NAME, defaults={"color": "#1657b0"})
+            reason = form["reason"]
+            doc = Document.objects.create(
+                owner=request.user,
+                title=f"Notice ({RS_REASON_LABELS.get(reason, reason)}) - {form['tenant_name']}",
+                checksum=f"rs-new-{request.user.id}-{_s.token_hex(6)}",
+                mime_type="application/pdf",
+            )
+            doc.tags.add(rs_tag)
+            vals = {
+                "tenant_name": form["tenant_name"],
+                "building_name": form["building_name"],
+                "unit_no": form["unit_no"],
+                "reason": reason,
+                "notice_period_days": RS_REQUIRED_PERIOD[reason],
+                "notice_date": _tz.now().date().isoformat(),
+                "property_type": form["property_type"] or "Apartment",
+                "ejari_number": form["ejari_number"],
+                "landlord_name": (f"{request.user.first_name} {request.user.last_name}".strip() or request.user.get_username()),
+                "landlord_email": request.user.email,
+            }
+            for k, v in vals.items():
+                if v:
+                    _set_custom_field_value(doc, k, v)
+            return redirect("rentshield-record-detail", pk=doc.id)
+    return render(request, "rentshield/new_notice.html", {
+        "error": error, "form": form, "reasons": RS_REASON_LABELS, "active": "notices",
+        "first_name": request.user.first_name or "there",
+    })
 
 
 def robots_txt_view(request):

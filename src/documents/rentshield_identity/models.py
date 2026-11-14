@@ -631,3 +631,77 @@ class TotpDevice(models.Model):
             ):
                 return True
         return False
+
+
+class VerifiedPhone(models.Model):
+    """One confirmed mobile number per user, captured during signup and
+    proven by the phone-OTP step (rentshield_views.signup_phone_verify_view).
+
+    Stored encrypted at rest for the same reason the identity fields are --
+    a mobile number is personal data under the UAE PDPL and Dubai's own
+    data rules, and this row is only ever read back via the user OneToOne
+    (shown on the account page), never queried by value, so encryption is
+    free here. `verified_at` is set only once a correct SMS code is
+    entered, so a half-finished signup never leaves a 'verified' number
+    behind."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="rs_phone",
+    )
+    # E.164 (+9715..., +44..., etc.) -- the country code picker on the
+    # signup form (intl-tel-input, every calling code) hands this over
+    # already normalised, and the server re-checks the +<digits> shape.
+    phone = EncryptedCharField()
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verified_at is not None
+
+
+class WhatsAppVerification(models.Model):
+    """One pending reverse-WhatsApp phone verification (signup Option 2).
+
+    The user is shown a QR that opens WhatsApp with 'RentShield verify <code>'
+    pre-filled to our number; when they SEND it, WAHA's inbound webhook
+    (rentshield_views.whatsapp_inbound_webhook) finds the row by `code` and
+    stamps `verified_at`. Because the user sends to us, nothing is sent out
+    (free, no SMS cost, low ban risk) and the inbound sender number proves a
+    real WhatsApp account.
+
+    `code` is the unguessable secret in the QR (looked up by the webhook, so
+    not encrypted). `expected_phone` (the number typed at signup) is personal
+    data -> encrypted at rest; `sender_phone` is what WhatsApp reported, kept
+    for the audit trail and an optional match check."""
+
+    code = models.CharField(max_length=32, unique=True, db_index=True)
+    expected_phone = EncryptedCharField()
+    sender_phone = models.CharField(max_length=32, blank=True, default="")
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def is_verified(self) -> bool:
+        return self.verified_at is not None
+
+
+class AccountProfile(models.Model):
+    """The business details collected during signup (the Boomi-style
+    'Tell us about yourself' + 'Final step' screens): who the property
+    manager is and what they're here to do. Shown back on the account
+    page. Business info, not special-category data, so stored in the
+    clear -- the mobile number stays in VerifiedPhone, encrypted."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="rs_profile",
+    )
+    company_name = models.CharField(max_length=200, blank=True, default="")
+    job_title = models.CharField(max_length=160, blank=True, default="")
+    priorities = models.CharField(max_length=200, blank=True, default="")
+    country = models.CharField(max_length=80, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -338,6 +338,16 @@ class ResolvedRequestDocs(NamedTuple):
 class IndexView(TemplateView):
     template_name = "index.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        # The app shell carries the RentShield theme override + the hashed asset
+        # names; never let the browser serve a stale copy, or theme/asset changes
+        # won't show until a manual cache clear.
+        from django.utils.cache import add_never_cache_headers
+
+        response = super().dispatch(request, *args, **kwargs)
+        add_never_cache_headers(response)
+        return response
+
     def get_frontend_language(self):
         if hasattr(
             self.request.user,

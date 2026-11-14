@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.db import transaction
 
 DEMO_USERNAME = "demo"
@@ -29,6 +30,15 @@ DEMO_USERNAME = "demo"
 
 class Command(BaseCommand):
     help = "Seed the RentShield demo account, identity and notices (idempotent)."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--email",
+            default="",
+            help="Seed the demo notices + verified identity onto an EXISTING user "
+                 "with this email (e.g. a real signup), instead of the built-in "
+                 "'demo' account. Uses that user's own name on the notices.",
+        )
 
     def handle(self, *args, **options):
         from documents.models import Document
@@ -39,20 +49,28 @@ class Command(BaseCommand):
         from documents.rentshield_identity.models import IdentityVerification as IV
 
         User = get_user_model()
+        target_email = (options.get("email") or "").strip()
 
         with transaction.atomic():
-            user, created = User.objects.get_or_create(
-                username=DEMO_USERNAME,
-                defaults={
-                    "email": "demo@rentshield.example",
-                    "first_name": "Fatima",
-                    "last_name": "Al Zaabi",
-                    "is_active": True,
-                },
-            )
-            user.set_unusable_password()
-            user.save()
+            if target_email:
+                user = User.objects.filter(email__iexact=target_email).first()
+                if user is None:
+                    raise CommandError(f"No user with email {target_email!r} -- sign up first.")
+                created = False
+            else:
+                user, created = User.objects.get_or_create(
+                    username=DEMO_USERNAME,
+                    defaults={
+                        "email": "demo@rentshield.example",
+                        "first_name": "Fatima",
+                        "last_name": "Al Zaabi",
+                        "is_active": True,
+                    },
+                )
+                user.set_unusable_password()
+                user.save()
             grant_property_owner(user)
+            display_name = f"{user.first_name} {user.last_name}".strip() or user.get_username()
             self.stdout.write(f"demo user: {user.username} (id {user.id}, {'created' if created else 'existing'})")
 
             IV.objects.update_or_create(
@@ -63,7 +81,7 @@ class Command(BaseCommand):
                     declared_document_number="A12345678",
                     declared_date_of_birth="1985-06-12",
                     chip_document_number="A12345678",
-                    chip_full_name="Fatima Al Zaabi",
+                    chip_full_name=display_name,
                     chip_selfie_match_score=0.93,
                     automated_result="verified",
                 ),
@@ -78,8 +96,8 @@ class Command(BaseCommand):
             Document.objects.filter(owner=user, tags=rs_tag).delete()
 
         base = dict(
-            landlord_name="Fatima Al Zaabi",
-            landlord_email="demo@rentshield.example",
+            landlord_name=display_name,
+            landlord_email=user.email or "demo@rentshield.example",
             property_type="Apartment",
         )
         notices = [

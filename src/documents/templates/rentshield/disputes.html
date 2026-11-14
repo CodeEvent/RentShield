@@ -1,0 +1,52 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Disputes{% endblock %}
+{% block head_extra %}
+  .d-banner{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.25rem;border-left:4px solid var(--amber);background:var(--amber-tint);border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
+  .d-banner svg{width:22px;height:22px;color:var(--amber);flex:none;}
+  .d-banner b{color:var(--ink);}
+  .d-row{display:flex;align-items:center;gap:1rem;padding:.9rem 1.2rem;border-bottom:1px solid var(--line-2);}
+  .d-row:last-child{border-bottom:none;}
+  .d-row .grow{flex:1;min-width:0;}
+  .d-file{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:.5rem .9rem;font-weight:600;font-size:.84rem;cursor:pointer;white-space:nowrap;}
+  .d-file:hover{background:var(--blue-strong);}
+{% endblock %}
+{% block topbar %}
+  <div><h1>Disputes</h1><div class="sub">Rental Dispute Centre (RDC) filing readiness.</div></div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  {% if ready %}
+  <div class="d-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>{{ ready|length }} notice{{ ready|length|pluralize }} matured</b> — the notice period has elapsed, so you can now file at the Rental Dispute Centre.</div></div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-h"><h2>Ready to file at the RDC</h2></div>
+    <div>
+      {% for r in ready %}
+      <div class="d-row">
+        <span class="pill matured">Matured</span>
+        <div class="grow"><div class="t-main">{{ r.tenant }}</div><div class="t-sub">{{ r.property }} · {{ r.reason }} · served, period elapsed</div></div>
+        <button class="d-file" onclick="location.href='/records/{{ r.id }}/'">Prepare filing →</button>
+      </div>
+      {% empty %}
+      <div class="empty">Nothing is ready to file yet — notices appear here once their statutory period has elapsed.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>Served · still in notice period</h2></div>
+    <div>
+      {% for r in in_period %}
+      <div class="d-row">
+        <span class="pill served">Served</span>
+        <div class="grow"><div class="t-main">{{ r.tenant }}</div><div class="t-sub">{{ r.property }} · {{ r.reason }}{% if r.deadline %} · matures {{ r.deadline|date:"d M Y" }}{% endif %}</div></div>
+        {% if r.days_left != None %}<span class="num" style="color:var(--muted);font-size:.82rem;">{{ r.days_left }} days left</span>{% endif %}
+      </div>
+      {% empty %}
+      <div class="empty">No served notices in their waiting period.</div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

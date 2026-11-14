@@ -1,0 +1,126 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · {{ rec.tenant }}{% endblock %}
+{% block head_extra %}
+  .back{display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:600;font-size:.85rem;margin-bottom:.3rem;}
+  .back:hover{color:var(--blue);}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+  @media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr);}}
+  .sfact .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+  .sfact .v{font-size:1.05rem;color:var(--ink);font-weight:700;margin-top:.25rem;}
+  .doc-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:1.3rem;align-items:start;}
+  @media(max-width:980px){.doc-grid{grid-template-columns:1fr;}}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:.6rem 1.2rem;margin:0;padding:1.15rem;}
+  dl.kv dt{color:var(--muted);font-size:.86rem;}
+  dl.kv dd{margin:0;color:var(--ink);font-weight:500;text-align:right;}
+  .pdf-card{position:sticky;top:1.2rem;overflow:hidden;}
+  .pdf-card .card-h{display:flex;align-items:center;gap:.6rem;}
+  .pdf-card .card-h .doc-ic{width:30px;height:30px;border-radius:8px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;flex:none;}
+  .pdf-frame{width:100%;height:620px;border:0;display:block;background:#f0f3f8;}
+  @media(max-width:980px){.pdf-frame{height:72vh;}}
+  .pdf-empty{padding:3rem 1.5rem;text-align:center;color:var(--muted);}
+  .pdf-empty .ic{width:52px;height:52px;border-radius:12px;background:var(--line);display:grid;place-items:center;margin:0 auto 1rem;color:var(--muted);}
+  .pdf-empty h3{color:var(--ink);font-size:1rem;margin:0 0 .35rem;}
+  .pdf-empty p{margin:0;font-size:.9rem;max-width:30ch;margin-inline:auto;}
+  .cards-col{display:flex;flex-direction:column;gap:1.1rem;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <a class="back" href="/records/"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Notices</a>
+    <h1>{{ rec.heading }}</h1>
+    <div class="sub">{% if rec.is_notice %}{{ rec.reason }} · {{ rec.property }}{% else %}Uploaded document{% if rec.added %} · {{ rec.added|date:"d M Y" }}{% endif %}{% endif %}</div>
+  </div>
+  <div class="rs-spacer"></div>
+  {% if rec.is_notice %}<span class="pill {{ rec.status|lower }}" style="font-size:.85rem;padding:.35rem .8rem;">{{ rec.status }}</span>{% endif %}
+  {% if has_pdf %}
+  <a class="rs-btn" href="/api/documents/{{ rec.id }}/download/"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+  {% if rec.is_notice %}
+  <div class="card" style="padding:1.2rem 1.25rem;">
+    <div class="summary">
+      <div class="sfact"><div class="k">Ground</div><div class="v">{{ rec.reason }}</div></div>
+      <div class="sfact"><div class="k">Notice date</div><div class="v">{% if rec.notice_date %}{{ rec.notice_date|date:"d M Y" }}{% else %}—{% endif %}</div></div>
+      <div class="sfact"><div class="k">Notice period</div><div class="v">{{ rec.period }} days</div></div>
+      <div class="sfact"><div class="k">Deadline</div><div class="v">{% if rec.deadline %}{{ rec.deadline|date:"d M Y" }}{% else %}—{% endif %}</div></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="doc-grid">
+    <div class="card pdf-card">
+      <div class="card-h">
+        <span class="doc-ic"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></span>
+        <h2>{% if rec.is_notice %}Notice document{% else %}Document{% endif %}</h2>
+      </div>
+      {% if has_pdf %}
+      <iframe class="pdf-frame" src="/api/documents/{{ rec.id }}/preview/#toolbar=0&navpanes=0&view=FitH" title="Notice PDF for {{ rec.tenant }}"></iframe>
+      {% else %}
+      <div class="pdf-empty">
+        <div class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <h3>Document not generated yet</h3>
+        <p>This notice is still a draft. The bilingual PDF is produced when the notice is finalised.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="cards-col">
+      {% if not rec.is_notice %}
+      <div class="card">
+        <div class="card-h"><h2>Document details</h2></div>
+        <dl class="kv">
+          <dt>Title</dt><dd>{{ rec.title|default:"Untitled document" }}</dd>
+          <dt>Added</dt><dd>{% if rec.added %}{{ rec.added|date:"d M Y" }}{% else %}—{% endif %}</dd>
+          <dt>Type</dt><dd>{% if has_pdf %}PDF{% else %}Document{% endif %}</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>About this document</h2></div>
+        <div style="padding:1.15rem;color:var(--muted);font-size:.9rem;line-height:1.55;">
+          This is an uploaded document, not a generated RentShield notice, so it has no tenancy or
+          service details attached. To create a statute-cited notice with those details, use
+          <a href="/records/new/" style="color:var(--blue);font-weight:600;">New notice</a>.
+        </div>
+      </div>
+      {% else %}
+      <div class="card">
+        <div class="card-h"><h2>Property</h2></div>
+        <dl class="kv">
+          <dt>Building / community</dt><dd>{{ rec.building }}</dd>
+          <dt>Unit</dt><dd>{{ rec.unit }}</dd>
+          <dt>Plot no.</dt><dd>{{ rec.plot }}</dd>
+          <dt>Ejari no.</dt><dd>{{ rec.ejari }}</dd>
+          <dt>Property type</dt><dd>{{ rec.property_type }}</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Parties</h2></div>
+        <dl class="kv">
+          <dt>Tenant</dt><dd>{{ rec.tenant }}</dd>
+          <dt>Owner / landlord</dt><dd>{{ rec.landlord }}</dd>
+          <dt>Owner email</dt><dd>{{ rec.landlord_email }}</dd>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Service &amp; status</h2></div>
+        <dl class="kv">
+          <dt>Status</dt><dd><span class="pill {{ rec.status|lower }}">{{ rec.status }}</span></dd>
+          {% if rec.served %}<dt>Served</dt><dd>{% if rec.served|date:"d M Y" %}{{ rec.served|date:"d M Y" }}{% else %}{{ rec.served }}{% endif %}</dd>{% endif %}
+          {% if rec.days_left != None %}<dt>Deadline</dt><dd>{% if rec.days_left >= 0 %}in {{ rec.days_left }} days{% else %}elapsed · ready to file{% endif %}</dd>{% endif %}
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Legal basis</h2></div>
+        <dl class="kv">
+          <dt>Governing law</dt><dd>Dubai Law No. 33 of 2008</dd>
+          <dt>Ground</dt><dd>{{ rec.reason }}</dd>
+          <dt>Statutory period</dt><dd>{{ rec.period }} days</dd>
+        </dl>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

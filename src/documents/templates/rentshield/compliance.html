@@ -1,0 +1,47 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Compliance{% endblock %}
+{% block head_extra %}
+  .cbar{display:flex;align-items:center;gap:1.1rem;padding:1.2rem 1.25rem;}
+  .cscore{font-size:2rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .cbar .l{color:var(--muted);}
+  .ck{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;}
+  .ck.y{background:var(--green-tint);color:var(--green);} .ck.n{background:#fdecea;color:var(--red);}
+  .ck svg{width:13px;height:13px;}
+  .pill.compliant{background:var(--green-tint);color:var(--green);}
+  .pill.attention{background:var(--amber-tint);color:var(--amber);}
+  .pill.draft{background:#eef1f6;color:var(--muted);}
+{% endblock %}
+{% block topbar %}
+  <div><h1>Compliance</h1><div class="sub">Every notice checked against Dubai Law No. 33 of 2008.</div></div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <div class="card"><div class="cbar">
+    <div class="cscore">{{ compliant }}/{{ total }}</div>
+    <div><div style="color:var(--ink);font-weight:700;">Notices fully compliant</div><div class="l">Ground, statutory period, bilingual citation and lawful service all met.</div></div>
+  </div></div>
+
+  <div class="card">
+    <div class="card-h"><h2>Compliance by notice</h2></div>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>Tenant &amp; property</th><th>Ground</th><th style="text-align:center;">Period</th><th style="text-align:center;">Bilingual + cited</th><th style="text-align:center;">Lawful service</th><th>Verdict</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="clickable" onclick="location.href='/records/{{ r.id }}/'">
+          <td><div class="t-main">{{ r.tenant }}</div><div class="t-sub">{{ r.property }}</div></td>
+          <td>{{ r.reason }}</td>
+          <td style="text-align:center;"><span class="ck {% if r.checks.period %}y{% else %}n{% endif %}">{% if r.checks.period %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>{% endif %}</span></td>
+          <td style="text-align:center;"><span class="ck y"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></td>
+          <td style="text-align:center;"><span class="ck {% if r.checks.service %}y{% else %}n{% endif %}">{% if r.checks.service %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>{% endif %}</span></td>
+          <td><span class="pill {{ r.verdict|lower }}">{{ r.verdict }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty">No notices to check yet.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+{% endblock %}

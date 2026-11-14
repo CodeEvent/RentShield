@@ -1,34 +1,87 @@
-{% extends "rentshield/signup_base.html" %}
-{% block title %}Security{% endblock %}
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · Settings{% endblock %}
+{% block head_extra %}
+  .set-wrap{max-width:760px;display:flex;flex-direction:column;gap:1.1rem;}
+  .set-card .card-h h2{font-size:1rem;}
+  .set-body{padding:1.25rem;}
+  .set-body p.lead{color:var(--muted);font-size:.9rem;margin:.1rem 0 1rem;}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:.6rem 1.4rem;margin:0;}
+  dl.kv dt{color:var(--muted);font-size:.88rem;}
+  dl.kv dd{margin:0;color:var(--ink);font-weight:500;text-align:right;}
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .set-row .meta{color:var(--muted);font-size:.9rem;max-width:46ch;}
+  .ok{color:var(--green);font-weight:600;}
+  .badge-ok{display:inline-flex;align-items:center;gap:.3rem;background:#e7f6ec;color:#1a7f3c;font-weight:600;font-size:.78rem;padding:.2rem .55rem;border-radius:999px;}
+  .badge-warn{display:inline-flex;align-items:center;gap:.3rem;background:#fff4e5;color:#9a6200;font-weight:600;font-size:.78rem;padding:.2rem .55rem;border-radius:999px;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <h1>Settings</h1>
+    <div class="sub">Your account and the ways you get back in.</div>
+  </div>
+  <div class="rs-spacer"></div>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
 {% block content %}
-    <h1>Security</h1>
-    <p class="rs-wizard-hint">Manage the ways you get back into your account.</p>
+  <div class="set-wrap">
 
-    <div class="rs-inset violet" style="margin-top:1.4rem;">
-        <strong>Backup codes</strong>
-        <p style="margin:.4rem 0 .9rem;">
-            {% if remaining_codes %}You have <strong>{{ remaining_codes }}</strong> unused backup code{{ remaining_codes|pluralize }} left.{% else %}You have no backup codes left.{% endif %}
-            Regenerating makes a fresh set and cancels the old ones.
-        </p>
-        <form method="post">
+    <div class="card set-card">
+      <div class="card-h"><h2>Contact details</h2></div>
+      <div class="set-body">
+        <p class="lead">The details held on your property-manager account.</p>
+        <dl class="kv">
+          <dt>Name</dt><dd>{{ contact.full_name }}</dd>
+          <dt>Email</dt><dd>{{ contact.email }}</dd>
+          <dt>Phone</dt><dd>{% if contact.phone %}{{ contact.phone }}{% if contact.phone_verified %} · <span class="ok">verified</span>{% endif %}{% else %}—{% endif %}</dd>
+          {% if contact.company_name %}<dt>Company</dt><dd>{{ contact.company_name }}</dd>{% endif %}
+          {% if contact.job_title %}<dt>Job title</dt><dd>{{ contact.job_title }}</dd>{% endif %}
+          {% if contact.country %}<dt>Country</dt><dd>{{ contact.country }}</dd>{% endif %}
+          {% if contact.priorities %}<dt>Priority</dt><dd>{{ contact.priorities }}</dd>{% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="card set-card">
+      <div class="card-h"><h2>Backup codes</h2></div>
+      <div class="set-body">
+        <div class="set-row">
+          <div class="meta">
+            {% if remaining_codes %}<span class="badge-ok">{{ remaining_codes }} unused</span> You have {{ remaining_codes }} backup code{{ remaining_codes|pluralize }} left. Regenerating makes a fresh set and cancels the old ones.{% else %}<span class="badge-warn">None left</span> You have no backup codes left. Generate a fresh set to keep a way back in.{% endif %}
+          </div>
+          <form method="post" style="margin:0;">
             {% csrf_token %}
             <input type="hidden" name="action" value="regenerate_codes">
-            <button type="submit" class="rs-btn">Regenerate backup codes</button>
-        </form>
+            <button type="submit" class="rs-btn rs-btn-ghost">Regenerate codes</button>
+          </form>
+        </div>
+      </div>
     </div>
 
-    <div class="rs-inset violet" style="margin-top:1.4rem;">
-        <strong>Authenticator app</strong>
-        <p style="margin:.4rem 0 .9rem;">
-            {% if has_authenticator %}An authenticator app is set up for this account.{% else %}No authenticator app is set up yet.{% endif %}
-            Changed phones? Reset it and scan a new code.
-        </p>
-        <form method="post">
+    <div class="card set-card">
+      <div class="card-h"><h2>E-signature</h2></div>
+      <div class="set-body">
+        <div class="set-row">
+          <div class="meta">Configure how RentShield signs and serves notices (DocuSeal / OpenSign providers and signing status).</div>
+          <a href="/account/esign/" class="rs-btn rs-btn-ghost">Open e-signature</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card set-card">
+      <div class="card-h"><h2>Authenticator app</h2></div>
+      <div class="set-body">
+        <div class="set-row">
+          <div class="meta">
+            {% if has_authenticator %}<span class="badge-ok">Enabled</span> An authenticator app is set up for this account. Changed phones? Reset it and scan a new code.{% else %}<span class="badge-warn">Not set up</span> No authenticator app is set up yet. Add one for a second layer of sign-in security.{% endif %}
+          </div>
+          <form method="post" style="margin:0;">
             {% csrf_token %}
             <input type="hidden" name="action" value="reset_authenticator">
-            <button type="submit" class="rs-btn">{% if has_authenticator %}Reset authenticator{% else %}Set up authenticator{% endif %}</button>
-        </form>
+            <button type="submit" class="rs-btn {% if not has_authenticator %}{% else %}rs-btn-ghost{% endif %}">{% if has_authenticator %}Reset authenticator{% else %}Set up authenticator{% endif %}</button>
+          </form>
+        </div>
+      </div>
     </div>
 
-    <p style="margin-top:1.6rem;"><a href="/" style="color:var(--green);font-weight:600;">Back to RentShield</a></p>
+  </div>
 {% endblock %}

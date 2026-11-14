@@ -1,0 +1,52 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Final step{% endblock %}
+{% block head_extra %}<style>.req{color:var(--error);}</style>{% endblock %}
+{% block content %}
+    <div class="rs-progress"><div class="rs-progress-bar" style="width:100%"></div></div>
+    <p class="rs-progress-label">Step 3 of 3</p>
+
+    <label class="rs-label-h1" for="id_phone">Final step</label>
+    <span class="rs-hint">Add your contact details. We'll verify your number on WhatsApp &mdash; it's free.</span>
+
+    <form method="post" class="rs-submit-form" id="rs-final-form" novalidate>
+        {% csrf_token %}
+        <div class="rs-field">
+            <label for="id_phone">Phone Number <span class="req">*</span></label>
+            <span class="rs-hint">Include your country code, for example +44 or +355.</span>
+            <input type="tel" name="phone" id="id_phone" class="rs-input" autocomplete="tel" inputmode="tel" placeholder="+971 50 123 4567" value="{{ phone_in }}" required>
+        </div>
+
+        <div class="rs-field">
+            <label for="id_country">Country <span class="req">*</span></label>
+            <select name="country" id="id_country" class="rs-select{% if not country %} placeholder{% endif %}" required>
+                <option value="" {% if not country %}selected{% endif %} disabled hidden>Select&hellip;</option>
+                {% for c in countries %}
+                  <option value="{{ c }}" {% if c == country %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="rs-check">
+            <input type="checkbox" name="agree" id="id_agree" required>
+            <label for="id_agree" class="rs-terms">
+                <p>I agree to the <a href="/welcome/terms/" target="_blank" rel="noopener">RentShield Master Services Agreement</a> and the <a href="/welcome/terms/" target="_blank" rel="noopener">RentShield Product Specific Terms</a> for the use of RentShield software, unless my organisation and RentShield have signed a separate agreement, in which case that agreement governs.</p>
+                <p>By providing my contact details, I authorise RentShield to send occasional updates about its products and services. I can opt out at any time, and my data is handled in line with <a href="/welcome/privacy/" target="_blank" rel="noopener">RentShield's privacy policy</a>.</p>
+            </label>
+        </div>
+
+        <div class="rs-actions">
+            <a class="rs-back-btn" href="{% url 'rentshield-signup-about' %}">Back</a>
+            <button type="submit" class="rs-btn">
+                <span class="rs-btn-label">Create account</span>
+                <span class="arr" aria-hidden="true">&rarr;</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="rs-signin-note">Trusted by owners &amp; agencies across Dubai.</p>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+    <script>
+      (function(){ var s=document.getElementById("id_country"); if(s){ s.addEventListener("change",function(){ s.classList.toggle("placeholder", !s.value); }); } })();
+    </script>
+{% endblock %}

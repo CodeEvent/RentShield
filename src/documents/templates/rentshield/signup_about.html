@@ -1,0 +1,64 @@
+{% extends "rentshield/signup_base.html" %}
+{% load static %}
+{% block title %}Tell us about yourself{% endblock %}
+{% block head_extra %}<style>
+  .req{color:var(--error);}
+  .rs-name-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .rs-name-row .rs-field{margin-bottom:0;}
+  @media (max-width:520px){.rs-name-row{grid-template-columns:1fr;gap:1.2rem;}}
+</style>{% endblock %}
+{% block content %}
+    <div class="rs-progress"><div class="rs-progress-bar" style="width:66%"></div></div>
+    <p class="rs-progress-label">Step 2 of 3</p>
+
+    <label class="rs-label-h1" for="id_company_name">Tell us about yourself</label>
+    <span class="rs-hint">This helps us set up RentShield the right way for how you work.</span>
+
+    <form method="post" class="rs-submit-form" id="rs-about-form" novalidate>
+        {% csrf_token %}
+        <div class="rs-name-row">
+            <div class="rs-field">
+                <label for="id_first_name">First Name <span class="req">*</span></label>
+                <input type="text" name="first_name" id="id_first_name" class="rs-input" autocomplete="given-name" value="{{ first_name }}" required autofocus>
+            </div>
+            <div class="rs-field">
+                <label for="id_surname">Last Name <span class="req">*</span></label>
+                <input type="text" name="surname" id="id_surname" class="rs-input" autocomplete="family-name" value="{{ surname }}" required>
+            </div>
+        </div>
+        <div class="rs-field">
+            <label for="id_company_name">Company Name <span class="req">*</span></label>
+            <input type="text" name="company_name" id="id_company_name" class="rs-input" autocomplete="organization" value="{{ company_name }}" required>
+        </div>
+
+        <div class="rs-field">
+            <label for="id_job_title">Job Title <span class="req">*</span></label>
+            <input type="text" name="job_title" id="id_job_title" class="rs-input" autocomplete="organization-title" value="{{ job_title }}" required>
+        </div>
+
+        <div class="rs-field">
+            <label for="id_priorities">Priorities for using RentShield <span class="req">*</span></label>
+            <select name="priorities" id="id_priorities" class="rs-select{% if not priorities %} placeholder{% endif %}" required>
+                <option value="" {% if not priorities %}selected{% endif %} disabled hidden>Select&hellip;</option>
+                {% for opt in priority_options %}
+                  <option value="{{ opt }}" {% if opt == priorities %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="rs-actions">
+            <a class="rs-back-btn" href="{% url 'rentshield-signup-email' %}">Back</a>
+            <button type="submit" class="rs-btn">
+                <span class="rs-btn-label">Next</span>
+                <span class="arr" aria-hidden="true">&rarr;</span>
+            </button>
+        </div>
+    </form>
+
+    <p class="rs-signin-note">Already have an account? <a href="{% url 'rentshield-signup-email' %}">Log in</a></p>
+    <script src="{% static 'rentshield/signup-submit.js' %}"></script>
+    <script>
+      // Keep the select's placeholder colour until a real option is chosen.
+      (function(){ var s=document.getElementById("id_priorities"); if(s){ s.addEventListener("change",function(){ s.classList.toggle("placeholder", !s.value); }); } })();
+    </script>
+{% endblock %}
