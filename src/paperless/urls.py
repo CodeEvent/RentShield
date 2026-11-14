@@ -85,6 +85,8 @@ from documents.rentshield_views import rs_record_detail_view
 from documents.rentshield_views import rs_document_redirect_view
 from documents.rentshield_views import rs_upload_view
 from documents.rentshield_views import rs_esign_settings_view
+from documents.rentshield_views import rs_contacts_view
+from documents.rentshield_views import rs_contact_detail_view
 from documents.rentshield_views import rs_properties_view
 from documents.rentshield_views import rs_verification_view
 from documents.rentshield_views import rs_compliance_view
@@ -934,6 +936,8 @@ urlpatterns = [
         name="rentshield-spa-internal-redirect",
     ),
     re_path(r"^properties/?$", rs_properties_view, name="rentshield-properties"),
+    re_path(r"^contacts/(?P<slug>[\w-]+)/?$", rs_contact_detail_view, name="rentshield-contact-detail"),
+    re_path(r"^contacts/?$", rs_contacts_view, name="rentshield-contacts"),
     re_path(r"^verification/?$", rs_verification_view, name="rentshield-verification"),
     re_path(r"^compliance/?$", rs_compliance_view, name="rentshield-compliance"),
     re_path(r"^disputes/?$", rs_disputes_view, name="rentshield-disputes"),

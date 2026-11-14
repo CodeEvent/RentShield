@@ -1,40 +1,39 @@
 {% extends "rentshield/app_base.html" %}
 {% block title %}RentShield · Notices{% endblock %}
-{% block head_extra %}
-  .filters{display:flex;gap:.4rem;flex-wrap:wrap;}
-  .filter{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border-radius:var(--pill);font-weight:600;font-size:.85rem;color:var(--body);background:#f2f6fc;border:1px solid transparent;}
-  .filter:hover{background:var(--blue-tint);}
-  .filter.active{background:var(--blue);color:#fff;}
-  .filter .c{font-size:.75rem;opacity:.8;background:rgba(255,255,255,.25);padding:.02rem .4rem;border-radius:var(--pill);}
-  .filter:not(.active) .c{background:#fff;color:var(--muted);}
-{% endblock %}
 {% block topbar %}
   <div>
-    <h1>Notices</h1>
+    <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>Notices</h1>
     <div class="sub">Every tenancy notice across your properties.</div>
   </div>
   <div class="rs-spacer"></div>
-  <form class="rs-search" action="/records/" method="get"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input name="q" value="{{ q }}" placeholder="Search notices…"></form>
   <a class="rs-btn" href="/records/new/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New notice</a>
   <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
 {% endblock %}
 {% block content %}
+  <div class="rs-toolbar">
+    <span class="rs-tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>Table</span>
+    <span style="width:1px;height:18px;background:var(--line);"></span>
+    <a class="rs-chipbtn" href="/records/" style="{% if status_filter == 'all' %}color:var(--ink);font-weight:600;background:var(--active);{% endif %}">All <span style="color:var(--faint);">{{ counts.all }}</span></a>
+    <a class="rs-chipbtn" href="/records/?status=served" style="{% if status_filter == 'served' %}color:var(--ink);font-weight:600;background:var(--active);{% endif %}">Served <span style="color:var(--faint);">{{ counts.served }}</span></a>
+    <a class="rs-chipbtn" href="/records/?status=matured" style="{% if status_filter == 'matured' %}color:var(--ink);font-weight:600;background:var(--active);{% endif %}">Matured <span style="color:var(--faint);">{{ counts.matured }}</span></a>
+    <a class="rs-chipbtn" href="/records/?status=draft" style="{% if status_filter == 'draft' %}color:var(--ink);font-weight:600;background:var(--active);{% endif %}">Drafts <span style="color:var(--faint);">{{ counts.draft }}</span></a>
+    <div class="rs-spacer"></div>
+    <form class="rs-search" action="/records/" method="get" style="margin:0;min-width:180px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg><input name="q" value="{{ q }}" placeholder="Search notices"></form>
+  </div>
+
   <div class="card">
-    <div class="card-h">
-      <div class="filters">
-        <a class="filter {% if status_filter == 'all' %}active{% endif %}" href="/records/">All <span class="c">{{ counts.all }}</span></a>
-        <a class="filter {% if status_filter == 'served' %}active{% endif %}" href="/records/?status=served">Served <span class="c">{{ counts.served }}</span></a>
-        <a class="filter {% if status_filter == 'matured' %}active{% endif %}" href="/records/?status=matured">Matured <span class="c">{{ counts.matured }}</span></a>
-        <a class="filter {% if status_filter == 'draft' %}active{% endif %}" href="/records/?status=draft">Drafts <span class="c">{{ counts.draft }}</span></a>
-      </div>
-    </div>
     <div style="overflow-x:auto;">
     <table>
       <thead><tr><th>Tenant</th><th>Property</th><th>Ground</th><th>Status</th><th class="num">Notice date</th><th class="num">Deadline</th></tr></thead>
       <tbody>
         {% for r in rows %}
         <tr class="clickable" onclick="location.href='/records/{{ r.id }}/'">
-          <td class="t-main">{{ r.tenant }}</td>
+          <td>
+            <div class="rec-cell">
+              <span class="av g1">{{ r.tenant|slice:":1"|upper }}</span>
+              <span class="t-main">{{ r.tenant }}</span>
+            </div>
+          </td>
           <td>{{ r.property }}</td>
           <td>{{ r.reason }}</td>
           <td><span class="pill {{ r.status|lower }}">{{ r.status }}</span></td>

@@ -2463,6 +2463,95 @@ def rs_document_redirect_view(request, pk):
     return IndexView.as_view()(request)
 
 
+def _rs_contacts(user, today):
+    """Derive the CRM 'Contacts' (People) from the user's notices: every
+    distinct tenant and every distinct landlord becomes a contact, keyed
+    by role+name. No separate table -- the people already live on the
+    notices (tenant_name / landlord_name / landlord_email)."""
+    from django.utils.text import slugify
+
+    contacts = {}
+    for d in _rs_notice_qs(user):
+        rec = _rs_read_notice(d, today)
+        parties = [
+            ("tenant", rec["tenant"], ""),
+            ("landlord", rec["landlord"], rec["landlord_email"]),
+        ]
+        for role, name, email in parties:
+            if not name or name == "—":
+                continue
+            slug = f"{role}-{slugify(name)}"
+            c = contacts.setdefault(slug, {
+                "slug": slug, "name": name, "role": role,
+                "email": "", "properties": set(), "notices": [], "last": None,
+            })
+            if email and email != "—":
+                c["email"] = email
+            if rec["property"] and rec["property"] != "—":
+                c["properties"].add(rec["property"])
+            c["notices"].append(rec)
+            nd = rec["notice_date"]
+            if nd and (c["last"] is None or nd > c["last"]):
+                c["last"] = nd
+    for c in contacts.values():
+        c["properties"] = sorted(c["properties"])
+        c["notice_count"] = len(c["notices"])
+        statuses = [n["status"] for n in c["notices"]]
+        c["status"] = "Active" if any(s in ("Served", "Matured") for s in statuses) else "Draft"
+        c["initials"] = "".join(p[0] for p in c["name"].split()[:2]).upper() or "?"
+        c["av"] = "g%d" % ((sum(ord(ch) for ch in c["name"]) % 6) + 1)
+    return contacts
+
+
+def rs_contacts_view(request):
+    """GET /contacts/ -- Twenty-style People table of everyone RentShield
+    deals with (tenants + landlords), filterable by role via ?role= and
+    searchable via ?q=."""
+    from datetime import date
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    rows = list(_rs_contacts(request.user, today).values())
+    rows.sort(key=lambda c: (c["last"] or today), reverse=True)
+    counts = {
+        "all": len(rows),
+        "tenant": sum(1 for c in rows if c["role"] == "tenant"),
+        "landlord": sum(1 for c in rows if c["role"] == "landlord"),
+    }
+    role = (request.GET.get("role") or "").lower()
+    if role in ("tenant", "landlord"):
+        rows = [c for c in rows if c["role"] == role]
+    q = (request.GET.get("q") or "").strip().lower()
+    if q:
+        rows = [c for c in rows if q in (c["name"] + " " + c["email"] + " " + " ".join(c["properties"])).lower()]
+    return render(request, "rentshield/contacts.html", {
+        "rows": rows, "counts": counts, "active": "contacts",
+        "role_filter": role or "all", "q": request.GET.get("q") or "",
+        "first_name": request.user.first_name or "there",
+    })
+
+
+def rs_contact_detail_view(request, slug):
+    """GET /contacts/<slug>/ -- a Twenty-style record page for one contact:
+    a left fields panel + their related notices and a timeline."""
+    from datetime import date
+
+    from django.http import Http404
+
+    if not request.user.is_authenticated:
+        return redirect("rentshield-signup-start")
+    today = date.today()
+    contact = _rs_contacts(request.user, today).get(slug)
+    if contact is None:
+        raise Http404("Contact not found")
+    notices = sorted(contact["notices"], key=lambda n: (n["notice_date"] or today), reverse=True)
+    return render(request, "rentshield/contact_detail.html", {
+        "c": contact, "notices": notices, "active": "contacts",
+        "first_name": request.user.first_name or "there",
+    })
+
+
 RS_REQUIRED_PERIOD = {"sale": 365, "personal": 365, "renovation": 365, "demolition": 365, "nonpayment": 30, "breach": 30}
 
 

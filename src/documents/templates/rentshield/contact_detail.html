@@ -1,0 +1,97 @@
+{% extends "rentshield/app_base.html" %}
+{% block title %}RentShield · {{ c.name }}{% endblock %}
+{% block head_extra %}
+  .rp{display:grid;grid-template-columns:320px 1fr;gap:1.1rem;align-items:start;}
+  @media(max-width:940px){.rp{grid-template-columns:1fr;}}
+  .rp-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.4rem 1.1rem 1.1rem;border-bottom:1px solid var(--line-2);}
+  .rp-head .big{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:1.3rem;margin-bottom:.6rem;}
+  .rp-head h2{font-size:1.05rem;}
+  .rp-head .chip{margin-top:.5rem;}
+  dl.fields{display:flex;flex-direction:column;margin:0;padding:.5rem .3rem;}
+  dl.fields > div{display:flex;align-items:center;gap:.8rem;padding:.5rem .8rem;border-radius:var(--radius-sm);}
+  dl.fields > div:hover{background:var(--hover);}
+  dl.fields dt{color:var(--muted);font-size:.8rem;width:92px;flex:none;display:flex;align-items:center;gap:.45rem;}
+  dl.fields dt svg{width:14px;height:14px;color:var(--faint);}
+  dl.fields dd{margin:0;color:var(--ink);font-size:.83rem;font-weight:500;}
+  .tabs{display:flex;gap:.3rem;border-bottom:1px solid var(--line);padding:0 .2rem;margin-bottom:.9rem;}
+  .tabs .t{padding:.5rem .7rem;font-size:.83rem;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+  .tabs .t.on{color:var(--ink);font-weight:600;border-bottom-color:var(--blue);}
+  .tl{list-style:none;margin:0;padding:.3rem 0;}
+  .tl li{position:relative;padding:0 0 1.1rem 1.5rem;}
+  .tl li::before{content:"";position:absolute;left:4px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);}
+  .tl li::after{content:"";position:absolute;left:8px;top:14px;bottom:-2px;width:1px;background:var(--line);}
+  .tl li:last-child::after{display:none;}
+  .tl .tt{color:var(--ink);font-weight:500;font-size:.84rem;}
+  .tl .td{color:var(--muted);font-size:.78rem;margin-top:.1rem;}
+{% endblock %}
+{% block topbar %}
+  <div>
+    <a class="back" href="/contacts/"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Contacts</a>
+    <h1>{{ c.name }}</h1>
+  </div>
+  <div class="rs-spacer"></div>
+  <span class="chip role-{{ c.role }}">{{ c.role|title }}</span>
+  <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
+{% endblock %}
+{% block content %}
+  <div class="rp">
+    <!-- Left: fields panel -->
+    <div class="card">
+      <div class="rp-head">
+        <span class="av big {{ c.av }}">{{ c.initials }}</span>
+        <h2>{{ c.name }}</h2>
+        <span class="chip role-{{ c.role }}">{{ c.role|title }}</span>
+      </div>
+      <dl class="fields">
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0" stroke-linecap="round"/></svg>Role</dt><dd>{{ c.role|title }}</dd></div>
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</dt><dd>{% if c.email %}{{ c.email }}{% else %}<span style="color:var(--faint);">—</span>{% endif %}</dd></div>
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>Property</dt><dd>{% if c.properties %}{{ c.properties|join:", " }}{% else %}<span style="color:var(--faint);">—</span>{% endif %}</dd></div>
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Notices</dt><dd>{{ c.notice_count }}</dd></div>
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Last</dt><dd>{% if c.last %}{{ c.last|date:"d M Y" }}{% else %}—{% endif %}</dd></div>
+        <div><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>Status</dt><dd><span class="pill {% if c.status == 'Active' %}served{% else %}draft{% endif %}">{{ c.status }}</span></dd></div>
+      </dl>
+    </div>
+
+    <!-- Right: tabs -->
+    <div>
+      <div class="tabs">
+        <span class="t on">Notices <span style="color:var(--faint);">{{ c.notice_count }}</span></span>
+        <span class="t">Timeline</span>
+      </div>
+
+      <div class="card" style="margin-bottom:1.1rem;">
+        <table>
+          <thead><tr><th>Notice</th><th>Ground</th><th>Status</th><th>Deadline</th></tr></thead>
+          <tbody>
+            {% for n in notices %}
+            <tr class="clickable" onclick="location.href='/records/{{ n.id }}/'">
+              <td><div class="rec-cell"><span class="av sq g1"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span><span class="t-main">{{ n.reason }}</span></div></td>
+              <td>{{ n.property }}</td>
+              <td><span class="pill {{ n.status|lower }}">{{ n.status }}</span></td>
+              <td class="num">{% if n.deadline %}{{ n.deadline|date:"d M Y" }}{% else %}—{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4"><div class="empty">No notices for this contact.</div></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Timeline</h2></div>
+        <div style="padding:1rem 1.1rem;">
+          <ul class="tl">
+            {% for n in notices %}
+            <li>
+              <div class="tt">{{ n.reason }} · {{ n.property }}</div>
+              <div class="td">{% if n.notice_date %}Notice dated {{ n.notice_date|date:"d M Y" }}{% endif %} · {{ n.status }}{% if n.deadline %} · deadline {{ n.deadline|date:"d M Y" }}{% endif %}</div>
+            </li>
+            {% empty %}
+            <li><div class="td">No activity yet.</div></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
