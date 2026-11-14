@@ -15,7 +15,8 @@
     --bg:#ffffff; --side:#fafafa; --card:#ffffff;
     --line:#ececeb; --line-2:#f3f3f2; --line-strong:#e0e0de;
     --ink:#1a1a18; --body:#3b3b39; --muted:#90908c; --faint:#b4b4b0;
-    --blue:#1657b0; --blue-strong:#124a97; --blue-tint:#eef4fc; --blue-ring:#c4d9f4;
+    /* Twenty's blue accent */
+    --blue:#1961ed; --blue-strong:#174fc4; --blue-tint:#e9f0fe; --blue-ring:#bcd2fb;
     --green:#3b8f5f; --green-tint:#e9f5ee; --amber:#b4791f; --amber-tint:#fbf2e0;
     --red:#c0392b; --red-tint:#fbeceb;
     --hover:#f4f4f3; --active:#eeeeec;
@@ -136,6 +137,28 @@
   .chip.role-landlord{background:#f1ecfb;color:#7c3aed;}
   .empty{padding:2.6rem 1.2rem;text-align:center;color:var(--muted);}
 
+  /* ---------- Twenty right side-panel (opens on row click) ---------- */
+  .rs-scrim{position:fixed;inset:0;background:rgba(20,20,18,.10);opacity:0;pointer-events:none;transition:opacity .15s var(--ease);z-index:40;}
+  .rs-scrim.open{opacity:1;pointer-events:auto;}
+  .rs-drawer{position:fixed;top:0;right:0;height:100vh;width:384px;max-width:92vw;background:#fff;border-left:1px solid var(--line);box-shadow:var(--shadow-pop);transform:translateX(100%);transition:transform .2s var(--ease);z-index:41;display:flex;flex-direction:column;}
+  .rs-drawer.open{transform:none;}
+  .rs-drawer .dh{display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;border-bottom:1px solid var(--line);min-height:40px;}
+  .rs-drawer .dh .lbl{color:var(--muted);font-size:.78rem;font-weight:500;}
+  .rs-drawer .dh .x,.rs-drawer .dh .opn{display:inline-flex;align-items:center;gap:.3rem;padding:.26rem .5rem;border-radius:var(--radius-sm);color:var(--muted);font-size:.78rem;font-weight:500;cursor:pointer;border:none;background:none;}
+  .rs-drawer .dh .x:hover,.rs-drawer .dh .opn:hover{background:var(--hover);color:var(--ink);}
+  .rs-drawer .dh .opn{border:1px solid var(--line-strong);color:var(--body);}
+  .rs-drawer .dbody{overflow:auto;padding:1.1rem;}
+  .pbody{display:none;}
+  /* panel internals (reused from record page look) */
+  .pn-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:.4rem 0 1rem;border-bottom:1px solid var(--line-2);}
+  .pn-head .big{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:1.2rem;margin-bottom:.5rem;}
+  .pn-head h3{font-size:1rem;}
+  .pn-head .chip{margin-top:.45rem;}
+  dl.pn{display:flex;flex-direction:column;margin:.5rem 0 0;}
+  dl.pn > div{display:flex;gap:.8rem;padding:.45rem .3rem;}
+  dl.pn dt{color:var(--muted);font-size:.8rem;width:90px;flex:none;}
+  dl.pn dd{margin:0;color:var(--ink);font-size:.82rem;font-weight:500;}
+
   @media(max-width:1000px){.rs-app{grid-template-columns:1fr;} .rs-side{display:none;}}
   {% block head_extra %}{% endblock %}
 </style>
@@ -144,7 +167,7 @@
 <div class="rs-app">
   <aside class="rs-side">
     <div class="rs-ws">
-      <span class="mark"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#fff"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#1657b0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="mark"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M13 1 1 5.5v9.2c0 7 5 11.7 12 14 7-2.3 12-7 12-14V5.5L13 1Z" fill="#fff"/><path d="M7.4 15.2 11.3 19.1 18.6 11" stroke="#1961ed" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <span class="nm">RentShield</span>
       <svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
     </div>
@@ -182,5 +205,38 @@
     <div class="rs-content">{% block content %}{% endblock %}</div>
   </main>
 </div>
+
+<div class="rs-scrim" id="rsScrim"></div>
+<aside class="rs-drawer" id="rsDrawer" aria-hidden="true">
+  <div class="dh">
+    <span class="lbl">Details</span>
+    <div class="rs-spacer"></div>
+    <a class="opn" id="rsDrawerOpen" href="#"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14L21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Open</a>
+    <button class="x" data-close-drawer aria-label="Close"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="dbody" id="rsDrawerBody"></div>
+</aside>
+
+<script>
+(function(){
+  var scrim=document.getElementById('rsScrim'), drawer=document.getElementById('rsDrawer'),
+      body=document.getElementById('rsDrawerBody'), openBtn=document.getElementById('rsDrawerOpen');
+  function openPanel(row){
+    var tmpl=row.querySelector('.pbody'); if(!tmpl) return false;
+    body.innerHTML=tmpl.innerHTML;
+    openBtn.setAttribute('href', row.getAttribute('data-open')||'#');
+    drawer.classList.add('open'); scrim.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+    return true;
+  }
+  function close(){ drawer.classList.remove('open'); scrim.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+  document.addEventListener('click', function(e){
+    if(e.target.closest('[data-close-drawer]')){ close(); return; }
+    var row=e.target.closest('tr.clickable'); if(!row) return;
+    if(row.querySelector('.pbody')){ e.preventDefault(); openPanel(row); }
+  });
+  if(scrim) scrim.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+})();
+</script>
 </body>
 </html>

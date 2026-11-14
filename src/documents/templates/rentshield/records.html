@@ -26,8 +26,25 @@
       <thead><tr><th style="width:24%;">Tenant</th><th>Property</th><th>Ground</th><th>Status</th><th class="num">Notice date</th><th class="num">Deadline</th></tr></thead>
       <tbody>
         {% for r in rows %}
-        <tr class="clickable" onclick="location.href='/records/{{ r.id }}/'">
-          <td><div class="rec-cell"><span class="av g1">{{ r.tenant|slice:":1"|upper }}</span><span class="t-main">{{ r.tenant }}</span></div></td>
+        <tr class="clickable" data-open="/records/{{ r.id }}/">
+          <td>
+            <div class="rec-cell"><span class="av g1">{{ r.tenant|slice:":1"|upper }}</span><span class="t-main">{{ r.tenant }}</span></div>
+            <div class="pbody">
+              <div class="pn-head">
+                <span class="av big g1">{{ r.tenant|slice:":1"|upper }}</span>
+                <h3>{{ r.tenant }}</h3>
+                <span class="pill {{ r.status|lower }}">{{ r.status }}</span>
+              </div>
+              <dl class="pn">
+                <div><dt>Ground</dt><dd>{{ r.reason }}</dd></div>
+                <div><dt>Property</dt><dd>{{ r.property }}</dd></div>
+                <div><dt>Notice date</dt><dd>{% if r.notice_date %}{{ r.notice_date|date:"d M Y" }}{% else %}—{% endif %}</dd></div>
+                <div><dt>Notice period</dt><dd>{{ r.period }} days</dd></div>
+                <div><dt>Deadline</dt><dd>{% if r.deadline %}{{ r.deadline|date:"d M Y" }}{% else %}—{% endif %}</dd></div>
+                <div><dt>Status</dt><dd><span class="pill {{ r.status|lower }}">{{ r.status }}</span></dd></div>
+              </dl>
+            </div>
+          </td>
           <td style="color:var(--muted);">{{ r.property }}</td>
           <td>{{ r.reason }}</td>
           <td><span class="pill {{ r.status|lower }}">{{ r.status }}</span></td>

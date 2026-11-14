@@ -27,8 +27,25 @@
       </thead>
       <tbody>
         {% for c in rows %}
-        <tr class="clickable" onclick="location.href='/contacts/{{ c.slug }}/'">
-          <td><div class="rec-cell"><span class="av {{ c.av }}">{{ c.initials }}</span><span class="t-main">{{ c.name }}</span></div></td>
+        <tr class="clickable" data-open="/contacts/{{ c.slug }}/">
+          <td>
+            <div class="rec-cell"><span class="av {{ c.av }}">{{ c.initials }}</span><span class="t-main">{{ c.name }}</span></div>
+            <div class="pbody">
+              <div class="pn-head">
+                <span class="av big {{ c.av }}">{{ c.initials }}</span>
+                <h3>{{ c.name }}</h3>
+                <span class="chip role-{{ c.role }}">{{ c.role|title }}</span>
+              </div>
+              <dl class="pn">
+                <div><dt>Role</dt><dd>{{ c.role|title }}</dd></div>
+                <div><dt>Email</dt><dd>{{ c.email|default:"—" }}</dd></div>
+                <div><dt>Properties</dt><dd>{% if c.properties %}{{ c.properties|join:", " }}{% else %}—{% endif %}</dd></div>
+                <div><dt>Notices</dt><dd>{{ c.notice_count }}</dd></div>
+                <div><dt>Last activity</dt><dd>{% if c.last %}{{ c.last|date:"d M Y" }}{% else %}—{% endif %}</dd></div>
+                <div><dt>Status</dt><dd><span class="pill {% if c.status == 'Active' %}served{% else %}draft{% endif %}">{{ c.status }}</span></dd></div>
+              </dl>
+            </div>
+          </td>
           <td><span class="chip role-{{ c.role }}">{{ c.role|title }}</span></td>
           <td>{% if c.email %}{{ c.email }}{% else %}<span style="color:var(--faint);">—</span>{% endif %}</td>
           <td style="color:var(--muted);">{% if c.properties %}{{ c.properties|join:", " }}{% else %}—{% endif %}</td>
