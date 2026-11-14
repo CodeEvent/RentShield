@@ -58,15 +58,19 @@
   .rs-navitem .cnt{margin-left:auto;font-size:.72rem;color:var(--faint);font-variant-numeric:tabular-nums;}
   .rs-side-foot{margin-top:auto;display:flex;align-items:center;gap:.4rem;padding:.55rem .6rem;color:var(--muted);font-size:.76rem;font-weight:500;}
 
-  /* ---------- Main ---------- */
+  /* ---------- Main (Twenty: compact breadcrumb header) ---------- */
   .rs-main{min-width:0;display:flex;flex-direction:column;background:var(--bg);}
-  .rs-top{display:flex;align-items:center;gap:.9rem;padding:.75rem 1.3rem;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:5;min-height:54px;}
-  .rs-top h1{font-size:1.02rem;font-weight:600;display:flex;align-items:center;gap:.5rem;}
-  .rs-top h1 svg{width:17px;height:17px;color:var(--muted);}
-  .rs-top .sub{color:var(--muted);font-size:.8rem;margin-top:.12rem;font-weight:400;}
-  .rs-top .back{display:inline-flex;align-items:center;gap:.25rem;color:var(--muted);font-weight:500;font-size:.78rem;margin-bottom:.15rem;}
-  .rs-top .back:hover{color:var(--ink);}
+  .rs-top{display:flex;align-items:center;gap:.6rem;padding:.45rem .9rem;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:5;min-height:40px;}
+  .rs-top h1{font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:.45rem;letter-spacing:-.005em;}
+  .rs-top h1 svg{width:15px;height:15px;color:var(--muted);}
+  .rs-top .sub{color:var(--muted);font-size:.76rem;font-weight:400;display:inline;}
+  .rs-top .back{display:inline-flex;align-items:center;gap:.2rem;color:var(--muted);font-weight:500;font-size:.78rem;padding:.2rem .35rem;border-radius:5px;}
+  .rs-top .back:hover{color:var(--ink);background:var(--hover);}
   .rs-spacer{flex:1;}
+  /* breadcrumb separator chip for record pages */
+  .rs-crumb{display:flex;align-items:center;gap:.4rem;color:var(--muted);font-size:.84rem;font-weight:500;min-width:0;}
+  .rs-crumb .sep{color:var(--faint);}
+  .rs-crumb .cur{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .rs-btn{display:inline-flex;align-items:center;gap:.4rem;background:var(--blue);color:#fff;font-weight:600;font-size:.82rem;border:none;border-radius:var(--radius-sm);padding:.44rem .8rem;cursor:pointer;transition:background-color .14s var(--ease);}
   .rs-btn:hover{background:var(--blue-strong);}
   .rs-btn svg{width:15px;height:15px;}
@@ -75,15 +79,24 @@
   .rs-user{display:flex;align-items:center;gap:.5rem;}
   .rs-avatar{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:600;font-size:.76rem;}
   .rs-content{padding:1.15rem 1.3rem 2.2rem;display:flex;flex-direction:column;gap:1.1rem;}
+  /* list pages opt into Twenty full-bleed via body.list */
+  .listview .rs-content{padding:0;gap:0;}
 
-  /* ---------- Toolbar (view tabs + filter/sort) ---------- */
-  .rs-toolbar{display:flex;align-items:center;gap:.5rem;padding:.4rem 0 .1rem;}
-  .rs-tab{display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:500;color:var(--muted);padding:.3rem .55rem;border-radius:var(--radius-sm);}
+  /* ---------- Twenty view bar ---------- */
+  .rs-viewbar{display:flex;align-items:center;gap:.4rem;padding:.4rem .7rem;border-bottom:1px solid var(--line);min-height:40px;}
+  .rs-tab{display:inline-flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:500;color:var(--muted);padding:.28rem .5rem;border-radius:var(--radius-sm);}
   .rs-tab.on{color:var(--ink);background:var(--active);font-weight:600;}
   .rs-tab svg{width:15px;height:15px;}
-  .rs-chipbtn{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--muted);font-weight:500;padding:.3rem .55rem;border-radius:var(--radius-sm);border:1px solid transparent;}
+  .rs-vsep{width:1px;height:18px;background:var(--line);margin:0 .15rem;}
+  .rs-chipbtn{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--muted);font-weight:500;padding:.28rem .5rem;border-radius:var(--radius-sm);border:1px solid transparent;cursor:pointer;}
   .rs-chipbtn:hover{background:var(--hover);color:var(--ink);}
+  .rs-chipbtn.on{color:var(--ink);background:var(--active);font-weight:600;}
   .rs-chipbtn svg{width:14px;height:14px;}
+  .rs-vsearch{display:flex;align-items:center;gap:.4rem;padding:.26rem .5rem;border-radius:var(--radius-sm);color:var(--muted);}
+  .rs-vsearch:hover{background:var(--hover);}
+  .rs-vsearch svg{width:15px;height:15px;}
+  .rs-vsearch input{border:none;background:transparent;outline:none;color:var(--ink);font:inherit;font-size:.8rem;width:150px;}
+  .rs-vsearch input::placeholder{color:var(--faint);}
 
   /* ---------- Cards ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
@@ -93,14 +106,20 @@
 
   /* ---------- Tables (Twenty spreadsheet style) ---------- */
   table{width:100%;border-collapse:collapse;}
-  th{text-align:left;font-size:.74rem;font-weight:500;color:var(--muted);padding:.5rem 1rem;border-bottom:1px solid var(--line);background:var(--bg);white-space:nowrap;}
-  td{padding:.52rem 1rem;border-bottom:1px solid var(--line-2);font-size:.83rem;vertical-align:middle;color:var(--body);}
+  th{text-align:left;font-size:.72rem;font-weight:500;color:var(--muted);padding:.38rem .9rem;border-bottom:1px solid var(--line);background:var(--bg);white-space:nowrap;}
+  td{padding:.36rem .9rem;border-bottom:1px solid var(--line-2);font-size:.82rem;vertical-align:middle;color:var(--body);height:34px;}
   tr:last-child td{border-bottom:none;}
   tbody tr.clickable{cursor:pointer;}
   tbody tr:hover{background:var(--hover);}
   .t-main{color:var(--ink);font-weight:500;}
   .t-sub{color:var(--muted);font-size:.78rem;margin-top:.05rem;}
   .num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+  /* full-bleed list table (no card chrome, like Twenty) */
+  .tbl{width:100%;overflow-x:auto;}
+  .tbl th{position:sticky;top:0;}
+  .tbl-foot{display:flex;align-items:center;gap:.5rem;padding:.4rem .9rem;border-top:1px solid var(--line);color:var(--muted);font-size:.76rem;}
+  .tbl-foot .add{display:inline-flex;align-items:center;gap:.3rem;color:var(--muted);font-weight:500;padding:.2rem .4rem;border-radius:5px;}
+  .tbl-foot .add:hover{background:var(--hover);color:var(--ink);}
   /* record cell: avatar + name, like Twenty's first column */
   .rec-cell{display:flex;align-items:center;gap:.55rem;}
   .av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.68rem;font-weight:600;color:#fff;flex:none;background:var(--blue);}
@@ -121,7 +140,7 @@
   {% block head_extra %}{% endblock %}
 </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 <div class="rs-app">
   <aside class="rs-side">
     <div class="rs-ws">

@@ -1,51 +1,37 @@
 {% extends "rentshield/app_base.html" %}
 {% block title %}RentShield · Contacts{% endblock %}
-{% block head_extra %}
-  .rolepill{display:inline-flex;align-items:center;font-size:.73rem;font-weight:500;padding:.12rem .5rem;border-radius:var(--radius-sm);}
-  .props{color:var(--muted);}
-{% endblock %}
+{% block body_class %}listview{% endblock %}
 {% block topbar %}
-  <div>
-    <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</h1>
-    <div class="sub">{{ counts.all }} {{ counts.all|pluralize:"person,people" }} across your notices</div>
-  </div>
+  <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</h1>
   <div class="rs-spacer"></div>
-  <a class="rs-btn" href="/records/new/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</a>
+  <a class="rs-btn" href="/records/new/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</a>
   <div class="rs-user"><div class="rs-avatar">{{ first_name|slice:":1"|upper }}</div></div>
 {% endblock %}
 {% block content %}
-  <div class="rs-toolbar">
-    <span class="rs-tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>Table</span>
-    <span style="width:1px;height:18px;background:var(--line);"></span>
-    <a class="rs-chipbtn {% if role_filter == 'all' %}on{% endif %}" href="/contacts/" style="{% if role_filter == 'all' %}color:var(--ink);font-weight:600;{% endif %}">All <span style="color:var(--faint);">{{ counts.all }}</span></a>
-    <a class="rs-chipbtn" href="/contacts/?role=tenant" style="{% if role_filter == 'tenant' %}color:var(--ink);font-weight:600;{% endif %}">Tenants <span style="color:var(--faint);">{{ counts.tenant }}</span></a>
-    <a class="rs-chipbtn" href="/contacts/?role=landlord" style="{% if role_filter == 'landlord' %}color:var(--ink);font-weight:600;{% endif %}">Landlords <span style="color:var(--faint);">{{ counts.landlord }}</span></a>
+  <div class="rs-viewbar">
+    <span class="rs-tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>All contacts</span>
+    <span class="rs-vsep"></span>
+    <a class="rs-chipbtn {% if role_filter == 'all' %}on{% endif %}" href="/contacts/">All <span style="color:var(--faint);">{{ counts.all }}</span></a>
+    <a class="rs-chipbtn {% if role_filter == 'tenant' %}on{% endif %}" href="/contacts/?role=tenant">Tenants <span style="color:var(--faint);">{{ counts.tenant }}</span></a>
+    <a class="rs-chipbtn {% if role_filter == 'landlord' %}on{% endif %}" href="/contacts/?role=landlord">Landlords <span style="color:var(--faint);">{{ counts.landlord }}</span></a>
     <div class="rs-spacer"></div>
-    <form class="rs-search" action="/contacts/" method="get" style="margin:0;min-width:180px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-      <input name="q" value="{{ q }}" placeholder="Search contacts">
-    </form>
+    <form class="rs-vsearch" action="/contacts/" method="get"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input name="q" value="{{ q }}" placeholder="Search"></form>
+    <span class="rs-chipbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M7 12h10M10 18h4"/></svg>Filter</span>
+    <span class="rs-chipbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h8M3 18h5M17 6v12m0 0l-3-3m3 3l3-3"/></svg>Sort</span>
   </div>
 
-  <div class="card">
+  <div class="tbl">
     <table>
       <thead>
-        <tr>
-          <th>Name</th><th>Role</th><th>Email</th><th>Properties</th><th>Notices</th><th>Last activity</th><th>Status</th>
-        </tr>
+        <tr><th style="width:26%;">Name</th><th>Role</th><th>Email</th><th>Properties</th><th>Notices</th><th>Last activity</th><th>Status</th></tr>
       </thead>
       <tbody>
         {% for c in rows %}
         <tr class="clickable" onclick="location.href='/contacts/{{ c.slug }}/'">
-          <td>
-            <div class="rec-cell">
-              <span class="av {{ c.av }}">{{ c.initials }}</span>
-              <span class="t-main">{{ c.name }}</span>
-            </div>
-          </td>
+          <td><div class="rec-cell"><span class="av {{ c.av }}">{{ c.initials }}</span><span class="t-main">{{ c.name }}</span></div></td>
           <td><span class="chip role-{{ c.role }}">{{ c.role|title }}</span></td>
           <td>{% if c.email %}{{ c.email }}{% else %}<span style="color:var(--faint);">—</span>{% endif %}</td>
-          <td class="props">{% if c.properties %}{{ c.properties|join:", " }}{% else %}—{% endif %}</td>
+          <td style="color:var(--muted);">{% if c.properties %}{{ c.properties|join:", " }}{% else %}—{% endif %}</td>
           <td class="num">{{ c.notice_count }}</td>
           <td class="num">{% if c.last %}{{ c.last|date:"d M Y" }}{% else %}—{% endif %}</td>
           <td><span class="pill {% if c.status == 'Active' %}served{% else %}draft{% endif %}">{{ c.status }}</span></td>
@@ -55,5 +41,10 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  <div class="tbl-foot">
+    <span>{{ counts.all }} record{{ counts.all|pluralize }}</span>
+    <span class="rs-vsep"></span>
+    <a class="add" href="/records/new/"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add</a>
   </div>
 {% endblock %}
