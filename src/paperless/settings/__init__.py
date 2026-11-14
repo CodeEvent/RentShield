@@ -216,6 +216,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "paperless.security_headers.SecurityHeadersMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "documents.rentshield_middleware.RentShieldNoStoreMiddleware",
 ]
 
 # Optional to enable compression
